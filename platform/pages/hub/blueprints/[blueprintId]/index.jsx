@@ -17,8 +17,12 @@ import Link from '@/components/Link'
 import List from '@/components/List'
 import StructuredData from '@/components/StructuredData'
 
+import {
+  useApexHostURL,
+  usePortalApex,
+  useSpaceApex,
+} from '@/hooks/useHostname'
 import useSession from '@/hooks/useSession'
-import { usePortalApex } from '@/hooks/useHostname'
 
 import faq from '@/content/faqs/platform-blueprints.yaml'
 
@@ -26,6 +30,10 @@ import { UserCircleIcon } from '@heroicons/react/24/solid'
 
 export function PageHero({ instance }) {
   const portalApex = usePortalApex()
+
+  const spaceApex = useSpaceApex()
+
+  const toApexHostURL = useApexHostURL()
 
   const { data: session } = useSession()
 
@@ -36,11 +44,12 @@ export function PageHero({ instance }) {
   const portal = instance.blueprint?.portals?.[0]
 
   // @note sites take priority over portals for the public visit link
-  const visitHref = site
-    ? `https://${site.domain}`
-    : portal
-      ? `https://${portal.slug}.${portalApex}`
-      : null
+  const visitHref =
+    site && spaceApex
+      ? toApexHostURL(site.slug, spaceApex)
+      : portal
+        ? toApexHostURL(portal.slug, portalApex)
+        : null
 
   return (
     <>
@@ -299,9 +308,7 @@ Index.getLayout = function (children, { instance }) {
         data={{
           '@context': 'https://schema.org/',
           '@type': 'SoftwareApplication',
-          url: `/hub/blueprints/${
-            instance.slug || instance.id
-          }`,
+          url: `/hub/blueprints/${instance.slug || instance.id}`,
           name: instance.name,
           description: instance.description,
           applicationCategory: 'AI Chatbot',
@@ -412,7 +419,7 @@ export async function getServerSideProps(context) {
 
               sites: {
                 select: {
-                  domain: true,
+                  slug: true,
                 },
 
                 orderBy: {

@@ -43,7 +43,7 @@ describe('PortalList', () => {
       const { getByTestId } = render(<PortalList />)
 
       expect(getByTestId('extra-links')).toHaveTextContent(
-        'https://test-portal.chatbotkit.agency'
+        'http://test-portal.chatbotkit.agency'
       )
     })
   })
@@ -214,7 +214,7 @@ describe('PortalList', () => {
 
       // Default extraLinks should handle any slug format
       expect(getByTestId('extra-links')).toHaveTextContent(
-        'https://test-portal.chatbotkit.agency'
+        'http://test-portal.chatbotkit.agency'
       )
     })
 
@@ -230,7 +230,7 @@ describe('PortalList', () => {
       const { getByTestId } = render(<PortalList />)
 
       expect(getByTestId('extra-links')).toHaveTextContent(
-        'https://test-portal.chatbotkit.agency'
+        'http://test-portal.chatbotkit.agency'
       )
     })
 

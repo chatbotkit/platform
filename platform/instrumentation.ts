@@ -4,6 +4,7 @@ import {
 } from '@chatbotkit-dev/observability/next/server'
 
 import { BANNER } from '@/lib/banner'
+import { startClock } from '@/lib/clock'
 import { warnlog } from '@/lib/debug'
 import { isDevelopment } from '@/lib/env'
 
@@ -30,6 +31,10 @@ export async function register() {
           '. Do not expose this instance publicly.'
       )
     }
+
+    // @note the one place the platform has that outlives a request - see
+    // lib/clock.ts.
+    startClock()
   }
 
   return registerObservability()

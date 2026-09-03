@@ -210,12 +210,19 @@ parts of host and subscription configuration, is therefore not baked into the
 and keep secrets out of image layers.
 
 The current community image deliberately bakes the neutral single-host
-topology: `SITE_URL=http://localhost:3000`, with no app-shell origins, apexes or
-external zones. Runtime service variables such as the database, Redis, Qdrant
-and S3-compatible storage endpoints remain configurable. Deployment identity
-that Next currently exposes through `next.config.js` is still frozen at build
-time; do not present the same digest as portable across arbitrary public domains
-until that migration is complete.
+topology: `SITE_URL=http://localhost:3000`, with no app-shell origins or
+external zones. Two apexes are baked alongside it so deployment-issued
+subdomains work out of the box: `SPACE_APEX=space.localhost` and
+`PORTAL_APEX=portal.localhost`. Browsers resolve any `*.localhost` name to
+loopback, so a space site published as `acme` answers at
+`http://acme.space.localhost:3000` with no DNS or hosts-file setup (`curl`
+needs `--resolve`). The runtime `SPACE_APEX` and `PORTAL_APEX` must name the
+same apexes as the build, which the compose files ensure; a different apex
+needs a rebuild with the matching build arguments. Runtime service variables
+such as the database, Redis, Qdrant and S3-compatible storage endpoints remain
+configurable. Deployment identity that Next currently exposes through
+`next.config.js` is still frozen at build time; do not present the same digest
+as portable across arbitrary public domains until that migration is complete.
 
 ## API endpoint
 

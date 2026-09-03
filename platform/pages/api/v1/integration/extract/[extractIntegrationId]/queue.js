@@ -2,6 +2,7 @@
 import prisma from '@/prisma/client'
 import { Trigger } from '@/prisma/types'
 
+import { setContextConversation } from '@/lib/context.store'
 import { isAutonomousConversation } from '@/lib/conversation.app'
 import debug from '@/lib/debug'
 import { fetchPlusPlus } from '@/lib/egress.fetch'
@@ -177,6 +178,11 @@ export async function handleIdleEvent(extractIntegrationId, payload, context) {
   )
 
   // Perform the extraction.
+
+  // @note the engine resolves message attachments (images) through the
+  // context conversation; without it any conversation with an upload throws
+
+  setContextConversation(conversation)
 
   // @note usage is recorded by the conversation engine internally via
   // usageMeta and usageReferences passed here

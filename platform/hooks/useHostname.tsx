@@ -1,5 +1,5 @@
 /* eslint-disable custom-eslint-rules/no-restricted-client-imports -- the hostname seam itself - the constants seed first render and the data-* attributes overlay the runtime value */
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
 
 import { portalApex, spaceApex } from '@/config/apexes'
 import {
@@ -105,6 +105,36 @@ export function useSpaceApex(): string {
   }, [])
 
   return apex
+}
+
+/**
+ * Builds the URL of a deployment-issued `<slug>.<apex>` host. Apex hosts are
+ * served by the same server as the page, so the scheme and port follow the
+ * document location once hydrated - a Compose stack serves them over plain
+ * http on the site port - and the site URL before.
+ */
+export function useApexHostURL(): (slug: string, apex: string) => string {
+  const [{ protocol, port }, setLocation] = useState<{
+    protocol: string
+    port: string
+  }>(() => {
+    const url = new URL(siteUrl)
+
+    return { protocol: url.protocol, port: url.port }
+  })
+
+  useHydrationSafeLayoutEffect(() => {
+    setLocation({
+      protocol: window.location.protocol,
+      port: window.location.port,
+    })
+  }, [])
+
+  return useCallback(
+    (slug: string, apex: string) =>
+      `${protocol}//${slug}.${apex}${port ? `:${port}` : ''}`,
+    [protocol, port]
+  )
 }
 
 /**

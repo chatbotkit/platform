@@ -30,12 +30,11 @@
 //
 // Deduplication *is* honoured, in process and for half an hour, because it is
 // the one option that can be implemented without outliving anything.
-
 import type {
   QueueAuthentication,
   QueueDelivery,
-  QueuePublishOptions,
   QueueProvider,
+  QueuePublishOptions,
 } from '@chatbotkit-dev/queue-spec'
 
 export type * from '@chatbotkit-dev/queue-spec'

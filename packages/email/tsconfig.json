@@ -4,25 +4,27 @@
     "isolatedModules": true,
     "rootDir": ".",
     "noEmit": true,
+    "composite": true,
     "target": "es2021",
     "module": "esnext",
     "moduleResolution": "bundler",
-    "types": [
-      "node"
-    ],
     "lib": [
       "DOM",
-      "DOM.Iterable",
       "ES2021"
+    ],
+    "types": [
+      "node"
     ],
     "allowJs": true,
     "checkJs": false,
     "declaration": true,
-    "strict": true,
-    "noImplicitAny": true,
+    "strict": false,
+    "strictNullChecks": true,
+    "noImplicitOverride": true,
+    "skipLibCheck": true,
     "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
-    "composite": true
+    "resolveJsonModule": true,
+    "forceConsistentCasingInFileNames": true
   },
   "include": [
     "./src/**/*.ts",

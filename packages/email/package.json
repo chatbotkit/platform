@@ -37,6 +37,7 @@
   },
   "dependencies": {
     "@chatbotkit-dev/email-spec": "workspace:*",
+    "@chatbotkit-dev/fetch": "workspace:*",
     "@types/node": "^24.0.0"
   }
 }

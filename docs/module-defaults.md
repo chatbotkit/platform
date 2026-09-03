@@ -51,9 +51,17 @@ is set. Embedding still requires a configured model provider, such as
 
 ### Email
 
-The public email module writes delivery information to the console. This makes
-local email-code sign-in usable without SMTP but does not deliver external
-mail.
+The public email module delivers through whichever vendor it finds credentials
+for - Resend (`RESEND_API_KEY`), SendGrid (`SENDGRID_API_KEY`) or Amazon SES
+(`SES_AWS_ACCESS_KEY_ID` with its region and secret) - detected in that order,
+or pinned with `EMAIL_PROVIDER`. A vendor also needs `EMAIL_FROM`, a sender on
+a domain verified with that vendor; `assertConfigured` fails until both are
+present.
+
+With no credentials it writes delivery information to the console, text body
+included. This makes local email-code sign-in usable without a vendor but does
+not deliver external mail. Inbound mail is not supported by any of the vendors;
+an inbound implementation replaces the module.
 
 ### Sandbox
 

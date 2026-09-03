@@ -234,7 +234,7 @@
     "canvas": "file:../stubs/canvas",
     "chroma-js": "^3.1.2",
     "clsx": "^1.2.1",
-    "colorthief": "2.6.0",
+    "colorthief": "3.5.0",
     "contrast-color": "^1.0.1",
     "core-js": "^3.37.1",
     "core-js-pure": "^3.37.1",

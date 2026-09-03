@@ -1,20 +1,19 @@
-/* eslint-disable @typescript-eslint/no-require-imports */
 import useImageColorPalette from './useImageColorPalette'
 
 import { act, renderHook } from '@testing-library/react'
 
-// Mock colorthief
-jest.mock('colorthief', () => {
-  return jest.fn().mockImplementation(() => ({
-    getColor: jest.fn(),
-    getPalette: jest.fn(),
-  }))
-})
+import { getColor, getPalette } from 'colorthief'
 
-// Mock color lib
-jest.mock('@/lib/color', () => ({
-  rgbToHex: jest.fn((rgb) => `#${rgb.join('')}`),
+jest.mock('colorthief', () => ({
+  getColor: jest.fn(),
+  getPalette: jest.fn(),
 }))
+
+// @note the hook only reads `.hex()` off the colors the library returns
+const color = (r, g, b) => ({
+  hex: () =>
+    `#${[r, g, b].map((c) => c.toString(16).padStart(2, '0')).join('')}`,
+})
 
 describe('useImageColorPalette', () => {
   let mockImage
@@ -35,10 +34,7 @@ describe('useImageColorPalette', () => {
 
     global.Image = jest.fn(() => mockImage)
 
-    // Get mocked ColorThief instance
-    const ColorThief = require('colorthief')
-
-    mockColorThief = new ColorThief()
+    mockColorThief = { getColor, getPalette }
 
     jest.clearAllMocks()
   })
@@ -81,7 +77,7 @@ describe('useImageColorPalette', () => {
 
   describe('url changes', () => {
     it('should reload when url changes', async () => {
-      mockColorThief.getColor.mockReturnValue([255, 0, 0])
+      mockColorThief.getColor.mockReturnValue(color(255, 0, 0))
       mockColorThief.getPalette.mockReturnValue([])
 
       const { rerender } = renderHook(({ url }) => useImageColorPalette(url), {
@@ -122,7 +118,7 @@ describe('useImageColorPalette', () => {
     })
 
     it('should not throw when unmounted before image loads', async () => {
-      mockColorThief.getColor.mockReturnValue([255, 0, 0])
+      mockColorThief.getColor.mockReturnValue(color(255, 0, 0))
       mockColorThief.getPalette.mockReturnValue([])
 
       const { unmount } = renderHook(() =>

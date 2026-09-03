@@ -209,6 +209,11 @@ SPACE_APEX=example.site
 PARTNERS_APEX=example.partners
 ```
 
+The apex host rewrites are generated when Next builds, so the runtime values
+must match the ones the image was built with. The community image bakes
+`SPACE_APEX=space.localhost` and `PORTAL_APEX=portal.localhost`; see
+[Deployment](./deployment.md#production-boundary).
+
 ## App shell origins
 
 Two scalar origins identify the canonical app-shell endpoints. An origin must

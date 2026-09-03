@@ -2,25 +2,18 @@ import useImageColorPalette from './useImageColorPalette'
 
 import { renderHook, waitFor } from '@testing-library/react'
 
-import ColorThief from 'colorthief'
+import { getColor, getPalette } from 'colorthief'
 
-jest.mock('colorthief', () => {
-  return jest.fn().mockImplementation(() => ({
-    getColor: jest.fn(),
-    getPalette: jest.fn(),
-  }))
-})
-
-jest.mock('@/lib/color', () => ({
-  rgbToHex: jest.fn((rgb) => {
-    // Simple mock implementation for testing
-    const [r, g, b] = rgb
-
-    return `#${r.toString(16).padStart(2, '0')}${g
-      .toString(16)
-      .padStart(2, '0')}${b.toString(16).padStart(2, '0')}`
-  }),
+jest.mock('colorthief', () => ({
+  getColor: jest.fn(),
+  getPalette: jest.fn(),
 }))
+
+// @note the hook only reads `.hex()` off the colors the library returns
+const color = (r, g, b) => ({
+  hex: () =>
+    `#${[r, g, b].map((c) => c.toString(16).padStart(2, '0')).join('')}`,
+})
 
 describe('useImageColorPalette', () => {
   let mockColorThief
@@ -28,21 +21,19 @@ describe('useImageColorPalette', () => {
   beforeEach(() => {
     jest.clearAllMocks()
 
-    mockColorThief = {
-      getColor: jest.fn().mockReturnValue([255, 0, 0]), // Red
-      getPalette: jest.fn().mockReturnValue([
-        [255, 0, 0], // Red
-        [0, 255, 0], // Green
-        [0, 0, 255], // Blue
-        [255, 255, 0], // Yellow
-        [255, 0, 255], // Magenta
-        [0, 255, 255], // Cyan
-        [128, 128, 128], // Gray
-        [0, 0, 0], // Black
-      ]),
-    }
+    mockColorThief = { getColor, getPalette }
 
-    ColorThief.mockImplementation(() => mockColorThief)
+    getColor.mockReturnValue(color(255, 0, 0)) // Red
+    getPalette.mockReturnValue([
+        color(255, 0, 0), // Red
+        color(0, 255, 0), // Green
+        color(0, 0, 255), // Blue
+        color(255, 255, 0), // Yellow
+        color(255, 0, 255), // Magenta
+        color(0, 255, 255), // Cyan
+        color(128, 128, 128), // Gray
+        color(0, 0, 0), // Black
+      ])
 
     // Mock Image constructor
     global.Image = class {
@@ -108,7 +99,7 @@ describe('useImageColorPalette', () => {
       expect(result.current.palette).toContain('#0000ff')
       expect(mockColorThief.getPalette).toHaveBeenCalledWith(
         expect.any(Object),
-        8
+        { colorCount: 8 }
       )
     })
 
@@ -158,7 +149,7 @@ describe('useImageColorPalette', () => {
       const firstColor = result.current.color
 
       // Change to different color
-      mockColorThief.getColor.mockReturnValue([0, 255, 0]) // Green
+      mockColorThief.getColor.mockReturnValue(color(0, 255, 0)) // Green
 
       rerender({ url: 'https://example.com/image2.jpg' })
 
@@ -232,7 +223,7 @@ describe('useImageColorPalette', () => {
     })
 
     it('should handle getPalette errors', async () => {
-      mockColorThief.getColor.mockReturnValue([255, 0, 0])
+      mockColorThief.getColor.mockReturnValue(color(255, 0, 0))
       mockColorThief.getPalette.mockImplementation(() => {
         throw new Error('getPalette failed')
       })
@@ -397,12 +388,12 @@ describe('useImageColorPalette', () => {
 
     it('should remove duplicate colors from colorPalette', async () => {
       // Make palette include the same color as the dominant color
-      mockColorThief.getColor.mockReturnValue([255, 0, 0])
+      mockColorThief.getColor.mockReturnValue(color(255, 0, 0))
       mockColorThief.getPalette.mockReturnValue([
-        [255, 0, 0], // Duplicate of dominant color
-        [255, 0, 0], // Another duplicate
-        [0, 255, 0],
-        [0, 0, 255],
+        color(255, 0, 0), // Duplicate of dominant color
+        color(255, 0, 0), // Another duplicate
+        color(0, 255, 0),
+        color(0, 0, 255),
       ])
 
       const { result } = renderHook(() =>

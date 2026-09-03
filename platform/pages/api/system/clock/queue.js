@@ -407,7 +407,7 @@ export async function sendEvent(event) {
     }
   }
 
-  await queue(`/api/system/queue`, event)
+  await queue(`/api/system/clock/queue`, event)
 }
 
 /**
