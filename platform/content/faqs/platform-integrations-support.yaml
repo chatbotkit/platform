@@ -1,0 +1,20 @@
+- question: What is the Support Integration feature?
+  answer: The Support Integration is a functionality in ChatBotKit that enables users to integrate the chatbot with various support systems via email. This integration is designed to streamline customer support processes by automatically summarizing and sending conversation details to a configured support email.
+- question: How does the Support Integration work?
+  answer: When a conversation with the chatbot becomes idle, meaning there has been one hour of inactivity, the integration kicks in. It extracts the user's contact details, such as their name and email address, from the conversation. It then creates a summary of the entire conversation and compiles the full transcript.
+- question: What happens after the conversation is summarized?
+  answer: After creating the conversation summary and transcript, the integration sends an email to the configured support email address. It is important to note that this integration supports any email-based support system such as Zendesk, Intercom, Google Groups, and more.
+- question: What information does the email contain?
+  answer: The email sent by the integration contains two crucial pieces of information. Firstly, it includes a summarized version of the conversation, making it easy for support agents to grasp the context quickly. Secondly, the full transcript of the conversation is attached to the email, ensuring that agents have access to all the details.
+- question: How can support agents reply to the users?
+  answer: The integration ensures that the email sent to the support system contains the correct information, including a reply email address. This reply email address allows customer support agents to reply back directly from their support system to engage with the user efficiently.
+- question: What should be done to enable the Support Integration effectively?
+  answer: To make the Support Integration effective, the chatbot needs to be instructed to collect the user's email and name. This can be achieved by adding an additional backstory instruction when configuring the bot. By doing so, the integration will have the necessary contact information to execute the email sending process correctly.
+- question: Can the Support Integration work with any email support system?
+  answer: Yes, the Support Integration is designed to work seamlessly with any email-based support system. Whether you use Zendesk, Intercom, Google Groups, or any other email support platform, the integration will function effectively, provided the configuration is appropriately set up.
+- question: Is there any time limit for the conversation to be idle before the integration activates?
+  answer: Yes, the conversation needs to be idle for at least one hour of inactivity before the Support Integration triggers. Once the idle period is reached, the integration will perform the necessary tasks, as explained above.
+- question: Can I customize the content of the email sent to the support system?
+  answer: At the moment, the content of the email is standardized to include the summarized conversation and full transcript. However, future updates might allow for further customization based on user feedback and requirements.
+- question: Can the Support Integration extract other user information apart from name and email?
+  answer: As of the current version, the integration specifically extracts the user's name and email address. If you require other user information to be included in the email, additional customizations may be needed beyond the standard integration features.

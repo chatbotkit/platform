@@ -1,0 +1,42 @@
+{
+  "name": "@chatbotkit-dev/file-csv",
+  "version": "0.0.0",
+  "license": "Apache-2.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./src/index.ts"
+    },
+    "./parse": {
+      "import": "./src/parse.ts"
+    }
+  },
+  "scripts": {
+    "build": "true",
+    "check": "tsc6 --noEmit --incremental",
+    "clean": "run-s clean:*",
+    "clean:01-tsbuildinfo": "rimraf *.tsbuildinfo",
+    "clean:02-dist": "rimraf dist",
+    "clean:03-node_modules": "rimraf node_modules",
+    "format": "true",
+    "lint": "eslint src --ext .ts,.js,.tsx,.jsx",
+    "test": "NODE_OPTIONS=--experimental-vm-modules jest"
+  },
+  "access": "restricted",
+  "dependencies": {
+    "csv-parse": "^5.6.0"
+  },
+  "devDependencies": {
+    "@chatbotkit-dev/eslint-config": "workspace:*",
+    "@chatbotkit-dev/jest-jsdom": "workspace:*",
+    "@types/jest": "^29.5.11",
+    "@types/node": "^24.0.0",
+    "eslint": "^9.0.0",
+    "jest": "^29",
+    "npm-run-all2": "^9.0.3",
+    "rimraf": "^5.0.5",
+    "ts-jest": "^29.4.12",
+    "typescript": "npm:@typescript/typescript6@^6.0.2"
+  }
+}

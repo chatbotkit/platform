@@ -1,0 +1,20 @@
+math/evaluate:
+  provider: 'cbk'
+  icon: '@logo/chatbotkit.com'
+  name: Evaluate Math Expression
+  description: |
+    Evaluate a math expression
+  tags:
+    - math
+    - evaluate
+  instruction: |
+    ```fetch
+    method: POST
+    url: /api/auxiliary/skillset/ability/chatbotkit/math/evaluate
+    headers:
+      content-type: application/json
+    body:
+      expression: ((expression! ys|the math expression to evaluate))
+    options:
+      auth: internal
+    ```

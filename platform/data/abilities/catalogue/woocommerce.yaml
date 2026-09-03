@@ -1,0 +1,89 @@
+woocommerce/order/list:
+  provider: 'woocommerce'
+  icon: '@logo/woocommerce.com'
+  name: List WooCommerce Orders
+  description: List all orders in WooCommerce
+  tags:
+    - woocommerce
+    - order
+    - list
+  instruction: |
+    ```fetch
+    GET https://((domain!))/wp-json/wc/v3/orders HTTP/1.1
+    Authorization: ${SECRET_DEFAULT}
+    ```
+
+woocommerce/order/create:
+  provider: 'woocommerce'
+  icon: '@logo/woocommerce.com'
+  name: Create WooCommerce Order
+  description: Create a new order in WooCommerce
+  tags:
+    - woocommerce
+    - order
+    - create
+  instruction: |
+    ```fetch
+    POST https://((domain!))/wp-json/wc/v3/orders HTTP/1.1
+    Authorization: ${SECRET_DEFAULT}
+    Content-Type: application/json
+
+    {
+      "payment_method": "$[payment_method|Payment method]",
+      "payment_method_title": "$[payment_method_title|Payment method title]",
+      "set_paid": true,
+      "billing": {
+        "first_name": "$[billing_first_name|Billing first name]",
+        "last_name": "$[billing_last_name|Billing last name]",
+        "address_1": "$[billing_address_1|Billing address line 1]",
+        "city": "$[billing_city|Billing city]",
+        "state": "$[billing_state|Billing state]",
+        "postcode": "$[billing_postcode|Billing postcode]",
+        "country": "$[billing_country|Billing country]",
+        "email": "$[billing_email|Billing email]",
+        "phone": "$[billing_phone|Billing phone]"
+      },
+      "line_items": [
+        {
+          "product_id": $[product_id|Product ID],
+          "quantity": $[quantity|Quantity]
+        }
+      ]
+    }
+    ```
+
+woocommerce/order/update:
+  provider: 'woocommerce'
+  icon: '@logo/woocommerce.com'
+  name: Update WooCommerce Order
+  description: Update a specific order in WooCommerce
+  tags:
+    - woocommerce
+    - order
+    - update
+  instruction: |
+    ```fetch
+    PUT https://((domain!))/wp-json/wc/v3/orders/$[order_id|Order ID] HTTP/1.1
+    Authorization: ${SECRET_DEFAULT}
+    Content-Type: application/json
+
+    {
+      "status": "$[status|Order status]",
+      "customer_note": "$[customer_note|Customer note]"
+    }
+    ```
+
+woocommerce/product/details:
+  provider: 'woocommerce'
+  icon: '@logo/woocommerce.com'
+  name: Retrieve WooCommerce Product Details
+  description: Retrieve details of a specific product in WooCommerce
+  tags:
+    - woocommerce
+    - product
+    - details
+  instruction: |
+    ```fetch
+    GET https://((domain!))/wp-json/wc/v3/products/$[product_id|Product ID] HTTP/1.1
+    Authorization: ${SECRET_DEFAULT}
+    ```

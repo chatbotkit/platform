@@ -1,0 +1,18 @@
+- question: How do I embed the ChatBotKit AI Widget on my website?
+  answer: You can embed the AI Widget using a simple script tag or an iframe. Please refer to the [Embedding the Widget](https://chatbotkit.com/docs/widget#embedding-the-widget) section in our documentation for detailed instructions and code examples.
+- question: Can I customize the design of the AI Widget?
+  answer: Yes, the ChatBotKit AI Widget is highly customizable. You can choose from pre-built themes or create your own custom theme using the [Widget Playground](/playground/widget). Visit the [Themes](https://chatbotkit.com/docs/widget#themes) section in the documentation to learn more about customizing the widget's appearance.
+- question: Does the AI Widget support multiple languages?
+  answer: Yes, the AI Widget supports multi-language conversations out of the box. You can configure the available languages in your widget settings. For more information, check out the [Languages](https://chatbotkit.com/docs/widget#languages) section in our documentation.
+- question: Can I pass custom data to the AI Widget?
+  answer: Absolutely! You can pass custom data to the widget using data attributes or query parameters. This allows you to provide additional context or user details to personalize the conversation. See the [Widget Parameters](https://chatbotkit.com/docs/widget#widget-parameters) section for more details.
+- question: Is the AI Widget secure?
+  answer: Yes, security is a top priority for the ChatBotKit AI Widget. All conversations are encrypted, and you can restrict the widget to only load on specified domains. Review the [Origins](https://chatbotkit.com/docs/widget#origins) section in our documentation to learn more about the widget's security features.
+- question: How can I interact with the AI Widget programmatically?
+  answer: The ChatBotKit JavaScript SDK provides a powerful way to interact with the AI Widget using code. You can call methods, listen to events, and customize behavior. Check out the [SDK Embedding](https://chatbotkit.com/docs/widget#sdk-embedding) section for examples and a link to the full SDK reference.
+- question: Can I use the AI Widget with my existing chatbot?
+  answer: Yes, you can connect the AI Widget to an existing ChatBotKit bot. Navigate to the Integrations page, create a new Widget integration, and select your bot during setup. Read the [Setup](https://chatbotkit.com/docs/widget#setup) section for step-by-step instructions.
+- question: How much does the AI Widget cost?
+  answer: You can try the ChatBotKit AI Widget with a free trial, with paid plans offering additional features and higher limits. You can compare the available plans and pricing on our [Pricing](https://chatbotkit.com/pricing) page.
+- question: Can I use the AI Widget on mobile devices?
+  answer: Yes, the ChatBotKit AI Widget is fully responsive and works seamlessly on mobile devices. It automatically adapts to different screen sizes and provides a touch-friendly interface. Refer to the [Widget documentation](https://chatbotkit.com/docs/widget) for configuration details.

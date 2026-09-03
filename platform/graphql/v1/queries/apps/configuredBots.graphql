@@ -1,0 +1,29 @@
+query configuredBots(
+  $botIds: [ID!]
+  $blueprintIds: [ID!]
+  $includeRelatedBots: Boolean = false
+) {
+  bots(last: 100, botIds: $botIds, blueprintIds: $blueprintIds) {
+    edges {
+      node {
+        id
+        name
+        description
+        blueprint {
+          id
+        }
+      }
+    }
+  }
+
+  relatedBots(last: 100, botIds: $botIds, visibility: [protected])
+    @include(if: $includeRelatedBots) {
+    edges {
+      node {
+        id
+        name
+        description
+      }
+    }
+  }
+}

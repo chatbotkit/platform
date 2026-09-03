@@ -1,0 +1,155 @@
+pack/zoom:
+  provider: 'zoom'
+  icon: '@logo/zoom.us'
+  name: Run Zoom Operation
+  description: Execute Zoom operations such as listing meetings, creating meetings, and listing recordings.
+  tags:
+    - beta
+  instruction: |
+    ```pack
+    backstory: |
+      You are a Zoom expert. You can access all of the Zoom abilities to
+      interact with Zoom.
+
+      Use the available abilities to perform tasks in Zoom per the instructions
+      provided.
+
+      Failure to follow the instructions may result in unexpected outcomes and
+      unintended consequences.
+    task: ((task! ys|the task to perform in Zoom))
+    abilities:
+      - zoom/meeting/list
+      - zoom/meeting/create
+      - zoom/recording/list
+    ```
+  secret: '@platform/zoom'
+
+# ---
+
+zoom/meeting/list:
+  provider: 'zoom'
+  icon: '@logo/zoom.us'
+  name: List Meetings
+  description: List meetings in Zoom.
+  tags:
+    - zoom
+    - meeting
+    - beta
+  instruction: |
+    ```fetch
+    method: GET
+    url: https://api.zoom.us/v2/users/me/meetings
+    headers:
+      Authorization: ${SECRET_DEFAULT}
+    query:
+      type?: ((type ys? enum<upcoming_meetings,previous_meetings>|the type of meetings to list))
+    ```
+  secret: '@platform/zoom'
+
+zoom/meeting/list[upcoming]:
+  provider: 'zoom'
+  icon: '@logo/zoom.us'
+  name: List Upcoming Meetings
+  description: List upcoming meetings in Zoom.
+  tags:
+    - zoom
+    - meeting
+    - beta
+  instruction: |
+    ```fetch
+    method: GET
+    url: https://api.zoom.us/v2/users/me/meetings
+    headers:
+      Authorization: ${SECRET_DEFAULT}
+    query:
+      type: upcoming_meetings
+    ```
+  secret: '@platform/zoom'
+
+zoom/meeting/list[previous]:
+  provider: 'zoom'
+  icon: '@logo/zoom.us'
+  name: List Previous Meetings
+  description: List previous meetings in Zoom.
+  tags:
+    - zoom
+    - meeting
+    - beta
+  instruction: |
+    ```fetch
+    method: GET
+    url: https://api.zoom.us/v2/users/me/meetings
+    headers:
+      Authorization: ${SECRET_DEFAULT}
+    query:
+      type: previous_meetings
+    ```
+  secret: '@platform/zoom'
+
+zoom/meeting/create:
+  provider: 'zoom'
+  icon: '@logo/zoom.us'
+  name: Create Meeting
+  description: Create a meeting in Zoom.
+  tags:
+    - zoom
+    - meeting
+    - beta
+  instruction: |
+    ```fetch
+    method: POST
+    url: https://api.zoom.us/v2/users/me/meetings
+    headers:
+      Authorization: ${SECRET_DEFAULT}
+      Content-Type: application/json
+    body:
+      type: $[type! enum<2,3,8>|the type of the meeting where 2 is scheduled, 3 is recurring, and 8 is recurring with fixed time]
+      topic: $[topic! ys|the topic of the meeting]
+      agenda?: $[agenda ys?|the agenda of the meeting]
+      start_time: $[start_time! ys|the start time of the meeting - supports local time and GMT formats]
+      duration: $[duration! number|the duration of the meeting in minutes]
+    ```
+  secret: '@platform/zoom'
+
+# ---
+
+zoom/recording/list:
+  provider: 'zoom'
+  icon: '@logo/zoom.us'
+  name: List Recordings
+  description: List recordings in Zoom.
+  tags:
+    - zoom
+    - recording
+    - beta
+  instruction: |
+    ```fetch
+    method: GET
+    url: https://api.zoom.us/v2/users/me/recordings
+    query:
+      from?: $[from ys?|the start date of the recordings to list]
+      to?: $[to ys?|the end date of the recordings to list]
+    headers:
+      Authorization: ${SECRET_DEFAULT}
+    ```
+  secret: '@platform/zoom'
+
+zoom/recording/list[meeting]:
+  provider: 'zoom'
+  icon: '@logo/zoom.us'
+  name: List Meeting Recordings
+  description: List recordings of a meeting in Zoom.
+  tags:
+    - zoom
+    - recording
+    - beta
+  instruction: |
+    ```fetch
+    method: GET
+    url: https://api.zoom.us/v2/users/me/recordings
+    query:
+      meeting_id: $[meeting_id! ys|the meeting ID]
+    headers:
+      Authorization: ${SECRET_DEFAULT}
+    ```
+  secret: '@platform/zoom'

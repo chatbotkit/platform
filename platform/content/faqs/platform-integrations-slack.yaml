@@ -1,0 +1,14 @@
+- question: What is the name field?
+  answer: The name field is where you can give your chatbot a unique name. This name will be displayed in the Slack workspace where the bot is installed.
+- question: What is the description field?
+  answer: The description field is where you can provide a brief overview of what your chatbot does. This description will also be displayed in the ChatBotKit “Integrations” and Slack workspace where the bot is installed.
+- question: How do I install the chatbot into my Slack workspace?
+  answer: Once you have created your chatbot, you can press the Install button to automatically install it into your Slack workspace. This will create a new Slack app for your chatbot.
+- question: What is the setup process for the chatbot?
+  answer: After you have installed the chatbot into your Slack workspace, you will need to enter the signing secret and bot token to complete the setup process. These are provided to you when you create a new Slack app for your chatbot. Once you have entered these details, you can save them and your chatbot will be ready to use in your Slack workspace.
+- question: How do I use the chatbot in a Slack channel?
+  answer: To use the chatbot in a Slack channel, you can invite it by referencing its handle. Once the chatbot is in the channel, you can start a conversation by referencing it with the @ sign followed by any question. The chatbot will reply to your message, and a thread will be started to continue the conversation.
+- question: Are Slack direct messages and channels handled differently for private context?
+  answer: Yes. Direct messages and slash commands are treated as private, trusted conversations for context-backed authentication. Channels, private channels, and group conversations are treated more cautiously, so actions that require private user context or secret-backed authentication may need to continue in a DM or slash command flow.
+- question: How do I use the conversation tester?
+  answer: You can use the conversation tester to test your chatbot's responses to different messages. To start a conversation, simply type a message into the input field and hit enter. Your chatbot will respond with a message. You can continue the conversation by typing another message into the input field and hitting enter again.

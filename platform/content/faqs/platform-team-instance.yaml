@@ -1,0 +1,20 @@
+- question: How do I create a team?
+  answer: Navigate to the Teams section in your dashboard and click "Create Team". Provide a name and description for your team, then save it.
+- question: What access do team members have?
+  answer: All team members receive full admin access to your account. There are no granular permissions - all members have the same access level as the team owner.
+- question: How do I add members to my team?
+  answer: From your team's detail page, click "Add Member" and enter the email address of an existing ChatBotKit user. Only users with existing accounts can be added.
+- question: Can team members add other members?
+  answer: No, only the team owner can add or remove team members. Team members cannot manage team membership.
+- question: How do I remove a team member?
+  answer: Navigate to your team's member list, find the member you want to remove, and click the "Delete" action next to their email address.
+- question: What happens when I remove a team member?
+  answer: When you remove a team member, they lose access to your account through the team. Any individual access they may have remains unchanged.
+- question: Can I transfer team ownership?
+  answer: Team ownership cannot be transferred through the interface. Contact support if you need to change team ownership.
+- question: What are meta fields for teams?
+  answer: Meta fields allow you to add custom properties and metadata to your team for additional organization or integration purposes.
+- question: How do I delete a team?
+  answer: Only team owners can delete teams. Use the delete option in the team settings. This permanently removes the team and all memberships.
+- question: Where is granular access control managed?
+  answer: Granular access control and permissions are provided through dedicated portals, not through the team management system.

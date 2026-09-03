@@ -1,0 +1,21 @@
+# @note keep this template for now because we don't have a good way to build the header dynamically
+dropbox/file/fetch:
+  provider: 'dropbox'
+  icon: '@logo/dropbox.com'
+  name: Fetch Dropbox File
+  description: Fetch the text content of a file
+  tags:
+    - dropbox
+    - file
+    - fetch
+  instruction: |
+    ```fetch
+    method: POST
+    url: https://content.dropboxapi.com/2/files/download
+    headers:
+      Authorization: ${SECRET_DEFAULT}
+      Dropbox-API-Arg: '{ "path": $[path! js|the file path or id to fetch, the id is in the format "id:xxx"] }'
+    options:
+      text: true
+    ```
+  secret: '@platform/dropbox'

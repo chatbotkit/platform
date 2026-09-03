@@ -1,0 +1,55 @@
+# @see https://www.abstractapi.com/api/vat-validation-api#docs
+# @note this is a barebone OpenAPI spec for Abstract API VAT Validation
+# @todo replace with official spec when available
+openapi: 3.0.3
+info:
+  title: Abstract API VAT Validation
+  version: '1.0'
+  description: VAT number validation API
+servers:
+  - url: https://vat.abstractapi.com
+paths:
+  /v1/validate:
+    get:
+      operationId: validateVat
+      parameters:
+        - name: api_key
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: vat_number
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VatValidationResponse'
+components:
+  schemas:
+    VatValidationResponse:
+      type: object
+      properties:
+        vat_number:
+          type: string
+        valid:
+          type: boolean
+        company:
+          type: object
+          properties:
+            name:
+              type: string
+            address:
+              type: string
+        country:
+          type: object
+          properties:
+            code:
+              type: string
+            name:
+              type: string

@@ -1,0 +1,362 @@
+# @note reddit does not have a comprehensive OpenAPI spec, so we create a
+# minimal spec that covers RSS endpoints
+openapi: 3.0.0
+info:
+  title: Reddit RSS API
+  version: 1.0.0
+servers:
+  - url: https://www.reddit.com
+paths:
+  # Site-wide listings
+  /.rss:
+    get:
+      summary: Get front page feed
+      responses:
+        '200':
+          description: Success
+          content:
+            text/xml:
+              schema:
+                type: string
+  /r/popular/.rss:
+    get:
+      summary: Get popular feed
+      responses:
+        '200':
+          description: Success
+          content:
+            text/xml:
+              schema:
+                type: string
+  /r/all/.rss:
+    get:
+      summary: Get all feed
+      responses:
+        '200':
+          description: Success
+          content:
+            text/xml:
+              schema:
+                type: string
+
+  # Subreddit listings with sort options
+  /r/{subreddit}/{sort}/.rss:
+    get:
+      summary: Get subreddit feed with sort
+      parameters:
+        - name: subreddit
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: sort
+          in: path
+          required: true
+          schema:
+            type: string
+            enum:
+              - new
+              - hot
+              - top
+              - rising
+              - controversial
+        - name: t
+          in: query
+          description: Time range for top/controversial
+          schema:
+            type: string
+            enum:
+              - hour
+              - day
+              - week
+              - month
+              - year
+              - all
+      responses:
+        '200':
+          description: Success
+          content:
+            text/xml:
+              schema:
+                type: string
+
+  # Domain feeds
+  /domain/{domain}/.rss:
+    get:
+      summary: Get domain feed
+      parameters:
+        - name: domain
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            text/xml:
+              schema:
+                type: string
+
+  # Post comments feed
+  /r/{subreddit}/comments/{postId}/.rss:
+    get:
+      summary: Get post comments feed
+      parameters:
+        - name: subreddit
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: postId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            text/xml:
+              schema:
+                type: string
+
+  # User feeds
+  /user/{username}/.rss:
+    get:
+      summary: Get user overview feed
+      parameters:
+        - name: username
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            text/xml:
+              schema:
+                type: string
+  /user/{username}/submitted/.rss:
+    get:
+      summary: Get user submissions feed
+      parameters:
+        - name: username
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            text/xml:
+              schema:
+                type: string
+  /user/{username}/comments/.rss:
+    get:
+      summary: Get user comments feed
+      parameters:
+        - name: username
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            text/xml:
+              schema:
+                type: string
+
+  # Global search
+  /search.rss:
+    get:
+      summary: Search Reddit globally
+      parameters:
+        - name: q
+          in: query
+          required: true
+          description: Search query string
+          schema:
+            type: string
+        - name: sort
+          in: query
+          description: Sort order for search results
+          schema:
+            type: string
+            enum:
+              - relevance
+              - new
+              - hot
+              - top
+              - comments
+        - name: t
+          in: query
+          description: Time range for results
+          schema:
+            type: string
+            enum:
+              - hour
+              - day
+              - week
+              - month
+              - year
+              - all
+      responses:
+        '200':
+          description: Success
+          content:
+            text/xml:
+              schema:
+                type: string
+
+  # Subreddit-scoped search
+  /r/{subreddit}/search.rss:
+    get:
+      summary: Search within subreddit
+      parameters:
+        - name: subreddit
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: q
+          in: query
+          required: true
+          description: Search query string
+          schema:
+            type: string
+        - name: restrict_sr
+          in: query
+          description: Restrict to subreddit
+          schema:
+            type: string
+            enum:
+              - 'on'
+        - name: sort
+          in: query
+          description: Sort order for search results
+          schema:
+            type: string
+            enum:
+              - relevance
+              - new
+              - hot
+              - top
+              - comments
+        - name: t
+          in: query
+          description: Time range for results
+          schema:
+            type: string
+            enum:
+              - hour
+              - day
+              - week
+              - month
+              - year
+              - all
+      responses:
+        '200':
+          description: Success
+          content:
+            text/xml:
+              schema:
+                type: string
+
+  # Legacy API endpoint
+  /api/v1/user/{username}/comments:
+    post:
+      summary: List user comments via API
+      parameters:
+        - name: username
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+
+  # OAuth API - post and comment creation (base URL: https://oauth.reddit.com)
+  /api/submit:
+    post:
+      summary: Submit a new post
+      servers:
+        - url: https://oauth.reddit.com
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - sr
+                - kind
+                - title
+              properties:
+                sr:
+                  type: string
+                  description: subreddit name without r/
+                kind:
+                  type: string
+                  enum:
+                    - self
+                    - link
+                title:
+                  type: string
+                text:
+                  type: string
+                  description: post body in Markdown (for text posts)
+                url:
+                  type: string
+                  description: URL to submit (for link posts)
+                nsfw:
+                  type: boolean
+                  default: false
+                spoiler:
+                  type: boolean
+                  default: false
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /api/comment:
+    post:
+      summary: Post a comment or reply
+      servers:
+        - url: https://oauth.reddit.com
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - parent
+                - text
+              properties:
+                parent:
+                  type: string
+                  description: full name of the parent (t3_ for post, t1_ for comment)
+                text:
+                  type: string
+                  description: comment body in Markdown
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object

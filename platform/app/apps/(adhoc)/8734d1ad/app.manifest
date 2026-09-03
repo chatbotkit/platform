@@ -1,0 +1,9 @@
+{
+  "start": "/apps/8734d1ad",
+  "name": "Pilot",
+  "description": "Enable or disable predefined tasks from a fixed list. Toggle tasks on or off without creating or deleting them.",
+  "icon": "@lucide/toggle-left",
+  "order": 10000,
+  "category": "other",
+  "config": {}
+}

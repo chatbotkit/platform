@@ -1,0 +1,48 @@
+supabase/sql:
+  provider: 'supabase'
+  icon: '@logo/supabase.com'
+  name: Execute Supabase SQL Query
+  description: Execute a simple SQL query in Supabase.
+  tags:
+    - supabase
+    - sql
+    - beta
+  instruction: |
+    ```fetch
+    method: POST
+    url: /api/auxiliary/skillset/ability/supabase/sql
+    headers:
+      X-Access-Token: ${SECRET_DEFAULT}
+      Content-Type: application/json
+    body:
+      url: ((url! ys|the Supabase URL))
+      sql: ((sql! ys|the SQL query to execute - only select is supported))
+    options:
+      auth: internal
+    ```
+  secret: '@supabase'
+
+supabase/rpc:
+  provider: 'supabase'
+  icon: '@logo/supabase.com'
+  name: Execute Supabase RPC Function
+  description: Execute a Supabase RPC function with parameters.
+  tags:
+    - supabase
+    - rpc
+    - beta
+  instruction: |
+    ```fetch
+    method: POST
+    url: /api/auxiliary/skillset/ability/supabase/rpc
+    headers:
+      X-Access-Token: ${SECRET_DEFAULT}
+      Content-Type: application/json
+    body:
+      url: ((url! ys|the Supabase URL))
+      function: ((function! ys|the RPC function to execute))
+      params: $[params y|the parameters to pass to the RPC function - accepts json object]
+    options:
+      auth: internal
+    ```
+  secret: '@supabase'

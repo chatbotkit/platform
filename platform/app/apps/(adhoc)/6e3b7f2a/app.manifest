@@ -1,0 +1,9 @@
+{
+  "start": "/apps/6e3b7f2a",
+  "name": "Live Automations",
+  "description": "Developer tool for monitoring running tasks with live refresh and cancel controls.",
+  "icon": "@lucide/radar",
+  "order": 145,
+  "category": "developer",
+  "config": {}
+}

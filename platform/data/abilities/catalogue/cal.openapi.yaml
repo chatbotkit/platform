@@ -1,0 +1,109 @@
+# @see https://cal.com/docs/api-reference
+# @note this is a barebone OpenAPI spec for Cal.com API
+# @todo replace with official spec when available
+openapi: 3.0.3
+info:
+  title: Cal.com API
+  version: '1.0'
+servers:
+  - url: https://api.cal.com/v1
+paths:
+  /events:
+    get:
+      operationId: listEvents
+      parameters:
+        - name: start
+          in: query
+          schema:
+            type: string
+        - name: end
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventList'
+    post:
+      operationId: createEvent
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateEvent'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventResponse'
+  /events/{id}:
+    get:
+      operationId: getEvent
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventResponse'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+  schemas:
+    CreateEvent:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        start:
+          type: string
+        end:
+          type: string
+        timezone:
+          type: string
+    Event:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        start:
+          type: string
+        end:
+          type: string
+        timezone:
+          type: string
+        created_at:
+          type: string
+    EventResponse:
+      type: object
+      properties:
+        event:
+          $ref: '#/components/schemas/Event'
+    EventList:
+      type: object
+      properties:
+        events:
+          type: array
+          items:
+            $ref: '#/components/schemas/Event'
+security:
+  - bearerAuth: []

@@ -1,0 +1,14 @@
+- question: What are teams in ChatBotKit?
+  answer: Teams allow you to organize and manage group access to ChatBotKit resources. You can create teams, add members via email addresses, and collaborate effectively on projects.
+- question: How do I create a team?
+  answer: Click the "Create Team" button on the teams page, provide a name and description for your team, and save. Once created, you can start adding members.
+- question: How do I add members to a team?
+  answer: In your team's detail page, go to the Members section and enter the email address of the person you want to invite. They don't need to have a ChatBotKit account yet.
+- question: Can I remove members from a team?
+  answer: Yes, as the team owner, you can remove any member from your team at any time using the "Remove" button next to their email address.
+- question: Who can manage teams?
+  answer: Only the team owner (creator) can add/remove members, update team information, or delete the team. Team members have read-only access to team information.
+- question: What happens when I delete a team?
+  answer: Deleting a team will permanently remove the team and all its memberships. This action cannot be undone, so make sure you really want to delete the team.
+- question: How many members can I add to a team?
+  answer: There are no artificial limits on team size, but very large teams may impact performance. Contact support if you need to manage very large teams.

@@ -1,0 +1,17 @@
+- question: What are the examples?
+  answer: |-
+    The examples in the ChatBotKit Examples section are prompts that you can use to try out the chatbot you have created in our chat playground. These prompts, also known as backstories, ultimately define the personality and capabilities of your chatbot. They provide a starting point for your chatbot's interactions and help you test out different scenarios and responses.
+
+
+    By using the examples in the ChatBotKit Examples section, you can see how your chatbot responds to different types of user input and get a sense of its capabilities. The prompts you choose and the responses you provide will ultimately shape the personality and capabilities of your chatbot, so it's important to choose them carefully.
+- question: How do I use the examples?
+  answer: To use the examples in the ChatBotKit Examples section, simply select one of the prompts and type your response into the chatbox. Your chatbot will then respond based on the rules and responses that you have set up.
+- question: Can I create my own examples?
+  answer: |-
+    At this time, it is not possible to save examples in ChatBotKit. However, you can access previously used prompts via the Conversations section of the website. This section allows you to view and manage the conversations that your chatbot has had with users.
+
+
+    To access the Conversations section, simply click on the "Conversations" tab in the main menu. From there, you can view a list of all the conversations that your chatbot has had and filter the list by various criteria. You can also view the details of individual conversations and see the specific prompts and responses that were used.
+
+
+    Remember, the Conversations section is a helpful resource for managing and reviewing the interactions that your chatbot has had with users. Be sure to take advantage of this feature to get the most out of ChatBotKit.

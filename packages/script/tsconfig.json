@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "compilerOptions": {
+    "isolatedModules": true,
+    "rootDir": ".",
+    "noEmit": true,
+    "composite": true,
+    "target": "es2021",
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "lib": [
+      "DOM",
+      "ES2021"
+    ],
+    "types": [
+      "node",
+      "jest"
+    ],
+    "allowJs": true,
+    "declaration": true,
+    "strict": false,
+    "strictNullChecks": true,
+    "noImplicitOverride": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true
+  },
+  "include": [
+    "./src/**/*.ts",
+    "./src/**/*.js"
+  ],
+  "exclude": [
+    "node_modules",
+    "**/*.test.js"
+  ]
+}

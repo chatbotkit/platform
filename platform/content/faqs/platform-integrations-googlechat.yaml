@@ -1,0 +1,47 @@
+- question: What is the Google Chat integration?
+  answer: The Google Chat integration allows you to deploy a ChatBotKit AI bot directly into Google Chat spaces and direct messages. Users can interact with the bot by @mentioning it in spaces or by sending it direct messages. Each integration is tied to its own Google Cloud project and Chat app, so you can run multiple independent bots.
+
+- question: What is the name field?
+  answer: The name field is where you give your Google Chat bot integration a recognisable label. This name is only used within ChatBotKit to help you identify this integration - it does not change the bot's display name in Google Chat.
+
+- question: What is the description field?
+  answer: The description field lets you add a brief note about the purpose of this integration. This is internal to ChatBotKit and helps you remember what the integration is for when managing multiple bots.
+
+- question: What is the Service Account Key?
+  answer: The Service Account Key is a JSON credentials file for a Google Cloud service account that belongs to the same project where the Google Chat API is configured. ChatBotKit uses this key to send reply messages back to Google Chat on behalf of your bot. You create the service account in the Google Cloud Console under "IAM & Admin > Service Accounts", then download a JSON key. No IAM role assignment is required - the service account is recognised as your Chat app because it lives in the same project as the Chat API configuration, and authorises requests via the "chat.bot" OAuth scope. Keep this value secure - it is stored encrypted and never displayed in full after saving.
+
+- question: What is the Project Number?
+  answer: The Project Number is the numeric identifier for your Google Cloud project - a long string of digits (typically 12), distinct from the human-readable project ID. ChatBotKit uses it to verify that incoming event requests are genuinely from your Chat app, by checking the "audience" claim in the JWT token that Google Chat sends with every request. If left empty, JWT verification is skipped - useful during development but not recommended for production. The quickest place to find it is the Chat API Configuration page itself (shown under "Application info" as "Project number (App ID)"). It is also on the Google Cloud Console home dashboard in the "Project info" card, in the project picker drop-down in the top bar, or via the command `gcloud projects describe YOUR_PROJECT_ID --format="value(projectNumber)"`.
+
+- question: What is the HTTP Endpoint URL?
+  answer: The HTTP Endpoint URL is the address that Google Chat will POST interaction events to. Before you can configure it you must enable the Google Chat API in the Google Cloud Console under "APIs & Services > Library" (search for "Google Chat API" and click Enable) - until then the API will not appear anywhere else in the console. Once enabled, set this URL under "APIs & Services > Enabled APIs & services > Google Chat API > Configuration > Connection settings". Each integration has its own unique endpoint, so multiple users can each run their own Chat bot independently.
+
+- question: How do I get my bot working in Google Chat?
+  answer: First create the integration and save it to get your unique HTTP Endpoint URL. In the Google Cloud Console, enable the Chat API and go to its Configuration page. Set the HTTP Endpoint URL to the value shown on this page. In the same Google Cloud project, create a service account under "IAM & Admin > Service Accounts" and download a JSON key (no IAM role assignment is required), then paste the JSON into the Service Account Key field. Enter your Google Cloud Project Number, save, and click Setup. Finally, start a direct message with the app or add the app to a Google Chat space through "Manage members" or "Add people & apps" to start testing.
+
+- question: Why does the bot work in direct messages but not in a Google Chat space?
+  answer: The Chat app must be added to each space where you want it to respond. In Google Chat, open the target space, choose "Manage members" or "Add people & apps", search for the app by its App name, and add it. The Google Cloud "Join spaces and group conversations" setting only allows the app to be added to spaces; it does not automatically install the app into existing spaces.
+
+- question: What is the session duration?
+  answer: The session duration controls how long a user's conversation context is preserved. If a user sends a message after the session expires, a fresh conversation is started. By default this is one day. You can configure a shorter or longer window under Advanced Options.
+
+- question: What is the Allowed Senders field?
+  answer: The Allowed Senders field lets you restrict which Google Chat users can interact with this integration. Enter one entry per line - use the Google Chat user resource name (e.g. users/123456789012345678) or * to allow all users. Leave the field empty to deny all users. Unrecognised entries are silently discarded. This is useful for internal bots that should only respond to specific team members.
+
+- question: How do I find a Google Chat user resource name?
+  answer: User resource names follow the format "users/" followed by a numeric ID (e.g. users/123456789). You can find the sender's resource name in the integration's event log after they have sent at least one message - blocked sender events include the sender name in the metadata.
+
+- question: What is the Auto-Respond Configuration?
+  answer: Google Chat interaction webhooks only deliver direct messages and explicit app interactions in spaces, such as @mentions. They do not deliver every message posted in a space, so this setting cannot make the bot see unmentioned space messages. Use the Allowed Senders field to control who can interact with the bot.
+
+- question: Can the Google Chat bot respond to every message in a space without being mentioned?
+  answer: Not with the standard Google Chat interaction webhook. Google only sends this integration direct messages and explicit app interactions in spaces, such as @mentions. Responding to every message in a space would require a separate Google Workspace Events API subscription flow.
+
+- question: Are Google Chat direct messages and spaces handled differently for private context?
+  answer: Yes. Direct messages are treated as private, trusted conversations for context-backed authentication. Multi-user spaces and group conversations are treated more cautiously, so actions that require private user context or secret-backed authentication may need to continue in a direct message.
+
+- question: Does contact collection work for Google Chat?
+  answer: Yes. When contact collection is enabled, ChatBotKit creates and associates contact records for direct message conversations using the Google Chat sender identity. Contacts are not associated from multi-user spaces or group conversations.
+
+- question: Does Google Chat support file attachments?
+  answer: Yes. When Attachments is enabled, uploaded files sent to the Chat app are downloaded from Google Chat and made available to the bot as conversation attachments. Google Drive-backed attachments are skipped because they use a separate Drive file reference.

@@ -1,0 +1,154 @@
+# @see https://meetglimpse.com/google-trends-api/
+# @note this is a barebone OpenAPI spec for the Glimpse API
+openapi: 3.0.3
+info:
+  title: Glimpse API
+  version: '1.0'
+  description: Glimpse API for real-time search trend data and absolute search volume
+servers:
+  - url: https://enterprise.meetglimpse.com
+paths:
+  /v1/interest:
+    get:
+      operationId: getInterest
+      summary: Get search interest over time (normalized 0-100)
+      parameters:
+        - name: keyword
+          in: query
+          required: true
+          schema:
+            type: string
+          description: The keyword to retrieve search interest for
+        - name: geo
+          in: query
+          schema:
+            type: string
+          description: Two-letter country code (e.g., US). Omit for worldwide data.
+        - name: resolution
+          in: query
+          schema:
+            type: string
+            enum: [daily, weekly, monthly]
+            default: weekly
+          description: Time resolution for the data points
+        - name: phrase_match
+          in: query
+          schema:
+            type: boolean
+            default: false
+          description: When true, matches searches that contain the exact phrase
+      responses:
+        '200':
+          description: Successful response with interest over time data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InterestResponse'
+        '400':
+          description: Bad request
+        '401':
+          description: Unauthorized
+        '429':
+          description: Rate limit exceeded
+  /v1/interest_enriched:
+    get:
+      operationId: getInterestEnriched
+      summary: Get absolute search volume over time
+      parameters:
+        - name: keyword
+          in: query
+          required: true
+          schema:
+            type: string
+          description: The keyword to retrieve search volume for
+        - name: geo
+          in: query
+          schema:
+            type: string
+          description: Two-letter country code (e.g., US). Omit for worldwide data.
+        - name: resolution
+          in: query
+          schema:
+            type: string
+            enum: [daily, weekly, monthly]
+            default: weekly
+          description: Time resolution for the data points
+        - name: phrase_match
+          in: query
+          schema:
+            type: boolean
+            default: false
+          description: When true, matches searches that contain the exact phrase
+      responses:
+        '200':
+          description: Successful response with absolute search volume data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InterestEnrichedResponse'
+        '400':
+          description: Bad request
+        '401':
+          description: Unauthorized
+        '429':
+          description: Rate limit exceeded
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: apikey
+  schemas:
+    DataPoint:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+          example: '2024-01-01'
+        value:
+          type: number
+          example: 75
+    InterestResponse:
+      type: object
+      properties:
+        keyword:
+          type: string
+          example: keto
+        geo:
+          type: string
+          example: US
+        resolution:
+          type: string
+          example: weekly
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/DataPoint'
+    InterestEnrichedResponse:
+      type: object
+      properties:
+        keyword:
+          type: string
+          example: keto
+        geo:
+          type: string
+          example: US
+        resolution:
+          type: string
+          example: weekly
+        data:
+          type: array
+          items:
+            type: object
+            properties:
+              date:
+                type: string
+                format: date
+                example: '2024-01-01'
+              value:
+                type: number
+                example: 450000
+              yoy_growth:
+                type: number
+                example: 12.5

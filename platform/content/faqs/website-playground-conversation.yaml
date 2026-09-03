@@ -1,0 +1,6 @@
+- question: What is the Conversation Playground?
+  answer: The Conversation Playground is a testing environment where you can interact with a chatbot and experiment with different input prompts. It allows you to see how the chatbot responds and get a sense of its capabilities.
+- question: What can I do in the Conversation Playground?
+  answer: In the Conversation Playground, you can have conversations with the chatbot and see how it responds to different prompts. You can also experiment with different backstories and datasets to see how they affect the chatbot's responses.
+- question: Can I customize the chatbot's responses?
+  answer: The chatbot's responses in the Conversation Playground are generated based on the data it has been trained on and the prompts that you provide. You can try out different backstories and datasets to see how they affect the chatbot's responses, but you cannot customize the responses directly.

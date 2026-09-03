@@ -1,0 +1,17 @@
+- question: How is token usage calculated?
+  answer: In ChatBotKit, token usage is calculated based on the number of tokens consumed by the model during the generation of a response. Each word, symbol, or character in the input and output text is considered a token. The token usage is determined by the specific model you are using and the length of the text being processed. ChatBotKit uses token ratios to accurately track the number of tokens used by each model, allowing for proper billing and resource management.
+- question: What factors contribute to the calculation of token usage?
+  answer: |-
+    Token usage in ChatBotKit is influenced by multiple factors. Here are some key elements that contribute to the calculation of token usage:
+
+    1. Input text length: The number of tokens in the input text affects token usage. Each word, symbol, or character is counted as a token.
+    2. Output text length: Similarly, the length of the generated response or output text contributes to token usage. The more tokens required to generate the response, the higher the token consumption.
+    3. Model-specific characteristics: Different models have varying token ratios and context sizes. Token ratios act as multipliers to adjust the recorded token count, ensuring accurate billing and resource management. Additionally, the context size refers to the maximum number of tokens the model considers when generating a response. Models with larger context sizes may consume more tokens.
+    4. Customization settings: Customizing certain model properties, such as the maximum number of tokens (Max Tokens), can impact token usage. Increasing the Max Tokens setting allows for more tokens to be used during response generation, which may increase overall token consumption.
+- question: How can I increase my tokens?
+  answer: |-
+    To increase the number of tokens available for your chatbot, you have a few options:
+
+    1. Upgrade your plan: ChatBotKit offers different pricing plans with varying token limits. By upgrading to a higher-tier plan, you can gain access to more tokens for your chatbot.
+    2. Optimize your conversation: Analyze your chatbot's conversation flow and text inputs to identify any unnecessary or redundant content. By removing or minimizing such content, you can reduce token usage and potentially free up more tokens for your chatbot to use.
+    3. Adjust model settings: Some models allow you to customize the maximum number of tokens they can consume for generating a response. By increasing the "Max Tokens" setting for your chosen model, you can allocate more tokens to each interaction, enabling your chatbot to generate longer and more detailed responses.

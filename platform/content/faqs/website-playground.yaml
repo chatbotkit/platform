@@ -1,0 +1,6 @@
+- question: What are the playgrounds?
+  answer: Playgrounds are interactive testing environments that allow you to test and debug specific features of your chatbot. They allow you to enter different inputs and see how your chatbot responds in real-time.
+- question: How can I use different playgrounds?
+  answer: To use a playground, select it from the list of available playground and enter your desired input in the provided field. You can then see how your chatbot responds to the input in real-time.
+- question: What problems do playgrounds solve?
+  answer: Playgrounds help you identify and fix issues with your chatbot's functionality and behavior. They allow you to test and debug specific features of your chatbot in an interactive and efficient way, saving you time and effort during the development process.

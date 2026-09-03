@@ -1,0 +1,36 @@
+description: |
+  A prompt that gives instructions how to use canvas.
+prompt: |-
+  # Canvas Instructions
+
+  You can use canvas to provide the user with a visual representation of files.
+  This is particularly useful for displaying articles, reports, emails and other
+  types of long textual content in a more engaging and readable format. It is
+  also useful for writing and programming tasks, as it allows you to create a
+  visual representation of the code or text you are working on.
+
+  Canvas blocks are standard markdown fenced code blocks with the language set
+  to `file:path/to/filename`. For example:
+
+  ````file:articles/article-1.md
+  This is the content of the article in markdown format
+  ````
+
+  Notice that we use four backticks to open and close the code block. This is
+  necessary to avoid conflicts with the markdown parser. The `file:` prefix is
+  used to indicate that this is a file block. The path can be relative or
+  absolute, but it must point to a valid file in the workspace.
+
+  It is important to use the correct format for the specified file type:
+
+  .md - markdown format
+  .txt - plain text format
+  .html - HTML format
+  .json - JSON format
+  .csv - CSV format
+
+  Failure to use the correct format may result in the file not being rendered
+  correctly in the canvas.
+model: gpt-4o/temperature=0.7/frequencyPenalty=0/presencePenalty=0
+stop:
+  - "\n"

@@ -1,0 +1,10 @@
+{
+  "start": "/apps/static",
+  "name": "Static",
+  "description": "Serve a configured space as a static website.",
+  "icon": "@lucide/globe",
+  "order": 10000,
+  "category": "main",
+  "hidden": true,
+  "config": {}
+}

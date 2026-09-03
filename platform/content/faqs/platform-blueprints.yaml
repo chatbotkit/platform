@@ -1,0 +1,14 @@
+- question: What are ChatBotKit Blueprints?
+  answer: ChatBotKit Blueprints are the total collection of conversational and agentic AI resources such as bots, datasets, skillsets, and integrations. They provide a comprehensive view of all these resources and how they interconnect, allowing for greater control and customizability.
+- question: How can I use Blueprints?
+  answer: Blueprints are used to build complex AI systems, such as AI agents. These agents can interact with each other to achieve complex goals. You can customize and control your AI systems using Blueprints.
+- question: What are the benefits of using Blueprints?
+  answer: Blueprints provide a global perspective of your AI resources, making it easier to understand the connections and dependencies between different elements. This can help increase efficiency and reduce errors when building and managing complex AI systems.
+- question: Can I customize my Blueprints?
+  answer: Yes, Blueprints are designed to be highly customizable. This allows you to tailor your AI systems to meet specific needs and objectives.
+- question: Can multiple AI agents interact within the Blueprints?
+  answer: Absolutely, Blueprints enable AI agents to interact with each other, facilitating the achievement of complex goals that require the collaboration of multiple agents.
+- question: Can Blueprints be shared or reused?
+  answer: Yes, Blueprints can be shared or reused across different projects or with different team members. This allows for efficient scaling and collaboration, and promotes reusability of successful AI models and configurations.
+- question: Is there a limit to the complexity or size of a Blueprint?
+  answer: There's no inherent limit to the complexity or size of a Blueprint. However, the manageability and performance may be affected by very large or complex Blueprints. It's always essential to balance complexity with maintainability and efficiency.

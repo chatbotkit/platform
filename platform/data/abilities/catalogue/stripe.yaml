@@ -1,0 +1,40 @@
+stripe/payment-intent/create:
+  provider: 'stripe'
+  icon: '@logo/stripe.com'
+  name: Create Stripe Payment Intent
+  description: Create a new payment intent in Stripe
+  tags:
+    - stripe
+    - payment
+    - create
+  instruction: |
+    ```fetch
+    method: POST
+    url: https://api.stripe.com/v1/payment_intents
+    headers:
+      Authorization: ${SECRET_DEFAULT}
+      Content-Type: application/x-www-form-urlencoded
+    body:
+      amount: $[amount ys|payment amount in cents]
+      currency: $[currency! ys|currency code]
+      payment_method_types[]: card
+    ```
+
+stripe/payment/details:
+  provider: 'stripe'
+  icon: '@logo/stripe.com'
+  name: Retrieve Stripe Payment Details
+  description: Retrieve details of a specific payment in Stripe
+  tags:
+    - stripe
+    - payment
+    - details
+  instruction: |
+    ```fetch
+    method: GET
+    url: https://api.stripe.com/v1/payment_intents
+    path:
+      - $[payment_intent_id ys|payment intent ID]
+    headers:
+        Authorization: ${SECRET_DEFAULT}
+    ```

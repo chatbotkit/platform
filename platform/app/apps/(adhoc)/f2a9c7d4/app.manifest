@@ -1,0 +1,10 @@
+{
+  "start": "/apps/f2a9c7d4",
+  "name": "Media Graph",
+  "description": "Compose AI images on a canvas - generate from prompts and transform images into new ones along a graph.",
+  "icon": "@lucide/workflow",
+  "banner": "/apps/f2a9c7d4/banner.png",
+  "order": 40,
+  "category": "lab",
+  "config": {}
+}

@@ -1,0 +1,7 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security report
+    url: https://github.com/chatbotkit/platform/blob/main/SECURITY.md
+    about: >-
+      Do not report security issues publicly. Email contact@cbk.ai
+      with "Security report" in the subject - see SECURITY.md.

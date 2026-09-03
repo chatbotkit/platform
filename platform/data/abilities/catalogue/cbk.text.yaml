@@ -1,0 +1,101 @@
+text/generate:
+  provider: 'cbk'
+  icon: '@logo/chatbotkit.com'
+  name: Generate Text
+  description: |
+    Generate text based on the provided source text
+  tags:
+    - text
+    - generation
+  instruction: |
+    ```text
+    ((directions|optional directions how to generate the text))
+
+    $[source!|the source to use for text generation]
+    ```
+
+text/article/generate:
+  # @todo migrate to text/generate[article]
+  provider: 'cbk'
+  icon: '@logo/chatbotkit.com'
+  name: Generate Article
+  description: |
+    Generate an article on the provided topic and source text
+  tags:
+    - text
+    - generation
+    - article
+  instruction: |
+    ```text/model=gpt-4
+    Generate a 5-paragraph article on the provided topic, using the supplied source text as a reference.
+
+    Guidelines:
+    - The article should be structured into five coherent paragraphs.
+    - Maintain the tone of the article consistent with the source text.
+    - Ensure the article is relevant to the provided topic.
+    - Do not replicate the source text verbatim. Use it as a guide to generate a unique article.
+
+    ((directions|additional directions how to generate the article))
+
+    Topic:
+    $[topic!|the topic of the article]
+
+    Source:
+    $[source!|the source to use for the article generation]
+    ```
+
+text/email/generate:
+  # @todo migrate to text/generate[email]
+  provider: 'cbk'
+  icon: '@logo/chatbotkit.com'
+  name: Generate Email
+  description: |
+    Generate an email based on the provided source text
+  tags:
+    - text
+    - generation
+    - email
+  instruction: |
+    ```text
+    Generate an email based on the provided source text.
+
+    ((directions|optional directions how to generate the email))
+
+    $[source!|the source to use for email generation]
+    ```
+
+# ---
+
+text/summarize:
+  provider: 'cbk'
+  icon: '@logo/chatbotkit.com'
+  name: Summarize Text
+  description: |
+    Summarize the content of a text
+  tags:
+    - text
+    - summary
+  instruction: |
+    ```text
+    ((directions|optional directions how to summarize the text))
+
+    $[source!|the source text to summarize]
+    ```
+
+# ---
+
+text/translate:
+  provider: 'cbk'
+  icon: '@logo/chatbotkit.com'
+  name: Translate Text
+  description: |
+    Translate text from one language to another
+  tags:
+    - text
+    - translation
+  instruction: |
+    ```text/translate
+    ((directions|optional directions how to translate the text))
+
+    $[source!|the source text to translate]
+    ```

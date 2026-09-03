@@ -1,0 +1,122 @@
+# @see https://dictionaryapi.dev/
+# @note this is a barebone OpenAPI spec for Free Dictionary API
+# This is a public API that does not require authentication
+openapi: 3.0.3
+info:
+  title: Free Dictionary API
+  description: A free and open-source API for English word definitions, phonetics, and usage examples
+  version: '2.0'
+servers:
+  - url: https://api.dictionaryapi.dev
+paths:
+  /api/v2/entries/en/{word}:
+    get:
+      operationId: getWordDefinition
+      summary: Get word definition
+      description: Get comprehensive definition, pronunciation, phonetics, meanings, synonyms, antonyms, and usage examples for an English word
+      parameters:
+        - name: word
+          in: path
+          required: true
+          description: The English word to look up
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful response with word definitions
+          content:
+            application/json:
+              schema:
+                type: array
+                minItems: 1
+                items:
+                  $ref: '#/components/schemas/WordDefinition'
+        '404':
+          description: Word not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotFoundResponse'
+components:
+  schemas:
+    WordDefinition:
+      type: object
+      properties:
+        word:
+          type: string
+          example: hello
+        phonetic:
+          type: string
+          example: həˈləʊ
+        phonetics:
+          type: array
+          items:
+            type: object
+            properties:
+              text:
+                type: string
+              audio:
+                type: string
+              sourceUrl:
+                type: string
+              license:
+                type: object
+                properties:
+                  name:
+                    type: string
+                  url:
+                    type: string
+        meanings:
+          type: array
+          items:
+            type: object
+            properties:
+              partOfSpeech:
+                type: string
+                example: noun
+              definitions:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    definition:
+                      type: string
+                    synonyms:
+                      type: array
+                      items:
+                        type: string
+                    antonyms:
+                      type: array
+                      items:
+                        type: string
+                    example:
+                      type: string
+              synonyms:
+                type: array
+                items:
+                  type: string
+              antonyms:
+                type: array
+                items:
+                  type: string
+        license:
+          type: object
+          properties:
+            name:
+              type: string
+            url:
+              type: string
+        sourceUrls:
+          type: array
+          items:
+            type: string
+    NotFoundResponse:
+      type: object
+      properties:
+        title:
+          type: string
+          example: No Definitions Found
+        message:
+          type: string
+        resolution:
+          type: string

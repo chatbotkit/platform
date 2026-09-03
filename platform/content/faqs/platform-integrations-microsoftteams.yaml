@@ -1,0 +1,32 @@
+- question: What is the Microsoft Teams integration?
+  answer: The Microsoft Teams integration allows you to deploy a ChatBotKit AI bot directly into your Microsoft Teams workspace. Users can interact with the bot in direct messages, group chats, and channels through the Microsoft Bot Framework.
+
+- question: What is the name field?
+  answer: The name field is where you give your Teams bot integration a recognisable label. This name is only used within ChatBotKit to help you identify this integration - it does not change the bot's display name in Teams.
+
+- question: What is the description field?
+  answer: The description field lets you add a brief note about the purpose of this integration. This is internal to ChatBotKit and helps you remember what the integration is for when managing multiple bots.
+
+- question: What is the Application ID?
+  answer: The Application ID (also known as the Microsoft App ID) is a unique identifier assigned to your bot when you register it in the Azure portal. You can find it in your Azure Bot resource under "Configuration > Microsoft App ID".
+
+- question: What is the Application Secret?
+  answer: The Application Secret (also called the client secret or App Password) is a credential used to authenticate the bot with Microsoft services. You create it in the Azure portal under your app registration's "Certificates & secrets" section. Keep this value secure - it is stored encrypted and never displayed in full after saving.
+
+- question: What is the Tenant ID?
+  answer: The Tenant ID identifies the Azure Active Directory tenant your bot belongs to. For bots that should only work within a single organisation, use your organisation's tenant ID. Use "common" if you want your bot to accept connections from any Microsoft tenant (multi-tenant scenario).
+
+- question: What is the Messaging Endpoint?
+  answer: The Messaging Endpoint is the URL that Microsoft Teams uses to deliver messages to your bot. You must copy this URL and enter it in your Azure Bot resource under "Configuration > Messaging endpoint". Without this, Teams will not be able to forward messages to ChatBotKit.
+
+- question: How do I get my bot working in Teams?
+  answer: First create the integration and save it. Then configure the Application ID, Application Secret, and Tenant ID from your Azure Bot resource. Copy the Messaging Endpoint URL into your Azure Bot's "Configuration" page. Finally, add the Teams channel in your Azure Bot's "Channels" section and click "Setup" in ChatBotKit to verify the credentials.
+
+- question: What is the session duration?
+  answer: The session duration controls how long a user's conversation context is preserved. If a user sends a message after the session expires, a fresh conversation is started. By default this is one day. You can configure a shorter or longer window under Advanced Options.
+
+- question: What is the Allowed Senders field?
+  answer: The Allowed Senders field lets you restrict which Teams users can interact with this integration. Enter one Teams user ID (e.g. 29:1AbcDef...) per line. Use * to allow all users. Leave the field empty to deny all users. This is useful for internal bots that should only respond to specific team members.
+
+- question: How do I find a Teams user ID?
+  answer: Teams user IDs follow the format "29:1" followed by a unique alphanumeric string. You can find a user's Teams ID in the integration's event log after they have sent at least one message - blocked sender events include the fromId in the metadata. Alternatively, your Teams administrator can retrieve user IDs from the Microsoft Teams admin centre or via the Microsoft Graph API.

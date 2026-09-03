@@ -1,0 +1,13 @@
+listen/transcribe:
+  provider: 'cbk'
+  icon: '@logo/chatbotkit.com'
+  name: Transcribe Audio
+  description: Transcribe the content of an audio URL
+  tags:
+    - audio
+    - transcribe
+  instruction: |
+    ```listen
+    $[audio_url!|the URL of the audio file to transcribe]
+    ((directions|directions how to describe an image))
+    ```

@@ -1,0 +1,9 @@
+{
+  "start": "/apps/9f3b5e2a",
+  "name": "Spaces",
+  "description": "Create and manage spaces to organize your conversations and content.",
+  "icon": "@lucide/box",
+  "order": 10,
+  "category": "main",
+  "config": {}
+}

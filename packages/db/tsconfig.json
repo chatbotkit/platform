@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "compilerOptions": {
+    "noEmit": true,
+    "composite": true,
+    "target": "es2021",
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "lib": [
+      "DOM",
+      "ES2021"
+    ],
+    "types": [
+      "node"
+    ],
+    "allowJs": true,
+    "checkJs": true,
+    "declaration": true,
+    "strict": false,
+    "strictNullChecks": true,
+    "noImplicitOverride": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "forceConsistentCasingInFileNames": true
+  },
+  "include": [
+    "./src/**/*.ts",
+    "./src/**/*.js",
+    "./prisma/generated/**/*.ts",
+    "./scripts/**/*.js"
+  ],
+  "exclude": [
+    "node_modules",
+    "**/*.test.js"
+  ]
+}

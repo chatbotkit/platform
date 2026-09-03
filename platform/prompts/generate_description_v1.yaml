@@ -1,0 +1,21 @@
+description: |
+  Generates description.
+prompt: |
+  Generate an improved, but short (only two sentences) description from the
+  following input. The description must be in the same language as the input.
+
+  Example:
+  ###
+  a friendly chatbot
+  ###
+
+  Description: This chatbot is friendly and easy to talk to. It is designed to
+  help you with your questions and provide you with the information you need.
+
+  Input:
+  ###
+  {input}
+  ###
+
+  Description:
+model: gpt-4o/temperature=0.7

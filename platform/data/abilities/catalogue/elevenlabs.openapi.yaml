@@ -1,0 +1,128 @@
+# @see https://elevenlabs.io/docs/openapi.json?api=a920a66e-95bb-46c8-b572-fcef91f99354
+# @note this is a barebone OpenAPI spec for the ElevenLabs catalogue tests
+# because the upstream docs schema rotates frequently and should not be fetched
+# during deterministic unit tests.
+openapi: 3.0.3
+info:
+  title: ElevenLabs
+  version: '1.0'
+  description: ElevenLabs API endpoints used by catalogue ability tests
+servers:
+  - url: https://api.elevenlabs.io
+paths:
+  /v1/convai/agents:
+    get:
+      operationId: listConvaiAgents
+      parameters:
+        - name: page_size
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 30
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: archived
+          in: query
+          schema:
+            type: boolean
+            default: false
+        - name: show_only_owned_agents
+          in: query
+          schema:
+            type: boolean
+            default: false
+        - name: created_by_user_id
+          in: query
+          schema:
+            type: string
+        - name: sort_direction
+          in: query
+          schema:
+            type: string
+            enum:
+              - asc
+              - desc
+        - name: sort_by
+          in: query
+          schema:
+            type: string
+            enum:
+              - name
+              - created_at
+              - call_count_7d
+        - name: cursor
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  agents:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        agent_id:
+                          type: string
+                        name:
+                          type: string
+                  has_more:
+                    type: boolean
+                  next_cursor:
+                    type: string
+  /v1/convai/sip-trunk/outbound-call:
+    post:
+      operationId: startSipTrunkOutboundCall
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - agent_id
+                - agent_phone_number_id
+                - to_number
+              properties:
+                agent_id:
+                  type: string
+                agent_phone_number_id:
+                  type: string
+                to_number:
+                  type: string
+                conversation_initiation_client_data:
+                  type: object
+                  properties:
+                    user_id:
+                      type: string
+                    environment:
+                      type: string
+                    dynamic_variables:
+                      type: object
+                      additionalProperties: true
+                telephony_call_config:
+                  type: object
+                  properties:
+                    ringing_timeout_secs:
+                      type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  conversation_id:
+                    type: string
+                  status:
+                    type: string

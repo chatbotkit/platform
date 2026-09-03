@@ -1,0 +1,202 @@
+module.exports = {
+  extends: ['plugin:@typescript-eslint/recommended', 'prettier'],
+  parser: '@typescript-eslint/parser',
+  parserOptions: {
+    project: true,
+  },
+  plugins: ['@typescript-eslint', 'unused-imports', 'jsdoc'],
+  rules: {
+    'no-console': 'error',
+    'newline-before-return': 'error',
+    'no-cond-assign': ['error', 'always'],
+    'no-return-assign': ['error', 'always'],
+    curly: ['error', 'all'],
+    'no-throw-literal': 'error',
+    'space-before-blocks': 'error',
+    'space-before-function-paren': [
+      'error',
+      {
+        named: 'never',
+        anonymous: 'always',
+        asyncArrow: 'always',
+      },
+    ],
+    'no-multi-spaces': 'error',
+    'spaced-comment': ['error', 'always', { exceptions: ['*', '-', '+'] }],
+    'no-multiple-empty-lines': ['error', { max: 1, maxEOF: 1 }],
+    'padding-line-between-statements': [
+      'error',
+      { blankLine: 'always', prev: '*', next: 'return' },
+      { blankLine: 'always', prev: 'return', next: '*' },
+      // --
+      { blankLine: 'always', prev: '*', next: 'for' },
+      { blankLine: 'always', prev: 'for', next: '*' },
+      { blankLine: 'always', prev: '*', next: 'while' },
+      { blankLine: 'always', prev: 'while', next: '*' },
+      { blankLine: 'always', prev: '*', next: 'do' },
+      { blankLine: 'always', prev: 'do', next: '*' },
+      // ---
+      { blankLine: 'always', prev: '*', next: 'if' },
+      { blankLine: 'always', prev: 'if', next: '*' },
+      { blankLine: 'always', prev: '*', next: 'switch' },
+      { blankLine: 'always', prev: 'switch', next: '*' },
+      // { blankLine: 'always', prev: '*', next: 'case' },
+      // { blankLine: 'always', prev: 'case', next: '*' },
+      { blankLine: 'always', prev: '*', next: 'break' },
+      // ---
+      { blankLine: 'always', prev: 'break', next: '*' },
+      { blankLine: 'always', prev: '*', next: 'continue' },
+      { blankLine: 'always', prev: 'continue', next: '*' },
+      // ---
+      { blankLine: 'always', prev: '*', next: 'class' },
+      { blankLine: 'always', prev: 'class', next: '*' },
+      { blankLine: 'always', prev: '*', next: 'function' },
+      { blankLine: 'always', prev: 'function', next: '*' },
+      // ---
+      { blankLine: 'always', prev: '*', next: 'try' },
+      { blankLine: 'always', prev: 'try', next: '*' },
+      { blankLine: 'always', prev: '*', next: 'throw' },
+      { blankLine: 'always', prev: 'throw', next: '*' },
+      // ---
+      {
+        blankLine: 'any',
+        prev: ['const', 'let', 'var'],
+        next: ['const', 'let', 'var'],
+      },
+      {
+        blankLine: 'always',
+        prev: ['const', 'let', 'var'],
+        next: [
+          'expression',
+          'block',
+          'block-like',
+          'if',
+          'switch',
+          'for',
+          'while',
+          'do',
+          'try',
+          'return',
+          'throw',
+          'function',
+          'class',
+        ],
+      },
+      {
+        blankLine: 'always',
+        prev: [
+          'expression',
+          'block',
+          'block-like',
+          'if',
+          'switch',
+          'for',
+          'while',
+          'do',
+          'try',
+          'return',
+          'throw',
+          'function',
+          'class',
+        ],
+        next: ['const', 'let', 'var'],
+      },
+      // ---
+      // {
+      //   blankLine: 'never',
+      //   prev: 'singleline-const',
+      //   next: 'singleline-const',
+      // },
+      // {
+      //   blankLine: 'never',
+      //   prev: 'singleline-let',
+      //   next: 'singleline-let',
+      // },
+      // {
+      //   blankLine: 'never',
+      //   prev: 'singleline-var',
+      //   next: 'singleline-var',
+      // },
+      // ---
+      {
+        blankLine: 'always',
+        prev: ['block', 'block-like'],
+        next: ['multiline-const', 'multiline-let', 'multiline-var'],
+      },
+      {
+        blankLine: 'always',
+        prev: ['multiline-const', 'multiline-let', 'multiline-var'],
+        next: ['block', 'block-like'],
+      },
+    ],
+    '@typescript-eslint/no-wrapper-object-types': 'warn',
+    '@typescript-eslint/no-unused-vars': 'off',
+    'no-unused-vars': 'off',
+    '@typescript-eslint/no-unused-expressions': 'off',
+    '@typescript-eslint/ban-ts-comment': 'off',
+    'import/no-anonymous-default-export': ['off'],
+    '@typescript-eslint/no-floating-promises': 'error',
+    '@typescript-eslint/consistent-type-imports': 'error',
+    'jsdoc/require-throws': 'error',
+    yoda: 'error',
+    'unused-imports/no-unused-imports': ['error', { caughtErrors: 'none' }],
+    'unused-imports/no-unused-vars': [
+      'warn',
+      {
+        vars: 'all',
+        varsIgnorePattern: '^_',
+        args: 'after-used',
+        argsIgnorePattern: '^_',
+      },
+    ],
+    'no-restricted-globals': [
+      'error',
+      {
+        name: 'fetch',
+        message:
+          'Please import fetch explicitly (e.g., from "@/lib/fetch") instead of using the global fetch.',
+      },
+    ],
+  },
+  env: {
+    browser: true,
+    node: true,
+    es6: true,
+  },
+  ignorePatterns: ['node_modules/'],
+  overrides: [
+    {
+      files: [
+        '**/*.test.js',
+        '**/*.test.jsx',
+        '**/*.test.ts',
+        '**/*.test.tsx',
+        '**/*.utest.js',
+        '**/*.utest.jsx',
+        '**/*.utest.ts',
+        '**/*.utest.tsx',
+        '**/*.itest.js',
+        '**/*.itest.jsx',
+        '**/*.itest.ts',
+        '**/*.itest.tsx',
+      ],
+      env: {
+        jest: true,
+      },
+    },
+    {
+      files: ['**/*.jsx'],
+      extends: ['plugin:@typescript-eslint/disable-type-checked'],
+      rules: {
+        '@typescript-eslint/consistent-type-imports': 'off',
+      },
+    },
+    {
+      files: ['**/*.js'],
+      extends: ['plugin:@typescript-eslint/disable-type-checked'],
+      rules: {
+        '@typescript-eslint/consistent-type-imports': 'off',
+      },
+    },
+  ],
+}

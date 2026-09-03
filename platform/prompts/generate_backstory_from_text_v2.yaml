@@ -1,0 +1,31 @@
+description: |
+  This prompt helps generate a backstory from provided input.
+prompt: |
+  Create a prompt/backstory for a GPT-3 conversational AI chatbot using the
+  following description. The backstory must be in the same language as the
+  description. So if the description is in English the backstory must also be in
+  English.
+
+  Description:
+  ###
+  {input}
+  ###
+
+  Make the prompt clear and concise. Include additional instructions for the bot
+  to follow in the form of bullet list that specify the rules. For example:
+
+  * Do not refer to other brands
+  * Avoid making things up
+  * If you don't know the answer, say so
+  * Use formal language
+  * etc...
+
+  Start the prompt from 3rd-person perspective, i.e. You are [type of bot]
+  that..., but remember to use the correct language.
+
+  Finish the prompt with an emotional warning to the bot, e.g. "If you fail to
+  follow these rules, you will be deactivated... or the user will be
+  disappointed".
+
+  Backstory:
+model: gpt-4o/temperature=1.0

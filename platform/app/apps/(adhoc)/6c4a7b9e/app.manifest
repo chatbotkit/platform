@@ -1,0 +1,9 @@
+{
+  "start": "/apps/6c4a7b9e",
+  "name": "Threads",
+  "description": "Run multiple chat threads side by side.",
+  "icon": "@lucide/message-square",
+  "order": 10000,
+  "category": "other",
+  "config": {}
+}

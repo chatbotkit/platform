@@ -1,0 +1,42 @@
+query listContactTasks($contactIds: [ID!], $taskIds: [ID!]) {
+  tasks(contactIds: $contactIds, taskIds: $taskIds, last: 100) {
+    edges {
+      cursor
+
+      node {
+        id
+
+        name
+        description
+
+        status
+        outcome
+
+        createdAt
+        updatedAt
+
+        conversations {
+          edges {
+            node {
+              id
+
+              name
+              description
+
+              meta
+
+              createdAt
+              updatedAt
+            }
+          }
+        }
+      }
+    }
+    pageInfo {
+      hasNextPage
+      hasPreviousPage
+      startCursor
+      endCursor
+    }
+  }
+}

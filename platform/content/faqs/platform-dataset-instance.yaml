@@ -1,0 +1,10 @@
+- question: What is a dataset?
+  answer: A dataset is a collection of data that is used to train a chatbot. The data typically consists of pairs of questions and answers, which the chatbot uses to learn how to respond to user messages. A dataset can be created either by manually entering data, importing data from a file, or using ChatBotKit's built-in scraping tools to automatically generate data from websites or social media platforms.
+- question: How do I change the name of the dataset?
+  answer: To change the name of the dataset, you need to go to the page for modifying individual datasets. On this page, you will see a field labeled "Name" where you can enter the new name for the dataset. Once you have entered the new name, click the "Save" button to apply the changes.
+- question: How do I modify or delete a dataset records?
+  answer: |-
+    To modify a dataset record, you need to go to the page for modifying individual datasets and click on the record you want to modify. This will open a new page that allows you to edit the contents of the record. When you are finished making changes, click the "Save" button to apply the changes.
+
+
+    To delete a dataset record, you need to go to the page for modifying individual datasets and click the delete button next to the record in the list. Please note that this action cannot be undone, so make sure you really want to delete the record before confirming the action.

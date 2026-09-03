@@ -1,0 +1,44 @@
+magento/products/search:
+  provider: 'magento'
+  icon: '@logo/magento.com'
+  name: Search Magento Products
+  description: Search for products in a Magento store by name or SKU
+  tags:
+    - magento
+    - products
+    - search
+  instruction: |
+    ```fetch
+    GET https://((domain!))/rest/V1/products?searchCriteria[filter_groups][0][filters][0][field]=name&searchCriteria[filter_groups][0][filters][0][value]=$[product_name|Product Name]&searchCriteria[filter_groups][0][filters][0][condition_type]=like
+    Authorization: ${SECRET_DEFAULT}
+    ```
+
+magento/customer/details:
+  provider: 'magento'
+  icon: '@logo/magento.com'
+  name: Get Magento Customer Details
+  description: Retrieve details of a specific customer in a Magento store
+  tags:
+    - magento
+    - customer
+    - details
+  instruction: |
+    ```fetch
+    GET https://((domain!))/rest/V1/customers/$[customer_id|Customer ID]
+    Authorization: ${SECRET_DEFAULT}
+    ```
+
+magento/order/status:
+  provider: 'magento'
+  icon: '@logo/magento.com'
+  name: Retrieve Magento Order Status
+  description: Retrieve the status of a specific order in a Magento store
+  tags:
+    - magento
+    - order
+    - status
+  instruction: |
+    ```fetch
+    GET https://((domain!))/rest/V1/orders/$[order_id|Order ID]
+    Authorization: ${SECRET_DEFAULT}
+    ```

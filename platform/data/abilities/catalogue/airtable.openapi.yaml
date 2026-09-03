@@ -1,0 +1,550 @@
+# @see https://airtable.com/developers/web/api/introduction
+# @note this is a barebone OpenAPI spec for Airtable API
+# @todo replace with official spec when available
+openapi: 3.0.3
+info:
+  title: Airtable API
+  version: '1.0'
+  description: Airtable Web API
+servers:
+  - url: https://api.airtable.com
+paths:
+  /v0/meta/bases:
+    get:
+      operationId: listBases
+      summary: List all accessible bases
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BasesList'
+  /v0/meta/bases/{baseId}/tables:
+    get:
+      operationId: listTables
+      summary: List all tables in a base
+      parameters:
+        - name: baseId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: include[]
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [schema]
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TablesList'
+  /v0/meta/bases/{baseId}/tables/{tableId}/fields:
+    post:
+      operationId: createField
+      summary: Create a new field
+      parameters:
+        - name: baseId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: tableId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateFieldRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Field'
+  /v0/meta/bases/{baseId}/tables/{tableId}/fields/{fieldId}:
+    patch:
+      operationId: updateField
+      summary: Update a field
+      parameters:
+        - name: baseId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: tableId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: fieldId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateFieldRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Field'
+  /v0/{baseId}/{tableIdOrName}:
+    get:
+      operationId: listRecords
+      summary: List records from a table
+      parameters:
+        - name: baseId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: tableIdOrName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: maxRecords
+          in: query
+          schema:
+            type: integer
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+        - name: filterByFormula
+          in: query
+          schema:
+            type: string
+        - name: sort[0][field]
+          in: query
+          schema:
+            type: string
+        - name: sort[0][direction]
+          in: query
+          schema:
+            type: string
+            enum: [asc, desc]
+        - name: view
+          in: query
+          schema:
+            type: string
+        - name: offset
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecordsList'
+    post:
+      operationId: createRecord
+      summary: Create a new record
+      parameters:
+        - name: baseId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: tableIdOrName
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - $ref: '#/components/schemas/CreateRecordRequest'
+                - $ref: '#/components/schemas/BatchCreateRecordsRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/Record'
+                  - $ref: '#/components/schemas/BatchRecordsResponse'
+    patch:
+      operationId: updateRecords
+      summary: Update records
+      parameters:
+        - name: baseId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: tableIdOrName
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BatchUpdateRecordsRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BatchRecordsResponse'
+    delete:
+      operationId: deleteRecords
+      summary: Delete records
+      parameters:
+        - name: baseId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: tableIdOrName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: records[]
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BatchDeleteResponse'
+  /v0/{baseId}/{tableIdOrName}/{recordId}:
+    get:
+      operationId: getRecord
+      summary: Fetch a specific record
+      parameters:
+        - name: baseId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: tableIdOrName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: recordId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Record'
+    patch:
+      operationId: updateRecord
+      summary: Update a record
+      parameters:
+        - name: baseId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: tableIdOrName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: recordId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateRecordRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Record'
+    delete:
+      operationId: deleteRecord
+      summary: Delete a record
+      parameters:
+        - name: baseId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: tableIdOrName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: recordId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteRecordResponse'
+  /v0/{baseId}/{tableIdOrName}/{recordId}/comments:
+    post:
+      operationId: createComment
+      summary: Create a comment on a record
+      parameters:
+        - name: baseId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: tableIdOrName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: recordId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCommentRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comment'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+  schemas:
+    Base:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        permissionLevel:
+          type: string
+    BasesList:
+      type: object
+      properties:
+        bases:
+          type: array
+          items:
+            $ref: '#/components/schemas/Base'
+    Field:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        type:
+          type: string
+        description:
+          type: string
+        options:
+          type: object
+    Table:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        primaryFieldId:
+          type: string
+        fields:
+          type: array
+          items:
+            $ref: '#/components/schemas/Field'
+    TablesList:
+      type: object
+      properties:
+        tables:
+          type: array
+          items:
+            $ref: '#/components/schemas/Table'
+    Record:
+      type: object
+      properties:
+        id:
+          type: string
+        fields:
+          type: object
+          additionalProperties: true
+        createdTime:
+          type: string
+          format: date-time
+    RecordsList:
+      type: object
+      properties:
+        records:
+          type: array
+          items:
+            $ref: '#/components/schemas/Record'
+        offset:
+          type: string
+    CreateRecordRequest:
+      type: object
+      required:
+        - fields
+      properties:
+        fields:
+          type: object
+          additionalProperties: true
+    UpdateRecordRequest:
+      type: object
+      required:
+        - fields
+      properties:
+        fields:
+          type: object
+          additionalProperties: true
+    BatchCreateRecordsRequest:
+      type: object
+      required:
+        - records
+      properties:
+        records:
+          type: array
+          items:
+            type: object
+            properties:
+              fields:
+                type: object
+                additionalProperties: true
+    BatchUpdateRecordsRequest:
+      type: object
+      required:
+        - records
+      properties:
+        records:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              fields:
+                type: object
+                additionalProperties: true
+    BatchRecordsResponse:
+      type: object
+      properties:
+        records:
+          type: array
+          items:
+            $ref: '#/components/schemas/Record'
+    DeleteRecordResponse:
+      type: object
+      properties:
+        deleted:
+          type: boolean
+        id:
+          type: string
+    BatchDeleteResponse:
+      type: object
+      properties:
+        records:
+          type: array
+          items:
+            $ref: '#/components/schemas/DeleteRecordResponse'
+    CreateFieldRequest:
+      type: object
+      required:
+        - name
+        - type
+      properties:
+        name:
+          type: string
+        type:
+          type: string
+        description:
+          type: string
+        options:
+          type: object
+    UpdateFieldRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+    CreateCommentRequest:
+      type: object
+      required:
+        - text
+      properties:
+        text:
+          type: string
+    Comment:
+      type: object
+      properties:
+        id:
+          type: string
+        text:
+          type: string
+        createdTime:
+          type: string
+          format: date-time
+        author:
+          type: object
+          properties:
+            id:
+              type: string
+            email:
+              type: string
+            name:
+              type: string
+security:
+  - bearerAuth: []

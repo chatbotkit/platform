@@ -1,0 +1,68 @@
+{
+  "name": "@chatbotkit-dev/db",
+  "version": "0.0.0",
+  "license": "Apache-2.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./constraints": {
+      "import": "./src/constraints.ts",
+      "default": "./src/constraints.ts"
+    },
+    "./client": {
+      "import": "./prisma/generated/prisma/client.ts",
+      "default": "./prisma/generated/prisma/client.ts"
+    },
+    "./browser": {
+      "import": "./prisma/generated/prisma/browser.ts",
+      "default": "./prisma/generated/prisma/browser.ts"
+    },
+    "./sql": {
+      "import": "./prisma/generated/prisma/sql.ts",
+      "default": "./prisma/generated/prisma/sql.ts"
+    },
+    "./zod-models": {
+      "import": "./prisma/zod/schemas/models/index.ts",
+      "default": "./prisma/zod/schemas/models/index.ts"
+    },
+    "./pothos": {
+      "import": "./prisma/generated/pothos.ts",
+      "default": "./prisma/generated/pothos.ts"
+    },
+    "./package.json": "./package.json",
+    "./schema": "./prisma/schema.prisma"
+  },
+  "main": "./src/index.ts",
+  "scripts": {
+    "build": "true",
+    "check": "if [ -d prisma/generated ]; then tsc6 --noEmit --incremental; else echo 'skipping check: prisma/generated missing (run db:gen via pnpm run with-env)'; fi",
+    "clean": "rimraf node_modules prisma/generated prisma/.dev.db *.tsbuildinfo",
+    "format": "true",
+    "lint": "eslint src scripts --ext .ts,.js",
+    "test": "true",
+    "db:gen": "node scripts/derive.js && node scripts/generate.js",
+    "derive": "node scripts/derive.js",
+    "db:push": "node scripts/derive.js && prisma db push"
+  },
+  "access": "restricted",
+  "dependencies": {
+    "@prisma/adapter-better-sqlite3": "^7.3.0",
+    "@prisma/client": "^7.3.0",
+    "@pothos/plugin-prisma": "^4.10.0",
+    "prisma": "^7.3.0",
+    "prisma-json-types-generator": "^3.1.1",
+    "prisma-zod-generator": "^2.1.2",
+    "zod": "3.25.67"
+  },
+  "devDependencies": {
+    "@chatbotkit-dev/db-spec": "workspace:*",
+    "@chatbotkit-dev/eslint-config": "workspace:*",
+    "eslint": "^9.0.0",
+    "rimraf": "^5.0.5",
+    "typescript": "npm:@typescript/typescript6@^6.0.2"
+  }
+}

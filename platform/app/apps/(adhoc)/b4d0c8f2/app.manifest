@@ -1,0 +1,8 @@
+{
+  "start": "/apps/b4d0c8f2",
+  "name": "API Docs",
+  "description": "Interactive API documentation",
+  "icon": "@lucide/book-marked",
+  "order": 110,
+  "category": "help"
+}

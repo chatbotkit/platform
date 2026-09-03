@@ -1,0 +1,102 @@
+# @see https://docs.easypost.com/docs/api
+# @note this is a barebone OpenAPI spec for EasyPost API
+# @todo replace with official spec when available
+openapi: 3.0.3
+info:
+  title: EasyPost API
+  version: '2.0'
+servers:
+  - url: https://api.easypost.com/v2
+paths:
+  /tracks/{carrier}/{tracking_number}:
+    get:
+      operationId: getTracking
+      summary: Get tracking information for a package
+      parameters:
+        - name: carrier
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Carrier name (e.g., USPS, FedEx, UPS)
+        - name: tracking_number
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Tracking number for the package
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrackingResponse'
+              example:
+                id: trk_123abc
+                object: Tracker
+                mode: production
+                tracking_code: '9400100000000000000000'
+                status: delivered
+                carrier: USPS
+                tracking_details:
+                  - object: TrackingDetail
+                    message: Delivered
+                    status: delivered
+                    datetime: '2024-01-15T10:30:00Z'
+                    tracking_location:
+                      object: TrackingLocation
+                      city: San Francisco
+                      state: CA
+                      zip: '94102'
+components:
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+  schemas:
+    TrackingLocation:
+      type: object
+      properties:
+        object:
+          type: string
+        city:
+          type: string
+        state:
+          type: string
+        zip:
+          type: string
+    TrackingDetail:
+      type: object
+      properties:
+        object:
+          type: string
+        message:
+          type: string
+        status:
+          type: string
+        datetime:
+          type: string
+        tracking_location:
+          $ref: '#/components/schemas/TrackingLocation'
+    TrackingResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        object:
+          type: string
+        mode:
+          type: string
+        tracking_code:
+          type: string
+        status:
+          type: string
+        carrier:
+          type: string
+        tracking_details:
+          type: array
+          items:
+            $ref: '#/components/schemas/TrackingDetail'
+security:
+  - basicAuth: []

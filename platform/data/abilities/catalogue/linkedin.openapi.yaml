@@ -1,0 +1,441 @@
+openapi: 3.0.3
+info:
+  title: LinkedIn API
+  description: Minimal OpenAPI spec for testing LinkedIn ability templates
+  version: '1.0'
+  contact:
+    name: LinkedIn API Support
+    url: https://learn.microsoft.com/en-us/linkedin/
+servers:
+  - url: https://api.linkedin.com
+    description: LinkedIn API Server
+
+paths:
+  /v2/me:
+    get:
+      summary: Get current user profile
+      operationId: getCurrentProfile
+      security:
+        - oauth2: []
+      parameters:
+        - name: projection
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: User profile information
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  localizedFirstName:
+                    type: string
+                  localizedLastName:
+                    type: string
+                  profilePicture:
+                    type: object
+
+  /rest/people/{personPath}:
+    get:
+      summary: Get profile by ID
+      operationId: getProfileById
+      security:
+        - oauth2: []
+      parameters:
+        - name: personPath
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Path segment containing the person ID in format (id:personId)
+      responses:
+        '200':
+          description: User profile information
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  localizedFirstName:
+                    type: string
+                  localizedLastName:
+                    type: string
+
+  /rest/posts:
+    post:
+      summary: Create a post
+      operationId: createPost
+      security:
+        - oauth2: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - author
+                - commentary
+                - visibility
+                - distribution
+                - lifecycleState
+              properties:
+                author:
+                  type: string
+                commentary:
+                  type: string
+                visibility:
+                  type: string
+                  enum: [PUBLIC, CONNECTIONS]
+                distribution:
+                  type: object
+                  properties:
+                    feedDistribution:
+                      type: string
+                    targetEntities:
+                      type: array
+                      items:
+                        type: object
+                    thirdPartyDistributionChannels:
+                      type: array
+                      items:
+                        type: string
+                lifecycleState:
+                  type: string
+                isReshareDisabledByAuthor:
+                  type: boolean
+      responses:
+        '201':
+          description: Post created successfully
+          headers:
+            x-restli-id:
+              schema:
+                type: string
+              description: The URN of the created post
+          content:
+            application/json:
+              schema:
+                type: object
+    get:
+      summary: List posts by author
+      operationId: listPostsByAuthor
+      security:
+        - oauth2: []
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: author
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: count
+          in: query
+          schema:
+            type: integer
+        - name: sortBy
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of posts
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  paging:
+                    type: object
+                    properties:
+                      start:
+                        type: integer
+                      count:
+                        type: integer
+                      links:
+                        type: array
+                        items:
+                          type: object
+                  elements:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        author:
+                          type: string
+                        commentary:
+                          type: string
+                        lifecycleState:
+                          type: string
+                        visibility:
+                          type: string
+
+  /rest/posts/{postUrn}:
+    get:
+      summary: Get a specific post
+      operationId: getPost
+      security:
+        - oauth2: []
+      parameters:
+        - name: postUrn
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Post details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  author:
+                    type: string
+                  commentary:
+                    type: string
+                  lifecycleState:
+                    type: string
+                  visibility:
+                    type: string
+    delete:
+      summary: Delete a post
+      operationId: deletePost
+      security:
+        - oauth2: []
+      parameters:
+        - name: postUrn
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Post deleted successfully
+
+  /rest/socialActions/{postUrn}/comments:
+    post:
+      summary: Create a comment on a post
+      operationId: createComment
+      security:
+        - oauth2: []
+      parameters:
+        - name: postUrn
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - actor
+                - message
+              properties:
+                actor:
+                  type: string
+                object:
+                  type: string
+                message:
+                  type: object
+                  properties:
+                    text:
+                      type: string
+      responses:
+        '201':
+          description: Comment created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+    get:
+      summary: List comments on a post
+      operationId: listComments
+      security:
+        - oauth2: []
+      parameters:
+        - name: postUrn
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of comments
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  elements:
+                    type: array
+                    items:
+                      type: object
+
+  /rest/socialActions/{postUrn}/likes:
+    post:
+      summary: Like a post
+      operationId: likePost
+      security:
+        - oauth2: []
+      parameters:
+        - name: postUrn
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - actor
+                - object
+              properties:
+                actor:
+                  type: string
+                object:
+                  type: string
+      responses:
+        '201':
+          description: Like created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /v2/organizationAcls:
+    get:
+      summary: List organization access control
+      operationId: listOrganizationAcls
+      security:
+        - oauth2: []
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: projection
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of organization access controls
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  elements:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        organization:
+                          type: string
+                        role:
+                          type: string
+
+  /rest/organizationAcls:
+    get:
+      summary: List organization administrators
+      operationId: listOrganizationAdmins
+      security:
+        - oauth2: []
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: organization
+          in: query
+          schema:
+            type: string
+        - name: role
+          in: query
+          schema:
+            type: string
+        - name: state
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of organization administrators
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  elements:
+                    type: array
+                    items:
+                      type: object
+
+  /rest/organizations:
+    get:
+      summary: Search organizations
+      operationId: searchOrganizations
+      security:
+        - oauth2: []
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: vanityName
+          in: query
+          schema:
+            type: string
+        - name: emailDomain
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of organizations
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  elements:
+                    type: array
+                    items:
+                      type: object
+
+components:
+  securitySchemes:
+    oauth2:
+      type: oauth2
+      flows:
+        authorizationCode:
+          authorizationUrl: https://www.linkedin.com/oauth/v2/authorization
+          tokenUrl: https://www.linkedin.com/oauth/v2/accessToken
+          scopes:
+            r_liteprofile: Read lite profile
+            w_member_social: Post, comment, and like
+            r_organization_social: Read organization posts
+            w_organization_social: Write organization posts

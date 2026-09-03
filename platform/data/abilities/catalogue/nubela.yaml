@@ -1,0 +1,23 @@
+nubela/proxycurl/person/search:
+  provider: 'nubela'
+  icon: '@logo/nubela.co'
+  name: Search Person
+  description: Search for a person using Proxycurl.
+  instruction: |
+    ```fetch
+    method: POST
+    url: /api/auxiliary/skillset/ability/nubela/proxy
+    headers:
+      X-Access-Token: ${SECRET_DEFAULT}
+      Content-Type: application/json
+    body:
+      method: GET
+      url: /proxycurl/api/v2/search/person
+      query:
+        current_role_title: $[current_role_title|Optional current role title of the person]
+        current_company_name: $[current_company_name|Optional current company name of the person]
+        current_job_description: $[current_job_description|Optional current job description of the person]
+    options:
+      auth: internal
+    ```
+  secret: '@nubela/proxycurl'

@@ -1,0 +1,119 @@
+# @see https://developer.bigcommerce.com/docs/rest-management
+# @note this is a barebone OpenAPI spec for BigCommerce API
+# @todo replace with official spec when available
+openapi: 3.0.3
+info:
+  title: BigCommerce API
+  version: '1.0'
+servers:
+  - url: https://api.bigcommerce.com
+paths:
+  /stores/{store_hash}/v3/customers:
+    post:
+      operationId: createCustomer
+      parameters:
+        - name: store_hash
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                first_name:
+                  type: string
+                last_name:
+                  type: string
+                email:
+                  type: string
+                phone:
+                  type: string
+                addresses:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      address1:
+                        type: string
+                      city:
+                        type: string
+                      state_or_province:
+                        type: string
+                      postal_code:
+                        type: string
+                      country_code:
+                        type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerResponse'
+  /stores/{store_hash}/v2/orders/{order_id}:
+    get:
+      operationId: getOrder
+      parameters:
+        - name: store_hash
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: order_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+components:
+  securitySchemes:
+    apiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-Auth-Token
+  schemas:
+    Customer:
+      type: object
+      properties:
+        id:
+          type: integer
+        email:
+          type: string
+        first_name:
+          type: string
+        last_name:
+          type: string
+        phone:
+          type: string
+    CustomerResponse:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/Customer'
+    Order:
+      type: object
+      properties:
+        id:
+          type: integer
+        customer_id:
+          type: integer
+        status:
+          type: string
+        total_inc_tax:
+          type: string
+    OrderResponse:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/Order'
+security:
+  - apiKeyAuth: []

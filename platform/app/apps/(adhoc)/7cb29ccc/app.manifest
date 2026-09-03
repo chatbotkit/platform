@@ -1,0 +1,9 @@
+{
+  "start": "/apps/7cb29ccc",
+  "name": "Analytics",
+  "description": "Provides on per-account analytics and reporting.",
+  "icon": "@lucide/chart-pie",
+  "order": 40,
+  "category": "admin",
+  "config": {}
+}

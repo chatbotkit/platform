@@ -1,0 +1,9 @@
+{
+  "start": "/apps/81fdc94a",
+  "name": "Link",
+  "description": "Manage shared service connections for all users",
+  "icon": "@lucide/cable",
+  "order": 30,
+  "category": "admin",
+  "config": {}
+}

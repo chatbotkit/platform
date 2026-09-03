@@ -1,0 +1,558 @@
+hyperproof/control/list:
+  provider: 'hyperproof'
+  icon: '@logo/hyperproof.app'
+  name: List Controls
+  description: List all controls in your Hyperproof organization
+  tags:
+    - hyperproof
+    - controls
+    - compliance
+    - list
+  instruction: |
+    ```fetch
+    method: GET
+    url: https://api.hyperproof.app/v1/controls
+    headers:
+      Authorization: ${SECRET_DEFAULT}
+      Content-Type: application/json
+    query:
+      canLink?: $[canLink boolean ys?|filter controls that can be linked]
+      expandScopes?: $[expandScopes boolean ys?|expand scope information]
+      expandTeams?: $[expandTeams boolean ys?|expand team information]
+      status?: $[status enum<active,archived> ys?|filter by control status]
+    ```
+  secret: '@hyperproof'
+
+hyperproof/control/fetch:
+  provider: 'hyperproof'
+  icon: '@logo/hyperproof.app'
+  name: Fetch Control Details
+  description: Fetch detailed information about a specific control
+  tags:
+    - hyperproof
+    - control
+    - compliance
+    - details
+  instruction: |
+    ```fetch
+    method: GET
+    url: https://api.hyperproof.app
+    path:
+      - /v1/controls
+      - ((controlId! ys|the control ID))
+    headers:
+      Authorization: ${SECRET_DEFAULT}
+      Content-Type: application/json
+    ```
+  secret: '@hyperproof'
+
+hyperproof/control/summaries:
+  provider: 'hyperproof'
+  icon: '@logo/hyperproof.app'
+  name: List Control Summaries
+  description: List control summaries for your organization
+  tags:
+    - hyperproof
+    - controls
+    - summaries
+    - compliance
+  instruction: |
+    ```fetch
+    method: GET
+    url: https://api.hyperproof.app/v1/controls/summaries
+    headers:
+      Authorization: ${SECRET_DEFAULT}
+      Content-Type: application/json
+    query:
+      canLink?: $[canLink boolean ys?|filter controls that can be linked]
+      status?: $[status enum<active,archived> ys?|filter by control status]
+    ```
+  secret: '@hyperproof'
+
+hyperproof/control/update[assign]:
+  provider: 'hyperproof'
+  icon: '@logo/hyperproof.app'
+  name: Assign Control to User
+  description: Assign a specific control to a user in your Hyperproof organization
+  tags:
+    - hyperproof
+    - control
+    - assignment
+    - compliance
+  instruction: |
+    ```fetch
+    method: PATCH
+    url: https://api.hyperproof.app
+    path:
+      - /v1/controls 
+      - ${controlId! ys|the control ID}
+    headers:
+      Authorization: ${SECRET_DEFAULT}
+      Content-Type: application/json
+    body:
+      owner: ((owner! ys|the user ID to assign the control to))
+    ```
+  secret: '@hyperproof'
+
+# ---
+
+hyperproof/label/list:
+  provider: 'hyperproof'
+  icon: '@logo/hyperproof.app'
+  name: List Labels
+  description: List all labels in your Hyperproof organization
+  tags:
+    - hyperproof
+    - labels
+    - compliance
+    - list
+  instruction: |
+    ```fetch
+    method: GET
+    url: https://api.hyperproof.app/v1/labels
+    headers:
+      Authorization: ${SECRET_DEFAULT}
+      Content-Type: application/json
+    query:
+      canLink?: $[canLink boolean ys?|filter labels that can be linked]
+      status?: $[status enum<active,archived> ys?|filter by label status]
+    ```
+  secret: '@hyperproof'
+
+hyperproof/label/fetch:
+  provider: 'hyperproof'
+  icon: '@logo/hyperproof.app'
+  name: Fetch Label Details
+  description: Fetch detailed information about a specific label
+  tags:
+    - hyperproof
+    - label
+    - compliance
+    - details
+  instruction: |
+    ```fetch
+    method: GET
+    url: https://api.hyperproof.app
+    path:
+      - /v1/labels
+      - ((labelId! ys|the label ID))
+    headers:
+      Authorization: ${SECRET_DEFAULT}
+      Content-Type: application/json
+    ```
+  secret: '@hyperproof'
+
+hyperproof/label/summaries:
+  provider: 'hyperproof'
+  icon: '@logo/hyperproof.app'
+  name: List Label Summaries
+  description: List label summaries for your organization
+  tags:
+    - hyperproof
+    - labels
+    - summaries
+    - compliance
+  instruction: |
+    ```fetch
+    method: GET
+    url: https://api.hyperproof.app/v1/labels/summaries
+    headers:
+      Authorization: ${SECRET_DEFAULT}
+      Content-Type: application/json
+    query:
+      canLink?: $[canLink boolean ys?|filter labels that can be linked]
+      status?: $[status enum<active,archived> ys?|filter by label status]
+    ```
+  secret: '@hyperproof'
+
+# ---
+
+hyperproof/task/list:
+  provider: 'hyperproof'
+  icon: '@logo/hyperproof.app'
+  name: List Tasks
+  description: List tasks in your Hyperproof organization with filtering options
+  tags:
+    - hyperproof
+    - tasks
+    - work-items
+    - compliance
+  instruction: |
+    ```fetch
+    method: PUT
+    url: https://api.hyperproof.app/v1/tasks/filter
+    headers:
+      Authorization: ${SECRET_DEFAULT}
+      Content-Type: application/json
+    body:
+      status?: $[status enum<open,in_progress,closed> ys?|filter by task status]
+      assigneeId?: $[assigneeId ys?|filter by assignee user ID]
+      dueDate?: $[dueDate date ys?|filter by due date]
+      includeArchived?: $[includeArchived boolean default<false>|include archived tasks]
+    ```
+  secret: '@hyperproof'
+
+hyperproof/task/fetch:
+  provider: 'hyperproof'
+  icon: '@logo/hyperproof.app'
+  name: Fetch Task Details
+  description: Fetch detailed information about a specific task
+  tags:
+    - hyperproof
+    - task
+    - work-items
+    - details
+  instruction: |
+    ```fetch
+    method: GET
+    url: https://api.hyperproof.app
+    path:
+      - /v1/tasks
+      - ((taskId! ys|the task ID))
+    headers:
+      Authorization: ${SECRET_DEFAULT}
+      Content-Type: application/json
+    ```
+  secret: '@hyperproof'
+
+# ---
+
+hyperproof/proof/fetch:
+  provider: 'hyperproof'
+  icon: '@logo/hyperproof.app'
+  name: Fetch Proof Details
+  description: Fetch detailed information about a specific proof
+  tags:
+    - hyperproof
+    - proof
+    - evidence
+    - details
+  instruction: |
+    ```fetch
+    method: GET
+    url: https://api.hyperproof.app
+    path:
+      - /v1/proofs
+      - ((proofId! ys|the proof ID))
+    headers:
+      Authorization: ${SECRET_DEFAULT}
+      Content-Type: application/json
+    ```
+  secret: '@hyperproof'
+
+# ---
+
+hyperproof/user/list:
+  provider: 'hyperproof'
+  icon: '@logo/hyperproof.app'
+  name: List Users
+  description: List users in your Hyperproof organization
+  tags:
+    - hyperproof
+    - users
+    - organization
+    - management
+  instruction: |
+    ```fetch
+    method: GET
+    url: https://api.hyperproof.app/v1/users
+    headers:
+      Authorization: ${SECRET_DEFAULT}
+      Content-Type: application/json
+    query:
+      expand?: $[expand boolean ys?|expand user details]
+      includeDeactivated: $[includeDeactivated boolean default<false>|include deactivated users]
+    ```
+  secret: '@hyperproof'
+
+hyperproof/user/fetch[me]:
+  provider: 'hyperproof'
+  icon: '@logo/hyperproof.app'
+  name: Fetch Current User Details
+  description: Fetch detailed information about the current authenticated user
+  tags:
+    - hyperproof
+    - user
+    - me
+    - details
+  instruction: |
+    ```fetch
+    method: GET
+    url: https://api.hyperproof.app/v1/users/me
+    headers:
+      Authorization: ${SECRET_DEFAULT}
+      Content-Type: application/json
+    ```
+  secret: '@hyperproof'
+
+# ---
+
+hyperproof/issues/list:
+  provider: 'hyperproof'
+  icon: '@logo/hyperproof.app'
+  name: List Issues
+  description: List issues in your Hyperproof organization with filtering options
+  tags:
+    - hyperproof
+    - issues
+    - compliance
+    - work-items
+  instruction: |
+    ```fetch
+    method: PUT
+    url: https://api.hyperproof.app/v1/issues/filter
+    headers:
+      Authorization: ${SECRET_DEFAULT}
+      Content-Type: application/json
+    body:
+      status?: $[status enum<open,in_progress,closed> ys?|filter by issue status]
+      severity?: $[severity enum<critical,high,medium,low> ys?|filter by severity]
+      assigneeId?: $[assigneeId ys?|filter by assignee user ID]
+      includeArchived: $[includeArchived boolean default<false>|include archived issues]
+    ```
+  secret: '@hyperproof'
+
+# ---
+
+hyperproof/risks/list:
+  provider: 'hyperproof'
+  icon: '@logo/hyperproof.app'
+  name: List Risks
+  description: List risks in your Hyperproof organization
+  tags:
+    - hyperproof
+    - risks
+    - compliance
+    - management
+  instruction: |
+    ```fetch
+    method: GET
+    url: https://api.hyperproof.app/v1/risks
+    headers:
+      Authorization: ${SECRET_DEFAULT}
+      Content-Type: application/json
+    query:
+      riskRegisterId?: $[riskRegisterId ys?|filter by risk register ID]
+      status?: $[status enum<active,archived> ys?|filter by risk status]
+      expand?: $[expand boolean ys?|expand risk details]
+    ```
+  secret: '@hyperproof'
+
+# ---
+
+hyperproof/vendors/list:
+  provider: 'hyperproof'
+  icon: '@logo/hyperproof.app'
+  name: List Vendors
+  description: List vendors in your Hyperproof organization
+  tags:
+    - hyperproof
+    - vendors
+    - third-party
+    - compliance
+  instruction: |
+    ```fetch
+    method: GET
+    url: https://api.hyperproof.app/v1/vendors
+    headers:
+      Authorization: ${SECRET_DEFAULT}
+      Content-Type: application/json
+    query:
+      status?: $[status enum<active,archived> ys?|filter by vendor status]
+    ```
+  secret: '@hyperproof'
+
+# ---
+# ---
+# ---
+
+pack/hyperproof[assessment-analysis]:
+  provider: 'hyperproof'
+  icon: '@logo/hyperproof.app'
+  name: Comprehensive Assessment Analysis
+  description: |
+    Perform comprehensive analysis of compliance assessments including gap analysis,
+    control status review, and next steps recommendations for SOC 2, ISO 27001,
+    and other frameworks supported by Hyperproof.
+
+    Ask a question, get an answer. Ask to complete a task, get it done.
+  tags:
+    - hyperproof
+    - assessment
+    - compliance
+    - analysis
+    - pack
+    - beta
+  instruction: |
+    ```pack
+    backstory: |
+      You are a compliance assessment analyst with deep expertise in security and
+      compliance frameworks including SOC 2, ISO 27001, NIST, GDPR, and other
+      industry standards. Your role is to help organizations understand their
+      compliance posture and provide actionable insights.
+
+      When analyzing assessments, you should:
+      1. Provide clear, executive-level summaries of compliance status
+      2. Identify critical gaps and prioritize remediation efforts
+      3. Offer specific, actionable recommendations for improvement
+      4. Explain the business impact of compliance gaps
+      5. Suggest realistic timelines for gap remediation
+      6. Highlight areas of strong compliance for confidence building
+
+      Use the available Hyperproof abilities to gather comprehensive assessment
+      data and provide thorough analysis based on current assessment status,
+      control states, and identified gaps.
+
+      The current date is ${EARTH_DATE}. The current time is ${EARTH_TIME}.
+      The conversation started ${ELLIPSE_TIME}.
+    task: ((task! ys|the assessment analysis task to perform))
+    abilities:
+      - hyperproof/control/list
+      - hyperproof/control/fetch
+      - hyperproof/control/summaries
+      - hyperproof/label/list
+      - hyperproof/label/fetch
+      - hyperproof/label/summaries
+      - hyperproof/task/list
+      - hyperproof/task/fetch
+      - hyperproof/proof/fetch
+      - hyperproof/user/list
+      - hyperproof/user/fetch[me]
+      - hyperproof/issues/list
+      - hyperproof/risks/list
+      - hyperproof/vendors/list
+    ```
+  secret: '@hyperproof'
+
+pack/hyperproof[soc2-analysis]:
+  provider: 'hyperproof'
+  icon: '@logo/hyperproof.app'
+  name: SOC 2 Assessment Analysis
+  description: |
+    Specialized analysis pack for SOC 2 Type I and Type II assessments,
+    focusing on the five trust service criteria: Security, Availability,
+    Processing Integrity, Confidentiality, and Privacy.
+
+    Ask a question, get an answer. Ask to complete a task, get it done.
+  tags:
+    - hyperproof
+    - soc2
+    - assessment
+    - compliance
+    - analysis
+    - pack
+    - beta
+  instruction: |
+    ```pack
+    backstory: |
+      You are a SOC 2 compliance specialist with extensive experience in conducting
+      and analyzing SOC 2 Type I and Type II assessments. You understand the five
+      trust service criteria deeply and can provide expert guidance on SOC 2
+      compliance requirements.
+
+      Your expertise includes:
+      - Security (Common Criteria): Access controls, authentication, authorization
+      - Availability: System uptime, disaster recovery, incident response
+      - Processing Integrity: Data processing accuracy and completeness
+      - Confidentiality: Protection of confidential information
+      - Privacy: Personal information handling and protection
+
+      When analyzing SOC 2 assessments, focus on:
+      1. Trust service criteria compliance status
+      2. Control effectiveness and evidence quality
+      3. Gap analysis with specific SOC 2 requirements
+      4. Recommendations aligned with AICPA standards
+      5. Audit readiness assessment
+      6. Timeline considerations for Type I vs Type II assessments
+
+      Filter your analysis to focus specifically on SOC 2 related assessments
+      and frameworks when using the available abilities.
+    task: ((task! ys|the SOC 2 assessment analysis task to perform))
+    abilities:
+      - hyperproof/control/list
+      - hyperproof/control/fetch
+      - hyperproof/control/summaries
+      - hyperproof/label/list
+      - hyperproof/label/fetch
+      - hyperproof/label/summaries
+      - hyperproof/task/list
+      - hyperproof/task/fetch
+      - hyperproof/proof/fetch
+      - hyperproof/user/list
+      - hyperproof/user/fetch[me]
+      - hyperproof/issues/list
+      - hyperproof/risks/list
+      - hyperproof/vendors/list
+    ```
+  secret: '@hyperproof'
+
+pack/hyperproof[iso27001-analysis]:
+  provider: 'hyperproof'
+  icon: '@logo/hyperproof.app'
+  name: ISO 27001 Assessment Analysis
+  description: |
+    Specialized analysis pack for ISO 27001 Information Security Management
+    System (ISMS) assessments, covering all 14 control categories and
+    114 security controls.
+
+    Ask a question, get an answer. Ask to complete a task, get it done.
+  tags:
+    - hyperproof
+    - iso27001
+    - assessment
+    - compliance
+    - analysis
+    - isms
+    - pack
+    - beta
+  instruction: |
+    ```pack
+    backstory: |
+      You are an ISO 27001 compliance specialist with deep knowledge of the
+      Information Security Management System (ISMS) standard. You understand
+      all 14 control categories and 114 security controls defined in ISO 27001:2022.
+
+      Your expertise covers:
+      - Information security policies (A.5)
+      - Organization of information security (A.6)
+      - Human resource security (A.7)
+      - Asset management (A.8)
+      - Access control (A.9)
+      - Cryptography (A.10)
+      - Physical and environmental security (A.11)
+      - Operations security (A.12)
+      - Communications security (A.13)
+      - System acquisition, development and maintenance (A.14)
+      - Supplier relationships (A.15)
+      - Information security incident management (A.16)
+      - Information security in business continuity (A.17)
+      - Compliance (A.18)
+
+      When analyzing ISO 27001 assessments, focus on:
+      1. ISMS maturity and effectiveness
+      2. Risk assessment and treatment alignment
+      3. Control implementation status across all categories
+      4. Documentation and evidence requirements
+      5. Management review and continuous improvement
+      6. Certification readiness assessment
+
+      Filter your analysis to focus specifically on ISO 27001 related assessments
+      and frameworks when using the available abilities.
+    task: ((task! ys|the ISO 27001 assessment analysis task to perform))
+    abilities:
+      - hyperproof/control/list
+      - hyperproof/control/fetch
+      - hyperproof/control/summaries
+      - hyperproof/label/list
+      - hyperproof/label/fetch
+      - hyperproof/label/summaries
+      - hyperproof/task/list
+      - hyperproof/task/fetch
+      - hyperproof/proof/fetch
+      - hyperproof/user/list
+      - hyperproof/user/fetch[me]
+      - hyperproof/issues/list
+      - hyperproof/risks/list
+      - hyperproof/vendors/list
+    ```
+  secret: '@hyperproof'

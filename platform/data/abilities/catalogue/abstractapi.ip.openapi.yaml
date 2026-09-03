@@ -1,0 +1,113 @@
+# @see https://www.abstractapi.com/api/ip-geolocation-api#docs
+# @note this is a barebone OpenAPI spec for Abstract API IP Geolocation
+# @todo replace with official spec when available
+openapi: 3.0.3
+info:
+  title: Abstract API IP Geolocation
+  version: '1.0'
+  description: IP geolocation API
+servers:
+  - url: https://ipgeolocation.abstractapi.com
+paths:
+  /v1:
+    get:
+      operationId: geolocateIp
+      parameters:
+        - name: api_key
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: ip_address
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GeolocationResponse'
+components:
+  schemas:
+    GeolocationResponse:
+      type: object
+      properties:
+        ip_address:
+          type: string
+        city:
+          type: string
+        city_geoname_id:
+          type: integer
+        region:
+          type: string
+        region_iso_code:
+          type: string
+        region_geoname_id:
+          type: integer
+        postal_code:
+          type: string
+        country:
+          type: string
+        country_code:
+          type: string
+        country_geoname_id:
+          type: integer
+        country_is_eu:
+          type: boolean
+        continent:
+          type: string
+        continent_code:
+          type: string
+        continent_geoname_id:
+          type: integer
+        longitude:
+          type: number
+        latitude:
+          type: number
+        timezone:
+          type: object
+          properties:
+            name:
+              type: string
+            abbreviation:
+              type: string
+            gmt_offset:
+              type: integer
+            current_time:
+              type: string
+            is_dst:
+              type: boolean
+        flag:
+          type: object
+          properties:
+            emoji:
+              type: string
+            unicode:
+              type: string
+            png:
+              type: string
+            svg:
+              type: string
+        currency:
+          type: object
+          properties:
+            currency_name:
+              type: string
+            currency_code:
+              type: string
+        connection:
+          type: object
+          properties:
+            autonomous_system_number:
+              type: integer
+            autonomous_system_organization:
+              type: string
+            connection_type:
+              type: string
+            isp_name:
+              type: string
+            organization_name:
+              type: string

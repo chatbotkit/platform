@@ -1,0 +1,181 @@
+# @see https://www.pexels.com/api/documentation/
+# @note this is a barebone OpenAPI spec for Pexels API
+# @todo replace with official spec when available
+openapi: 3.0.3
+info:
+  title: Pexels API
+  version: '1.0'
+  description: Pexels API for accessing high-quality free stock photos
+servers:
+  - url: https://api.pexels.com
+paths:
+  /v1/search:
+    get:
+      operationId: searchPhotos
+      description: Search for photos by query
+      parameters:
+        - name: query
+          in: query
+          required: true
+          description: Search query for photos
+          schema:
+            type: string
+        - name: orientation
+          in: query
+          description: Photo orientation filter
+          schema:
+            type: string
+            enum: [landscape, portrait, square]
+        - name: size
+          in: query
+          description: Minimum photo size filter
+          schema:
+            type: string
+            enum: [large, medium, small]
+        - name: color
+          in: query
+          description: Photo color filter
+          schema:
+            type: string
+        - name: page
+          in: query
+          description: Page number for pagination
+          schema:
+            type: integer
+            default: 1
+        - name: per_page
+          in: query
+          description: Number of results per page
+          schema:
+            type: integer
+            default: 15
+            maximum: 80
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PhotoSearchResponse'
+  /v1/photos/{id}:
+    get:
+      operationId: getPhoto
+      description: Get a specific photo by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The ID of the photo
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Photo'
+  /v1/curated:
+    get:
+      operationId: getCuratedPhotos
+      description: Get curated photos
+      parameters:
+        - name: page
+          in: query
+          description: Page number for pagination
+          schema:
+            type: integer
+            default: 1
+        - name: per_page
+          in: query
+          description: Number of results per page
+          schema:
+            type: integer
+            default: 15
+            maximum: 80
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PhotoSearchResponse'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+  schemas:
+    Photo:
+      type: object
+      properties:
+        id:
+          type: integer
+        width:
+          type: integer
+        height:
+          type: integer
+        url:
+          type: string
+          format: uri
+        photographer:
+          type: string
+        photographer_url:
+          type: string
+          format: uri
+        photographer_id:
+          type: integer
+        avg_color:
+          type: string
+        src:
+          type: object
+          properties:
+            original:
+              type: string
+              format: uri
+            large2x:
+              type: string
+              format: uri
+            large:
+              type: string
+              format: uri
+            medium:
+              type: string
+              format: uri
+            small:
+              type: string
+              format: uri
+            portrait:
+              type: string
+              format: uri
+            landscape:
+              type: string
+              format: uri
+            tiny:
+              type: string
+              format: uri
+        liked:
+          type: boolean
+        alt:
+          type: string
+    PhotoSearchResponse:
+      type: object
+      properties:
+        page:
+          type: integer
+        per_page:
+          type: integer
+        photos:
+          type: array
+          items:
+            $ref: '#/components/schemas/Photo'
+        total_results:
+          type: integer
+        next_page:
+          type: string
+          format: uri
+        prev_page:
+          type: string
+          format: uri
+security:
+  - bearerAuth: []

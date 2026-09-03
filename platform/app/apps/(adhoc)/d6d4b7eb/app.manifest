@@ -1,0 +1,9 @@
+{
+  "start": "/apps/d6d4b7eb",
+  "name": "About",
+  "description": "Capture and store user personalization information including name and description in their contact record.",
+  "icon": "@lucide/user",
+  "order": 20,
+  "category": "user",
+  "config": {}
+}

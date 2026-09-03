@@ -1,0 +1,328 @@
+# @see https://developer.accuweather.com/apis
+# @note this is a barebone OpenAPI spec for AccuWeather API
+# @todo replace with official spec when available
+openapi: 3.0.3
+info:
+  title: AccuWeather API
+  version: '1.0'
+  description: AccuWeather API for weather data and location services
+servers:
+  - url: http://dataservice.accuweather.com
+paths:
+  /locations/v1/cities/search:
+    get:
+      operationId: searchLocations
+      parameters:
+        - name: apikey
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Location search query
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                minItems: 1
+                items:
+                  $ref: '#/components/schemas/Location'
+  /currentconditions/v1/{locationKey}:
+    get:
+      operationId: getCurrentConditions
+      parameters:
+        - name: locationKey
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: apikey
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: details
+          in: query
+          schema:
+            type: boolean
+            default: false
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                minItems: 1
+                items:
+                  $ref: '#/components/schemas/CurrentCondition'
+  /forecasts/v1/daily/{days}day/{locationKey}:
+    get:
+      operationId: getDailyForecast
+      parameters:
+        - name: days
+          in: path
+          required: true
+          schema:
+            type: integer
+            enum: [1, 5, 10, 15]
+        - name: locationKey
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: apikey
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: details
+          in: query
+          schema:
+            type: boolean
+        - name: metric
+          in: query
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DailyForecast'
+  /forecasts/v1/hourly/{hours}hour/{locationKey}:
+    get:
+      operationId: getHourlyForecast
+      parameters:
+        - name: hours
+          in: path
+          required: true
+          schema:
+            type: integer
+            enum: [1, 12, 24, 72, 120]
+            default: 12
+        - name: locationKey
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: apikey
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: details
+          in: query
+          schema:
+            type: boolean
+            default: false
+        - name: metric
+          in: query
+          schema:
+            type: boolean
+            default: false
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                minItems: 1
+                items:
+                  $ref: '#/components/schemas/HourlyForecast'
+  /currentconditions/v1/{locationKey}/historical:
+    get:
+      operationId: getHistoricalConditions
+      parameters:
+        - name: locationKey
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: apikey
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: details
+          in: query
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                minItems: 1
+                items:
+                  $ref: '#/components/schemas/HistoricalCondition'
+  /currentconditions/v1/{locationKey}/historical{hours}:
+    get:
+      operationId: getHistoricalConditionsWithHours
+      parameters:
+        - name: locationKey
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: hours
+          in: path
+          required: true
+          schema:
+            type: integer
+            enum: [6, 24]
+        - name: apikey
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: details
+          in: query
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                minItems: 1
+                items:
+                  $ref: '#/components/schemas/HistoricalCondition'
+components:
+  schemas:
+    Location:
+      type: object
+      properties:
+        Key:
+          type: string
+        LocalizedName:
+          type: string
+        Country:
+          type: object
+          properties:
+            ID:
+              type: string
+            LocalizedName:
+              type: string
+        AdministrativeArea:
+          type: object
+          properties:
+            ID:
+              type: string
+            LocalizedName:
+              type: string
+    CurrentCondition:
+      type: object
+      properties:
+        LocalObservationDateTime:
+          type: string
+        EpochTime:
+          type: integer
+        WeatherText:
+          type: string
+        Temperature:
+          type: object
+          properties:
+            Metric:
+              type: object
+              properties:
+                Value:
+                  type: number
+                Unit:
+                  type: string
+            Imperial:
+              type: object
+              properties:
+                Value:
+                  type: number
+                Unit:
+                  type: string
+    DailyForecast:
+      type: object
+      properties:
+        Headline:
+          type: object
+          properties:
+            Text:
+              type: string
+            Category:
+              type: string
+        DailyForecasts:
+          type: array
+          items:
+            type: object
+            properties:
+              Date:
+                type: string
+              Temperature:
+                type: object
+                properties:
+                  Minimum:
+                    type: object
+                    properties:
+                      Value:
+                        type: number
+                      Unit:
+                        type: string
+                  Maximum:
+                    type: object
+                    properties:
+                      Value:
+                        type: number
+                      Unit:
+                        type: string
+    HourlyForecast:
+      type: object
+      properties:
+        DateTime:
+          type: string
+        EpochDateTime:
+          type: integer
+        Temperature:
+          type: object
+          properties:
+            Value:
+              type: number
+            Unit:
+              type: string
+        IconPhrase:
+          type: string
+    HistoricalCondition:
+      type: object
+      properties:
+        LocalObservationDateTime:
+          type: string
+        EpochTime:
+          type: integer
+        WeatherText:
+          type: string
+        Temperature:
+          type: object
+          properties:
+            Metric:
+              type: object
+              properties:
+                Value:
+                  type: number
+                Unit:
+                  type: string
+            Imperial:
+              type: object
+              properties:
+                Value:
+                  type: number
+                Unit:
+                  type: string

@@ -1,0 +1,9 @@
+{
+  "start": "/apps/8df57107",
+  "name": "Agents",
+  "description": "Build and manage AI agents for customer support, sales and more.",
+  "icon": "@lucide/headset",
+  "order": 10000,
+  "category": "main",
+  "config": {}
+}

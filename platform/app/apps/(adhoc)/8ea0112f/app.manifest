@@ -1,0 +1,9 @@
+{
+  "start": "/apps/8ea0112f",
+  "name": "Memory",
+  "description": "Store and organize important context and information for your conversations.",
+  "icon": "@lucide/heart",
+  "order": 10,
+  "category": "user",
+  "config": {}
+}

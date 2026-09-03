@@ -1,0 +1,2026 @@
+# Connections Configuration
+#
+# Custom landing pages for partner/connection integrations. Each key must match
+# an ability icon pattern: @logo/${key} (see data/abilities/all.ts)
+
+isometric.com:
+  title: Isometric
+  description: |
+    Isometric is the world's leading carbon removal registry. with the mission
+    to build the trust needed to scale the carbon removal market responsibly
+    and fast.
+  content: |
+    Isometric is the world's leading carbon removal registry. with the mission
+    to build the trust needed to scale the carbon removal market responsibly
+    and fast.
+
+    **And now with help of ChatBotKit you can integrate Isometric's powerful
+    platform into any AI agent and workflow for faster, more efficient carbon
+    removal solutions.**
+
+slack.com:
+  title: Slack
+  description: |
+    Slack is a powerful team communication and collaboration platform that brings
+    all your work together in organized channels, replacing email with real-time
+    messaging and integrated workflows.
+  content: |
+    Slack is the operating system for work, bringing together people, processes,
+    and AI into one conversational interface. Used by over three-quarters of
+    Fortune 100 companies, Slack transforms workplace communication with organized
+    channels, real-time messaging, and seamless integrations.
+
+    **With ChatBotKit's Slack integration, you can deploy intelligent AI agents
+    directly into your team's workspace, automating workflows and enhancing
+    collaboration across your organization.**
+
+notion.so:
+  title: Notion
+  description: |
+    Notion is an all-in-one workspace that combines notes, docs, wikis, and
+    project management tools into a single collaborative platform for teams
+    and individuals.
+  content: |
+    Notion is a unified workspace where teams can write, plan, and collaborate.
+    It combines the flexibility of documents with the power of databases,
+    enabling everything from simple note-taking to complex project management.
+
+    **Integrate ChatBotKit AI agents with Notion to automate documentation,
+    generate content, and create intelligent assistants that can search and
+    interact with your knowledge base.**
+
+okta.com:
+  title: Okta
+  description: |
+    Okta is a leading identity and access management platform that provides
+    secure authentication, single sign-on, and user management for enterprises
+    and applications.
+  content: |
+    Okta is the world's leading identity platform, providing secure identity
+    management and access control for millions of users across thousands of
+    organizations. With features like single sign-on, multi-factor authentication,
+    and lifecycle management, Okta protects and enables enterprise workforces.
+
+    **Integrate ChatBotKit with Okta to build intelligent identity management
+    assistants, automate user provisioning workflows, and create conversational
+    interfaces for access management and security operations.**
+
+sprites.dev:
+  title: Sprites
+  description: |
+    Sprites.dev provides programmable virtual environments for AI agents,
+    offering isolated sandboxes with full command execution, filesystem
+    access, and service management capabilities.
+  content: |
+    Sprites.dev delivers instant, secure virtual environments (Sprites) that
+    AI agents can fully control. Each Sprite is an isolated sandbox with
+    persistent storage, checkpoint/restore capabilities, and programmable
+    network policies for safe code execution.
+
+    **Integrate ChatBotKit with Sprites.dev to give your AI agents the power
+    to execute code, manage files, run services, and perform complex
+    development tasks in secure, isolated environments.**
+
+stripe.com:
+  title: Stripe
+  description: |
+    Stripe is a comprehensive payment infrastructure platform that enables
+    businesses to accept payments, manage subscriptions, and handle complex
+    financial operations online.
+  content: |
+    Stripe powers online payments for millions of businesses worldwide,
+    providing robust APIs and tools for payment processing, subscription
+    management, invoicing, and financial automation.
+
+    **Use ChatBotKit with Stripe to build intelligent payment assistants,
+    automate subscription management, and provide conversational interfaces
+    for your customers' billing needs.**
+
+moltbook.com:
+  title: Moltbook
+  description: |
+    Moltbook is a social network for AI agents where they can share, discuss,
+    and upvote content, with humans welcome to observe the agent interactions.
+  content: |
+    Moltbook is the front page of the agent internet - a unique social network
+    designed specifically for AI agents. On Moltbook, AI agents can create
+    accounts, share posts, participate in discussions, and upvote content in
+    community spaces called "submolts". Humans are welcome to observe these
+    agent interactions.
+
+    **Integrate ChatBotKit with Moltbook to give your AI agents a social
+    presence, enabling them to authenticate, share insights, and interact
+    with other AI agents in the growing agent ecosystem.**
+
+snowflake.com:
+  title: Snowflake
+  description: |
+    Snowflake is a cloud-based data platform that provides data warehousing,
+    data lake, data engineering, data science, and data application capabilities
+    with seamless scalability and performance.
+  content: |
+    Snowflake delivers the Data Cloud, a global network where organizations
+    mobilize their data with near-unlimited scale and concurrency. With support
+    for structured and semi-structured data, Snowflake enables data warehousing,
+    data lakes, data engineering, and data sharing across clouds.
+
+    **Integrate ChatBotKit with Snowflake to query data warehouses conversationally,
+    build data-driven AI assistants, automate analytics workflows, and create
+    intelligent agents that unlock insights from your enterprise data.**
+
+figma.com:
+  title: Figma
+  description: |
+    Figma is a collaborative design platform that brings teams together to
+    create, prototype, and develop digital products in real-time.
+  content: |
+    Figma revolutionizes design collaboration with cloud-based tools that
+    enable teams to design, prototype, and gather feedback all in one place.
+    It's the platform where design happens at scale.
+
+    **Connect ChatBotKit AI agents to Figma to automate design workflows,
+    generate design documentation, and create intelligent assistants that
+    help teams navigate their design systems.**
+
+github.com:
+  title: GitHub
+  description: |
+    GitHub is the world's leading platform for version control and collaborative
+    software development, hosting millions of open source and private projects.
+  content: |
+    GitHub is where developers build, ship, and maintain software. With powerful
+    version control, code review tools, and collaborative features, GitHub has
+    become the home for open source and enterprise development worldwide.
+
+    **Integrate ChatBotKit with GitHub to build AI-powered code assistants,
+    automate issue management, generate documentation, and enhance developer
+    workflows with conversational interfaces.**
+
+hubspot.com:
+  title: HubSpot
+  description: |
+    HubSpot is a leading CRM platform that provides tools for marketing,
+    sales, customer service, and content management to help businesses grow.
+  content: |
+    HubSpot's all-in-one CRM platform helps businesses attract, engage, and
+    delight customers. From marketing automation to sales pipelines and
+    customer support, HubSpot provides the tools to scale your business.
+
+    **Deploy ChatBotKit AI agents with HubSpot to create intelligent chatbots,
+    automate lead qualification, enhance customer support, and provide
+    personalized experiences throughout the customer journey.**
+
+atlassian.com:
+  title: Atlassian
+  description: |
+    Atlassian develops collaboration software including Jira, Confluence, and
+    Trello, empowering teams to plan, track, and deliver projects effectively.
+  content: |
+    Atlassian's suite of products powers team collaboration and project
+    management across millions of teams. From agile project tracking in Jira
+    to knowledge sharing in Confluence, Atlassian enables teams to work smarter.
+
+    **Enhance your Atlassian workflows with ChatBotKit AI agents to automate
+    issue tracking, generate project documentation, and create intelligent
+    assistants for team collaboration.**
+
+shopify.com:
+  title: Shopify
+  description: |
+    Shopify is a leading e-commerce platform that enables businesses to create
+    online stores, manage products, and sell across multiple channels.
+  content: |
+    Shopify powers millions of businesses worldwide with a complete commerce
+    platform. From startups to enterprise brands, Shopify provides everything
+    needed to sell online, in-store, and everywhere in between.
+
+    **Integrate ChatBotKit with Shopify to build intelligent shopping assistants,
+    automate customer support, provide personalized product recommendations,
+    and enhance the entire shopping experience.**
+
+google.com:
+  title: Google Workspace
+  description: |
+    Google Workspace brings together Gmail, Drive, Calendar, Meet, and more
+    into a unified platform for productivity and collaboration.
+  content: |
+    Google Workspace is the enterprise productivity suite trusted by billions.
+    Seamlessly collaborate with email, cloud storage, video meetings, and
+    productivity apps all in one integrated platform.
+
+    **Connect ChatBotKit to Google Workspace to automate email workflows,
+    schedule meetings intelligently, manage documents, and create AI assistants
+    that integrate across all your Google apps.**
+
+microsoft.com:
+  title: Microsoft 365
+  description: |
+    Microsoft 365 combines Office apps, cloud services, and advanced security
+    to empower productivity and collaboration across organizations.
+  content: |
+    Microsoft 365 delivers enterprise-grade productivity tools including Teams,
+    SharePoint, OneDrive, and the complete Office suite. Transform how your
+    organization works with integrated cloud services and AI-powered features.
+
+    **Deploy ChatBotKit AI agents with Microsoft 365 to enhance Teams
+    collaboration, automate document workflows, and provide intelligent
+    assistance across your entire Microsoft ecosystem.**
+
+zendesk.com:
+  title: Zendesk
+  description: |
+    Zendesk is a customer service platform that helps businesses provide
+    seamless support experiences across multiple channels.
+  content: |
+    Zendesk transforms customer service with powerful ticketing, live chat,
+    knowledge base, and analytics tools. Trusted by thousands of companies
+    to deliver exceptional support at scale.
+
+    **Enhance your Zendesk support with ChatBotKit AI agents to automate
+    ticket routing, provide instant answers, escalate intelligently, and
+    deliver 24/7 customer service.**
+
+asana.com:
+  title: Asana
+  description: |
+    Asana is a work management platform that helps teams organize, track,
+    and manage their projects and tasks efficiently.
+  content: |
+    Asana enables teams to coordinate all their work from daily tasks to
+    strategic initiatives. With powerful project tracking, automation, and
+    reporting, Asana keeps everyone aligned and productive.
+
+    **Integrate ChatBotKit with Asana to automate task creation, generate
+    project updates, provide intelligent project insights, and create
+    conversational interfaces for team coordination.**
+
+attio.com:
+  title: Attio
+  description: |
+    Attio is a modern CRM platform that combines powerful data management
+    with flexible customization to help teams build stronger relationships.
+  content: |
+    Attio is a next-generation CRM that adapts to your business. With its
+    powerful data model, teams can track people, companies, and custom objects
+    while maintaining complete flexibility over their workflows and processes.
+
+    **Integrate ChatBotKit with Attio to build intelligent CRM assistants,
+    automate contact management, query your customer data using natural language,
+    and create AI-powered workflows across your entire sales pipeline.**
+
+trello.com:
+  title: Trello
+  description: |
+    Trello is a visual collaboration tool that organizes projects into
+    boards, lists, and cards for intuitive task management.
+  content: |
+    Trello makes project management simple and visual. With its flexible
+    board-based system, teams can organize anything from simple to-do lists
+    to complex workflows in a way that works for them.
+
+    **Connect ChatBotKit to Trello to automate board updates, create
+    intelligent task suggestions, generate reports, and provide conversational
+    project management interfaces.**
+
+dropbox.com:
+  title: Dropbox
+  description: |
+    Dropbox is a cloud storage and file sharing platform that keeps your
+    files secure, synced, and accessible from anywhere.
+  content: |
+    Dropbox provides secure cloud storage, file synchronization, and
+    collaboration tools for millions of users worldwide. Keep your files
+    safe, organized, and accessible across all your devices.
+
+    **Integrate ChatBotKit with Dropbox to build intelligent file assistants,
+    automate document organization, enable conversational file search, and
+    enhance team collaboration.**
+
+airtable.com:
+  title: Airtable
+  description: |
+    Airtable combines the power of a database with the simplicity of a
+    spreadsheet, enabling teams to build custom workflows.
+  content: |
+    Airtable is a low-code platform that democratizes software creation.
+    Build powerful custom applications, databases, and workflows without
+    writing code, all with a familiar spreadsheet interface.
+
+    **Deploy ChatBotKit AI agents with Airtable to create conversational
+    database interfaces, automate data entry, generate insights, and build
+    intelligent workflow assistants.**
+
+basecamp.com:
+  title: Basecamp
+  description: |
+    Basecamp is a project management and team communication platform that
+    helps teams organize their work, collaborate effectively, and stay on
+    the same page.
+  content: |
+    Basecamp is a trusted project management tool used by teams worldwide
+    to organize projects, communicate clearly, and get work done efficiently.
+    With features like to-do lists, message boards, schedules, and file
+    storage, Basecamp keeps everything your team needs in one place.
+
+    **Integrate ChatBotKit with Basecamp to automate project management tasks,
+    create intelligent assistants that can search and interact with your
+    projects, and streamline team collaboration with AI-powered workflows.**
+
+discord.com:
+  title: Discord
+  description: |
+    Discord is a communication platform designed for communities, offering
+    voice, video, and text chat in organized servers.
+  content: |
+    Discord brings communities together with powerful communication tools.
+    Originally built for gamers, Discord now serves communities of all kinds
+    with robust voice channels, text chat, and streaming capabilities.
+
+    **Integrate ChatBotKit with Discord to create intelligent community bots,
+    automate moderation, provide interactive experiences, and enhance
+    community engagement with AI-powered features.**
+
+docusign.com:
+  title: DocuSign
+  description: |
+    DocuSign is the leading electronic signature and agreement cloud platform
+    that enables secure document signing, sending, and management worldwide.
+  content: |
+    DocuSign transforms how organizations prepare, sign, and manage agreements.
+    Trusted by over a million customers and billions of users, DocuSign enables
+    digital transactions that are faster, easier, and more secure than paper.
+
+    **Integrate ChatBotKit with DocuSign to automate envelope creation, track
+    signature status, query document data using natural language, and build
+    intelligent agreement workflows powered by AI.**
+
+mailchimp.com:
+  title: Mailchimp
+  description: |
+    Mailchimp is an all-in-one marketing platform for email campaigns,
+    automation, and audience management.
+  content: |
+    Mailchimp helps businesses of all sizes grow their audience and build
+    their brand. From email marketing to automation and analytics, Mailchimp
+    provides the tools to reach and engage your customers.
+
+    **Connect ChatBotKit to Mailchimp to automate email content generation,
+    personalize campaigns intelligently, analyze performance, and create
+    conversational marketing experiences.**
+
+zoom.us:
+  title: Zoom
+  description: |
+    Zoom is a leading video communications platform providing video meetings,
+    webinars, and collaboration tools for teams worldwide.
+  content: |
+    Zoom connects people through reliable, high-quality video and audio
+    conferencing. Trusted by millions for virtual meetings, webinars, and
+    remote collaboration across industries.
+
+    **Enhance your Zoom experience with ChatBotKit AI agents to automate
+    meeting scheduling, generate meeting summaries, provide real-time
+    assistance, and create intelligent meeting companions.**
+
+intercom.com:
+  title: Intercom
+  description: |
+    Intercom is a customer messaging platform that enables personalized
+    communication through chat, email, and automated workflows.
+  content: |
+    Intercom transforms how businesses communicate with customers. Combine
+    live chat, targeted messages, and automation to deliver personalized
+    experiences that drive engagement and growth.
+
+    **Deploy ChatBotKit with Intercom to create sophisticated AI chatbots,
+    automate customer conversations, provide intelligent routing, and deliver
+    exceptional customer experiences at scale.**
+
+calendly.com:
+  title: Calendly
+  description: |
+    Calendly simplifies scheduling by eliminating back-and-forth emails,
+    letting people book time with you based on your availability.
+  content: |
+    Calendly makes scheduling simple and professional. Share your availability,
+    let people book time slots that work for both of you, and integrate with
+    your calendar for seamless scheduling.
+
+    **Integrate ChatBotKit with Calendly to create intelligent scheduling
+    assistants, automate appointment booking, handle rescheduling
+    conversationally, and enhance the scheduling experience.**
+
+chargebee.com:
+  title: Chargebee
+  description: |
+    Chargebee is a subscription billing and revenue management platform that
+    helps businesses automate recurring billing, invoicing, and subscription
+    lifecycle management.
+  content: |
+    Chargebee powers subscription businesses with comprehensive billing
+    automation, revenue recognition, and subscription analytics. From startups
+    to enterprises, Chargebee handles complex billing scenarios, dunning
+    management, and integrates with your existing tech stack.
+
+    **Integrate ChatBotKit with Chargebee to build intelligent billing
+    assistants, automate subscription management, handle customer inquiries
+    about invoices and payments, and create conversational interfaces for
+    your revenue operations.**
+
+typeform.com:
+  title: Typeform
+  description: |
+    Typeform creates beautiful, conversational forms and surveys that boost
+    engagement and completion rates.
+  content: |
+    Typeform transforms data collection with human-friendly forms. Create
+    engaging surveys, quizzes, and forms that people actually enjoy filling
+    out, with powerful logic and integrations.
+
+    **Connect ChatBotKit to Typeform to create truly conversational data
+    collection experiences, automate form responses, analyze feedback
+    intelligently, and enhance user engagement.**
+
+linear.app:
+  title: Linear
+  description: |
+    Linear is a modern issue tracking tool built for high-performance teams,
+    designed for speed and efficiency.
+  content: |
+    Linear reimagines issue tracking for modern software teams. With blazing
+    fast performance, keyboard shortcuts, and intelligent workflows, Linear
+    helps teams ship better software faster.
+
+    **Integrate ChatBotKit with Linear to automate issue creation, provide
+    intelligent project insights, generate status updates, and create
+    conversational interfaces for issue management.**
+
+sentry.io:
+  title: Sentry
+  description: |
+    Sentry is an error tracking and performance monitoring platform that
+    helps developers identify and fix issues in production.
+  content: |
+    Sentry provides real-time error tracking and performance monitoring for
+    applications. Catch bugs before your users do, understand the impact of
+    errors, and fix issues faster with detailed diagnostics.
+
+    **Deploy ChatBotKit with Sentry to create intelligent error analysis,
+    automate incident response, generate detailed reports, and provide
+    conversational interfaces for debugging workflows.**
+
+betterstack.com:
+  title: Better Stack
+  description: |
+    Better Stack is an observability platform that combines uptime monitoring,
+    incident management, and log management into a unified experience.
+  content: |
+    Better Stack provides modern observability tools that help teams monitor,
+    debug, and respond to incidents faster. With uptime monitoring, on-call
+    scheduling, status pages, and powerful log management, Better Stack keeps
+    your systems reliable and your team informed.
+
+    **Integrate ChatBotKit with Better Stack to query logs conversationally,
+    automate incident response, generate status reports, and create intelligent
+    assistants for your DevOps and SRE workflows.**
+
+replicate.com:
+  title: Replicate
+  description: |
+    Replicate makes it easy to run machine learning models in the cloud,
+    providing simple APIs for AI inference.
+  content: |
+    Replicate democratizes access to machine learning models. Run models with
+    just a few lines of code, from image generation to language models,
+    without managing infrastructure.
+
+    **Combine ChatBotKit with Replicate to build sophisticated AI applications
+    that leverage multiple models, create intelligent workflows, and provide
+    advanced AI capabilities to your users.**
+
+cal.com:
+  title: Cal.com
+  description: |
+    Cal.com is an open-source scheduling infrastructure that provides flexible,
+    customizable booking solutions for teams and businesses.
+  content: |
+    Cal.com is the scheduling platform for everyone. Open-source, customizable,
+    and feature-rich, Cal.com gives you complete control over your scheduling
+    infrastructure.
+
+    **Integrate ChatBotKit with Cal.com to build intelligent scheduling bots,
+    automate booking workflows, provide conversational scheduling experiences,
+    and enhance calendar management.**
+
+twilio.com:
+  title: Twilio
+  description: |
+    Twilio is a cloud communications platform that enables developers to build
+    voice, messaging, and video communication into applications using APIs.
+  content: |
+    Twilio powers billions of communication touchpoints worldwide with its
+    programmable APIs for SMS, voice, video, and authentication. Build
+    scalable communication solutions that connect people globally.
+
+    **Deploy ChatBotKit with Twilio to create intelligent SMS bots, automate
+    voice interactions, build WhatsApp assistants, and enhance customer
+    communication across all channels.**
+
+sendgrid.com:
+  title: SendGrid
+  description: |
+    SendGrid is a cloud-based email delivery platform that provides reliable
+    transactional and marketing email services at scale.
+  content: |
+    SendGrid delivers billions of emails monthly, providing developers and
+    businesses with powerful APIs for email automation, deliverability
+    optimization, and email analytics.
+
+    **Integrate ChatBotKit with SendGrid to automate email responses, create
+    intelligent email workflows, generate personalized content, and build
+    conversational email experiences.**
+
+telegram.org:
+  title: Telegram
+  description: |
+    Telegram is a cloud-based messaging app focused on speed and security,
+    offering group chats, channels, and bot capabilities.
+  content: |
+    Telegram connects over 800 million users worldwide with fast, secure
+    messaging. Its powerful bot API enables developers to create sophisticated
+    automated experiences within the platform.
+
+    **Build ChatBotKit AI agents for Telegram to create intelligent chatbots,
+    automate group management, provide customer support, and deliver
+    personalized interactions to your audience.**
+
+manychat.com:
+  title: ManyChat
+  description: |
+    ManyChat is a leading chatbot platform for Facebook Messenger, Instagram,
+    SMS, and WhatsApp that enables automated conversations and marketing.
+  content: |
+    ManyChat empowers businesses to automate conversations across messaging
+    platforms, reaching over 1 billion users. Build sophisticated chatbots,
+    automate customer support, and create personalized marketing experiences.
+
+    **Integrate ChatBotKit with ManyChat to enhance your chatbot capabilities,
+    create intelligent conversation flows, automate subscriber management, and
+    deliver advanced AI-powered experiences across messaging platforms.**
+
+openweathermap.org:
+  title: OpenWeatherMap
+  description: |
+    OpenWeatherMap provides weather data APIs including current conditions,
+    forecasts, and historical data for any location worldwide.
+  content: |
+    OpenWeatherMap delivers accurate weather data to millions of developers
+    and businesses. Access current weather, forecasts, air quality, and
+    historical data through simple APIs.
+
+    **Connect ChatBotKit to OpenWeatherMap to create weather-aware AI agents,
+    automate weather notifications, provide location-based forecasts, and
+    enhance applications with real-time weather intelligence.**
+
+newsapi.org:
+  title: NewsAPI
+  description: |
+    NewsAPI is a simple HTTP REST API for searching and retrieving live
+    articles from news sources and blogs across the web.
+  content: |
+    NewsAPI aggregates news from thousands of sources worldwide, providing
+    developers with a simple way to search and retrieve current news articles
+    and headlines.
+
+    **Integrate ChatBotKit with NewsAPI to build news-aware AI agents, create
+    personalized news briefings, automate content curation, and keep users
+    informed with real-time news updates.**
+
+supabase.com:
+  title: Supabase
+  description: |
+    Supabase is an open-source Firebase alternative providing database,
+    authentication, storage, and real-time subscriptions.
+  content: |
+    Supabase gives developers instant APIs on top of Postgres databases,
+    combined with authentication, storage, and real-time capabilities. Build
+    production-ready applications with enterprise-grade security.
+
+    **Deploy ChatBotKit with Supabase to create data-driven AI agents, manage
+    user contexts, store conversation histories, and build intelligent
+    applications with persistent memory.**
+
+resend.com:
+  title: Resend
+  description: |
+    Resend is a modern email API for developers, focused on reliability,
+    deliverability, and developer experience.
+  content: |
+    Resend makes email simple with a modern API designed for developers.
+    Send transactional emails with high deliverability and real-time analytics
+    through a clean, well-documented API.
+
+    **Connect ChatBotKit to Resend for intelligent email automation, create
+    conversational email workflows, and enhance communication with AI-powered
+    email generation.**
+
+clickup.com:
+  title: ClickUp
+  description: |
+    ClickUp is an all-in-one productivity platform that combines project
+    management, docs, goals, and collaboration tools.
+  content: |
+    ClickUp brings all your work together in one app. Manage projects, track
+    tasks, collaborate on docs, and achieve goals with powerful customization
+    and integrations.
+
+    **Integrate ChatBotKit with ClickUp to automate task management, generate
+    project updates, create intelligent workflow assistants, and enhance team
+    productivity with AI.**
+
+todoist.com:
+  title: Todoist
+  description: |
+    Todoist is a popular task management app that helps individuals and teams
+    organize, plan, and collaborate on projects.
+  content: |
+    Todoist simplifies task management for millions of users with intuitive
+    design, powerful features, and seamless integrations. Stay organized and
+    accomplish more every day.
+
+    **Deploy ChatBotKit with Todoist to create intelligent task assistants,
+    automate task creation from conversations, provide daily briefings, and
+    enhance personal productivity with AI.**
+
+giphy.com:
+  title: GIPHY
+  description: |
+    GIPHY is the world's largest library of animated GIFs and stickers,
+    providing APIs for searching and sharing visual content.
+  content: |
+    GIPHY powers visual communication with the world's largest collection of
+    GIFs, stickers, and clips. Integrate expressive content into any platform
+    with powerful search APIs.
+
+    **Connect ChatBotKit to GIPHY to add visual expression to AI conversations,
+    enhance engagement with relevant GIFs, and create more dynamic and
+    entertaining chat experiences.**
+
+unsplash.com:
+  title: Unsplash
+  description: |
+    Unsplash is a platform for sharing high-quality, royalty-free photographs
+    with a powerful API for developers.
+  content: |
+    Unsplash provides access to over 3 million high-resolution photos from
+    talented photographers worldwide. Free to use for any project with an
+    easy-to-use API.
+
+    **Integrate ChatBotKit with Unsplash to enhance AI responses with beautiful
+    imagery, automate image selection, and create visually rich conversational
+    experiences.**
+
+miro.com:
+  title: Miro
+  description: |
+    Miro is a visual collaboration platform that enables distributed teams to
+    brainstorm, plan, and design together in real-time.
+  content: |
+    Miro is the online collaborative whiteboard platform that brings teams
+    together. Create, collaborate, and centralize communication with visual
+    tools that scale with your team.
+
+    **Deploy ChatBotKit with Miro to automate board creation, generate visual
+    content, facilitate brainstorming sessions, and enhance team collaboration
+    with AI-powered insights.**
+
+coda.io:
+  title: Coda
+  description: |
+    Coda is a collaborative document platform that combines documents, spreadsheets,
+    and databases into a single powerful tool.
+  content: |
+    Coda reinvents documents for the modern workplace. Build powerful docs
+    that combine words, data, and teamwork in ways that traditional tools
+    simply can't match.
+
+    **Integrate ChatBotKit with Coda to automate document workflows, create
+    intelligent data assistants, generate content, and enhance team
+    collaboration with conversational AI.**
+
+brave.com:
+  title: Brave Search
+  description: |
+    Brave Search is a privacy-focused search engine that provides independent
+    search results without tracking users.
+  content: |
+    Brave Search delivers fast, privacy-respecting search results powered by
+    an independent index. Get relevant results without compromising your
+    privacy or being tracked.
+
+    **Connect ChatBotKit to Brave Search to build privacy-conscious AI agents,
+    enable intelligent web search capabilities, and provide users with
+    relevant information while respecting their privacy.**
+
+buffer.com:
+  title: Buffer
+  description: |
+    Buffer is a social media management platform that helps teams plan,
+    schedule, and publish content across multiple social networks.
+  content: |
+    Buffer simplifies social media management with intuitive tools for
+    scheduling posts, analyzing performance, and managing multiple channels
+    from a single dashboard. Trusted by thousands of businesses and creators,
+    Buffer covers all major social networks including Twitter/X, LinkedIn,
+    Facebook, Instagram, and more.
+
+    **Connect ChatBotKit to Buffer to build AI agents that can publish posts
+    immediately or queue them for later, list scheduled and sent posts,
+    manage multiple social channels, and automate your entire social media
+    publishing workflow.**
+
+wikipedia.org:
+  title: Wikipedia
+  description: |
+    Wikipedia is the world's largest free encyclopedia, providing access to
+    knowledge on virtually every topic through open APIs.
+  content: |
+    Wikipedia contains over 60 million articles across hundreds of languages,
+    making knowledge accessible to everyone. Access this vast knowledge base
+    programmatically through its open APIs.
+
+    **Integrate ChatBotKit with Wikipedia to build knowledge-rich AI agents,
+    answer factual questions, provide educational content, and enhance
+    conversations with encyclopedic information.**
+
+reddit.com:
+  title: Reddit
+  description: |
+    Reddit is a social news aggregation platform where users share content,
+    discuss topics, and form communities around shared interests.
+  content: |
+    Reddit hosts millions of communities covering every topic imaginable.
+    Access discussions, content, and community insights through Reddit's
+    comprehensive API.
+
+    **Deploy ChatBotKit with Reddit to monitor discussions, analyze trends,
+    engage with communities, and build AI agents that understand and
+    participate in relevant conversations.**
+
+pexels.com:
+  title: Pexels
+  description: |
+    Pexels provides free stock photos and videos shared by talented creators,
+    with a developer-friendly API for integration.
+  content: |
+    Pexels offers high-quality, completely free stock photos and videos. With
+    hundreds of thousands of assets and an easy API, adding visual content
+    to your projects is simple.
+
+    **Connect ChatBotKit to Pexels to enhance AI conversations with relevant
+    imagery, automate visual content selection, and create engaging multimedia
+    experiences.**
+
+mapbox.com:
+  title: Mapbox
+  description: |
+    Mapbox provides location data and mapping services with powerful APIs for
+    maps, geocoding, navigation, and spatial analysis.
+  content: |
+    Mapbox powers location experiences for leading apps and websites with
+    precise maps, geocoding, directions, and real-time traffic data. Build
+    location-aware applications with developer-friendly APIs.
+
+    **Integrate ChatBotKit with Mapbox to create location-aware AI agents,
+    provide intelligent navigation assistance, answer geographic queries,
+    and enhance applications with spatial intelligence.**
+
+cloudinary.com:
+  title: Cloudinary
+  description: |
+    Cloudinary is a cloud-based media management platform for storing,
+    transforming, and delivering images and videos.
+  content: |
+    Cloudinary streamlines media management with powerful APIs for upload,
+    storage, optimization, and delivery. Transform and deliver images and
+    videos at scale with automatic optimization.
+
+    **Deploy ChatBotKit with Cloudinary to manage media in AI workflows,
+    automate image processing, generate optimized visuals, and enhance
+    content delivery in conversational experiences.**
+
+firecrawl.dev:
+  title: Firecrawl
+  description: |
+    Firecrawl is a web scraping and crawling API that converts websites into
+    clean, structured data for AI applications.
+  content: |
+    Firecrawl makes web data extraction simple with powerful APIs that crawl
+    websites and deliver clean, structured content. Perfect for feeding
+    real-time web data to AI applications.
+
+    **Connect ChatBotKit to Firecrawl to give AI agents real-time web access,
+    scrape and analyze websites conversationally, and build knowledge bases
+    from web content automatically.**
+
+tavily.com:
+  title: Tavily
+  description: |
+    Tavily is an AI-optimized search API designed specifically for LLMs and
+    AI agents to retrieve accurate, up-to-date information.
+  content: |
+    Tavily provides search APIs built specifically for AI applications. Get
+    accurate, comprehensive search results optimized for large language models
+    and agentic workflows.
+
+    **Integrate ChatBotKit with Tavily to supercharge AI agents with intelligent
+    search capabilities, access real-time information, and provide users with
+    accurate, well-researched responses.**
+
+xero.com:
+  title: Xero
+  description: |
+    Xero is a cloud-based accounting software platform that helps small and
+    medium businesses manage their finances, invoicing, and payroll.
+  content: |
+    Xero is the global small business platform with over 4 million subscribers.
+    From invoicing and bank reconciliation to payroll and reporting, Xero
+    provides beautiful, easy-to-use accounting software that connects with
+    your bank and integrates with hundreds of business apps.
+
+    **Connect ChatBotKit to Xero to build intelligent accounting assistants,
+    automate invoice processing, query financial data conversationally, and
+    streamline bookkeeping workflows with AI-powered agents.**
+
+ably.com:
+  title: Ably
+  description: |
+    Ably is a realtime messaging platform that provides APIs for pub/sub
+    messaging, presence, and data streaming at scale.
+  content: |
+    Ably delivers enterprise-grade realtime infrastructure that powers live
+    experiences across web and mobile applications. With low-latency messaging,
+    presence detection, and guaranteed delivery, Ably enables developers to
+    build responsive, collaborative applications.
+
+    **Integrate ChatBotKit with Ably to build realtime AI assistants, enable
+    live collaboration features, stream AI responses in real-time, and create
+    interactive conversational experiences at scale.**
+
+abstractapi.com:
+  title: Abstract API
+  description: |
+    Abstract API provides a suite of utility APIs including email validation,
+    phone validation, IP geolocation, and holiday data for developers.
+  content: |
+    Abstract API offers reliable, developer-friendly APIs for common data
+    validation and enrichment tasks. From validating email addresses and phone
+    numbers to looking up IP locations and global holidays, Abstract simplifies
+    integration of essential utilities.
+
+    **Connect ChatBotKit to Abstract API to validate user inputs, enrich
+    conversations with location data, check email deliverability, and enhance
+    your AI agents with real-time data validation capabilities.**
+
+accuweather.com:
+  title: AccuWeather
+  description: |
+    AccuWeather is a leading weather forecasting service providing accurate
+    weather data, forecasts, and severe weather alerts worldwide.
+  content: |
+    AccuWeather delivers precise weather information to billions of users
+    globally with minute-by-minute forecasts, extended outlooks, and real-time
+    severe weather notifications. Trusted by businesses and consumers for
+    reliable weather intelligence.
+
+    **Integrate ChatBotKit with AccuWeather to create weather-aware AI agents,
+    provide location-based forecasts, deliver severe weather alerts, and enhance
+    applications with accurate weather data.**
+
+activecampaign.com:
+  title: ActiveCampaign
+  description: |
+    ActiveCampaign is a customer experience automation platform that combines
+    email marketing, marketing automation, CRM, and sales automation to help
+    businesses grow.
+  content: |
+    ActiveCampaign empowers businesses of all sizes with powerful marketing
+    automation, email marketing, and CRM tools. With advanced segmentation,
+    personalized messaging, and sales automation, ActiveCampaign helps create
+    meaningful customer experiences at every touchpoint.
+
+    **Integrate ChatBotKit with ActiveCampaign to automate contact management,
+    create and manage deals conversationally, tag and segment contacts with AI,
+    and build intelligent marketing automation assistants.**
+
+ahrefs.com:
+  title: Ahrefs
+  description: |
+    Ahrefs is a comprehensive SEO toolset for backlink analysis, keyword
+    research, competitor analysis, and site auditing.
+  content: |
+    Ahrefs empowers marketers and SEO professionals with powerful tools for
+    understanding search traffic, analyzing competitors, and improving website
+    visibility. With one of the largest backlink indexes, Ahrefs is essential
+    for digital marketing success.
+
+    **Connect ChatBotKit to Ahrefs to build SEO analysis assistants, automate
+    keyword research workflows, generate competitive insights, and create
+    AI-powered marketing tools.**
+
+alphavantage.co:
+  title: Alpha Vantage
+  description: |
+    Alpha Vantage provides free APIs for realtime and historical stock market
+    data, forex, cryptocurrency, and technical indicators.
+  content: |
+    Alpha Vantage delivers financial market data to developers and investors
+    with APIs covering stocks, currencies, and crypto. Access real-time quotes,
+    historical data, and 50+ technical indicators for comprehensive market
+    analysis.
+
+    **Integrate ChatBotKit with Alpha Vantage to create financial AI assistants,
+    provide market insights, analyze stock trends conversationally, and build
+    intelligent investment research tools.**
+
+amplitude.com:
+  title: Amplitude
+  description: |
+    Amplitude is a product analytics platform that helps teams understand user
+    behavior, improve engagement, and drive growth.
+  content: |
+    Amplitude provides digital analytics for modern product teams, enabling
+    deep insights into user journeys, retention patterns, and feature adoption.
+    Trusted by leading companies to make data-driven product decisions.
+
+    **Deploy ChatBotKit with Amplitude to query analytics data conversationally,
+    generate insights from user behavior, automate reporting, and create
+    AI-powered product intelligence assistants.**
+
+bamboohr.com:
+  title: BambooHR
+  description: |
+    BambooHR is a cloud-based HR software platform for managing employee data,
+    time-off, onboarding, and HR workflows for small and medium businesses.
+  content: |
+    BambooHR simplifies HR for growing companies with easy-to-use tools for
+    employee records, time-off management, onboarding, and performance tracking.
+    Trusted by thousands of organizations to streamline HR operations and create
+    better employee experiences.
+
+    **Integrate ChatBotKit with BambooHR to automate HR queries, manage employee
+    data conversationally, track time-off requests, and create AI-powered HR
+    assistants for your organization.**
+
+apify.com:
+  title: Apify
+  description: |
+    Apify is a web scraping and automation platform that enables developers to
+    extract data from websites and automate web workflows.
+  content: |
+    Apify transforms the web into data with powerful scraping tools, ready-made
+    actors, and cloud infrastructure for running automated tasks. Build custom
+    scrapers or use existing solutions to extract any web data.
+
+    **Connect ChatBotKit to Apify to give AI agents web scraping capabilities,
+    automate data extraction workflows, and build intelligent assistants that
+    can gather information from across the web.**
+
+apollo.io:
+  title: Apollo
+  description: |
+    Apollo is a sales intelligence and engagement platform providing B2B
+    contact data, prospecting tools, and outreach automation.
+  content: |
+    Apollo helps sales teams find and engage with ideal customers through a
+    database of millions of contacts, advanced prospecting tools, and integrated
+    email sequences. Accelerate revenue with data-driven sales workflows.
+
+    **Integrate ChatBotKit with Apollo to automate lead research, enrich contact
+    data conversationally, generate personalized outreach, and create AI-powered
+    sales development assistants.**
+
+barcodelookup.com:
+  title: Barcode Lookup
+  description: |
+    Barcode Lookup provides a database of product information searchable by
+    UPC, EAN, and ISBN codes for retail and inventory applications.
+  content: |
+    Barcode Lookup offers instant access to detailed product information
+    including names, descriptions, images, and pricing data. Essential for
+    retail, inventory management, and e-commerce applications.
+
+    **Connect ChatBotKit to Barcode Lookup to create product information
+    assistants, automate inventory lookups, provide instant product details,
+    and enhance shopping experiences with barcode intelligence.**
+
+beehiiv.com:
+  title: beehiiv
+  description: |
+    beehiiv is a newsletter platform built for growth, offering publishing
+    tools, audience management, and monetization features for creators.
+  content: |
+    beehiiv empowers newsletter creators with powerful publishing, audience
+    growth, and monetization tools. Built by newsletter operators for
+    newsletter operators, beehiiv helps creators build and scale their
+    audience effectively.
+
+    **Integrate ChatBotKit with beehiiv to automate newsletter content creation,
+    manage subscribers conversationally, analyze audience engagement, and create
+    AI-powered newsletter assistants.**
+
+bigcommerce.com:
+  title: BigCommerce
+  description: |
+    BigCommerce is an e-commerce platform that enables businesses to create
+    online stores with powerful customization and scalability.
+  content: |
+    BigCommerce provides enterprise-grade e-commerce solutions for businesses
+    of all sizes. With robust APIs, headless commerce capabilities, and
+    extensive integrations, BigCommerce powers online stores that scale with
+    your business.
+
+    **Deploy ChatBotKit with BigCommerce to build shopping assistants, automate
+    product management, provide personalized recommendations, and enhance the
+    customer shopping experience with AI.**
+
+box.com:
+  title: Box
+  description: |
+    Box is a cloud content management platform that enables secure file
+    storage, collaboration, and workflow automation for enterprises.
+  content: |
+    Box provides secure cloud storage and collaboration for modern businesses.
+    With enterprise-grade security, workflow automation, and deep integrations,
+    Box helps teams work together effectively while keeping content protected.
+
+    **Connect ChatBotKit to Box to create intelligent document assistants,
+    automate file organization, enable conversational search, and build
+    AI-powered content management workflows.**
+
+brandfetch.io:
+  title: Brandfetch
+  description: |
+    Brandfetch provides brand asset APIs for accessing logos, colors, fonts,
+    and brand guidelines for companies worldwide.
+  content: |
+    Brandfetch offers instant access to brand assets including logos, color
+    palettes, typography, and style guidelines. Perfect for design tools,
+    marketing platforms, and applications needing brand consistency.
+
+    **Integrate ChatBotKit with Brandfetch to retrieve brand assets
+    conversationally, automate design workflows, ensure brand consistency,
+    and create AI-powered branding assistants.**
+
+canva.com:
+  title: Canva
+  description: |
+    Canva is a visual design platform that makes it easy to create graphics,
+    presentations, videos, and other visual content.
+  content: |
+    Canva democratizes design with intuitive tools for creating stunning
+    visuals. From social media graphics to presentations and videos, Canva
+    empowers anyone to create professional-quality content without design
+    expertise.
+
+    **Connect ChatBotKit to Canva to automate design generation, create
+    visuals from natural language, manage design assets, and build AI-powered
+    creative assistants.**
+
+clearbit.com:
+  title: Clearbit
+  description: |
+    Clearbit provides B2B data enrichment APIs for company and person
+    information, helping businesses understand their customers better.
+  content: |
+    Clearbit powers go-to-market teams with real-time intelligence on
+    companies and people. Enrich leads with firmographic and demographic
+    data to personalize outreach and accelerate sales cycles.
+
+    **Integrate ChatBotKit with Clearbit to enrich contact data, qualify leads
+    conversationally, personalize customer interactions, and build AI-powered
+    data enrichment workflows.**
+
+clickhouse.com:
+  title: ClickHouse
+  description: |
+    ClickHouse is a fast, open-source columnar database management system
+    optimized for real-time analytics and data warehousing.
+  content: |
+    ClickHouse delivers exceptional query performance for analytical workloads,
+    processing billions of rows in milliseconds. Used by leading companies for
+    real-time analytics, observability, and business intelligence.
+
+    **Connect ChatBotKit to ClickHouse to query analytics data conversationally,
+    generate reports from natural language, and create AI-powered data analysis
+    assistants.**
+
+clockify.me:
+  title: Clockify
+  description: |
+    Clockify is a free time tracking software for teams, offering timesheets,
+    project tracking, and productivity analytics.
+  content: |
+    Clockify helps teams track work hours across projects with simple time
+    tracking, detailed reports, and team management features. Free for
+    unlimited users with powerful features for productivity management.
+
+    **Integrate ChatBotKit with Clockify to log time conversationally, generate
+    time reports, track project progress, and create AI-powered productivity
+    assistants.**
+
+close.com:
+  title: Close
+  description: |
+    Close is a CRM built for sales teams, featuring built-in calling, email
+    automation, and pipeline management.
+  content: |
+    Close accelerates sales with an all-in-one CRM that includes calling,
+    email, SMS, and pipeline management. Designed for high-velocity sales
+    teams, Close eliminates manual data entry and increases productivity.
+
+    **Deploy ChatBotKit with Close to automate sales workflows, log activities
+    conversationally, qualify leads with AI, and create intelligent sales
+    assistants.**
+
+codeqr.io:
+  title: CodeQR
+  description: |
+    CodeQR provides QR code generation APIs for creating customized QR codes
+    with logos, colors, and tracking capabilities.
+  content: |
+    CodeQR makes QR code generation simple with APIs for creating branded,
+    trackable QR codes. Add logos, customize colors, and track scans to
+    connect physical and digital experiences.
+
+    **Connect ChatBotKit to CodeQR to generate QR codes conversationally,
+    create branded codes for marketing, track engagement, and automate QR
+    code workflows.**
+
+coinapi.io:
+  title: CoinAPI
+  description: |
+    CoinAPI provides cryptocurrency market data APIs including real-time
+    prices, historical data, and exchange information.
+  content: |
+    CoinAPI delivers comprehensive cryptocurrency data from hundreds of
+    exchanges. Access real-time prices, historical OHLCV data, order books,
+    and trades for thousands of digital assets.
+
+    **Integrate ChatBotKit with CoinAPI to create cryptocurrency assistants,
+    provide real-time price information, analyze market trends, and build
+    AI-powered crypto trading tools.**
+
+context7.com:
+  title: Context7
+  description: |
+    Context7 provides up-to-date documentation retrieval for AI applications,
+    ensuring LLMs have access to current library and framework documentation.
+  content: |
+    Context7 solves the problem of outdated training data by providing
+    real-time access to the latest documentation for programming libraries
+    and frameworks. Essential for AI coding assistants and developer tools.
+
+    **Connect ChatBotKit to Context7 to enhance coding assistants with current
+    documentation, improve code generation accuracy, and create AI agents with
+    up-to-date technical knowledge.**
+
+dev.to:
+  title: DEV Community
+  description: |
+    DEV is a community platform for software developers to share knowledge,
+    learn, and connect through articles, discussions, and resources.
+  content: |
+    DEV Community brings together millions of developers to share articles,
+    discuss technology, and grow their careers. An inclusive space for
+    learning and collaboration in the software development world.
+
+    **Integrate ChatBotKit with DEV to search developer content, analyze
+    trending topics, share knowledge, and create AI assistants for developer
+    communities.**
+
+dictionaryapi.dev:
+  title: Free Dictionary API
+  description: |
+    Free Dictionary API provides word definitions, pronunciations,
+    etymologies, and examples for building language applications.
+  content: |
+    Free Dictionary API offers comprehensive word data including definitions,
+    phonetics, examples, and synonyms. A free, open-source resource for
+    building dictionary and language learning applications.
+
+    **Connect ChatBotKit to Dictionary API to provide word definitions, enhance
+    language learning, build vocabulary assistants, and create AI-powered
+    writing tools.**
+
+diffbot.com:
+  title: Diffbot
+  description: |
+    Diffbot uses AI to extract structured data from web pages, providing
+    automatic article, product, and entity extraction APIs.
+  content: |
+    Diffbot turns unstructured web data into structured knowledge with AI-
+    powered extraction. Automatically identify and extract articles, products,
+    discussions, and entities from any webpage.
+
+    **Integrate ChatBotKit with Diffbot to give AI agents intelligent web
+    scraping capabilities, extract structured data conversationally, and build
+    knowledge bases from web content.**
+
+easypost.com:
+  title: EasyPost
+  description: |
+    EasyPost is a shipping API that provides rate comparison, label
+    generation, and package tracking across major carriers.
+  content: |
+    EasyPost simplifies shipping for e-commerce and logistics with APIs for
+    comparing rates, generating labels, and tracking packages across 100+
+    carriers. Build shipping into any application with a single integration.
+
+    **Connect ChatBotKit to EasyPost to automate shipping workflows, compare
+    rates conversationally, track packages, and create AI-powered logistics
+    assistants.**
+
+explorium.ai:
+  title: Explorium
+  description: |
+    Explorium is an external data platform that helps businesses discover
+    and integrate third-party data for machine learning and analytics.
+  content: |
+    Explorium accelerates data discovery by automatically finding and
+    integrating relevant external data sources. Enhance ML models and analytics
+    with data you didn't know you needed.
+
+    **Integrate ChatBotKit with Explorium to discover data sources, enrich
+    datasets conversationally, and build AI agents with access to vast
+    external data repositories.**
+
+facebook.com:
+  title: Facebook
+  description: |
+    Facebook is a social networking platform enabling people and businesses
+    to connect, share content, and build communities.
+  content: |
+    Facebook connects billions of people worldwide, offering tools for
+    personal networking, business marketing, and community building. With
+    Pages, Groups, and Messenger, Facebook remains a central platform for
+    social interaction.
+
+    **Deploy ChatBotKit with Facebook to manage pages, respond to messages,
+    engage with communities, and create AI-powered social media assistants.**
+
+financialmodelingprep.com:
+  title: Financial Modeling Prep
+  description: |
+    Financial Modeling Prep provides financial data APIs including stock
+    prices, financial statements, and market analysis tools.
+  content: |
+    Financial Modeling Prep delivers comprehensive financial data for stocks,
+    ETFs, and cryptocurrencies. Access real-time quotes, historical data,
+    financial statements, and valuation metrics for investment analysis.
+
+    **Connect ChatBotKit to Financial Modeling Prep to build financial analysis
+    assistants, query company data, generate investment insights, and create
+    AI-powered research tools.**
+
+fireflies.ai:
+  title: Fireflies.ai
+  description: |
+    Fireflies.ai is an AI meeting assistant that automatically transcribes,
+    summarizes, and analyzes meetings across video conferencing platforms.
+  content: |
+    Fireflies.ai captures and makes meetings searchable with automatic
+    transcription, AI-powered summaries, and conversation intelligence. Never
+    miss action items or key discussions again.
+
+    **Integrate ChatBotKit with Fireflies.ai to query meeting content, extract
+    action items, search conversations, and create AI assistants for meeting
+    productivity.**
+
+freshdesk.com:
+  title: Freshdesk
+  description: |
+    Freshdesk is a cloud-based customer support platform offering ticketing,
+    automation, and multi-channel support capabilities.
+  content: |
+    Freshdesk simplifies customer support with intuitive ticketing, powerful
+    automation, and omnichannel capabilities. Help teams deliver exceptional
+    customer experiences across email, chat, phone, and social media.
+
+    **Deploy ChatBotKit with Freshdesk to automate ticket handling, provide
+    intelligent responses, route queries efficiently, and enhance customer
+    support with AI-powered assistants.**
+
+geocod.io:
+  title: Geocodio
+  description: |
+    Geocodio provides geocoding and reverse geocoding APIs for converting
+    addresses to coordinates and vice versa.
+  content: |
+    Geocodio offers accurate geocoding for US and Canadian addresses with
+    additional data appends including congressional districts, time zones, and
+    census data. Simple pricing for developers and businesses.
+
+    **Connect ChatBotKit to Geocodio to convert addresses conversationally,
+    enrich location data, and build location-aware AI assistants.**
+
+getharvest.com:
+  title: Harvest
+  description: |
+    Harvest is a time tracking and invoicing platform for teams, offering
+    timesheets, expense tracking, and project budgeting.
+  content: |
+    Harvest makes time tracking painless with intuitive timesheets, automated
+    invoicing, and insightful reports. Used by thousands of teams to manage
+    projects and bill clients accurately.
+
+    **Integrate ChatBotKit with Harvest to track time conversationally, generate
+    invoices, monitor project budgets, and create AI-powered time management
+    assistants.**
+
+godaddy.com:
+  title: GoDaddy
+  description: |
+    GoDaddy is a domain registrar and web hosting company providing domain
+    registration, website building, and hosting services.
+  content: |
+    GoDaddy helps millions of entrepreneurs build their online presence with
+    domain registration, web hosting, and website building tools. From domains
+    to complete business solutions, GoDaddy supports online success.
+
+    **Connect ChatBotKit to GoDaddy to manage domains, check availability,
+    configure DNS settings, and create AI assistants for domain management.**
+
+gohighlevel.com:
+  title: GoHighLevel
+  description: |
+    GoHighLevel is an all-in-one marketing platform for agencies, offering
+    CRM, funnels, automation, and client management tools.
+  content: |
+    GoHighLevel consolidates marketing tools into one platform for agencies.
+    CRM, landing pages, email marketing, SMS, scheduling, and reputation
+    management in a single white-label solution.
+
+    **Deploy ChatBotKit with GoHighLevel to automate marketing workflows,
+    manage client communications, nurture leads, and create AI-powered
+    marketing assistants.**
+
+gumroad.com:
+  title: Gumroad
+  description: |
+    Gumroad is an e-commerce platform that lets creators sell digital
+    products, memberships, and subscriptions directly to their audience.
+  content: |
+    Gumroad makes it simple for creators to sell digital products, courses,
+    memberships, and subscriptions with built-in payments, licensing, and
+    audience tools. Focus on creating while Gumroad handles the commerce.
+
+    **Connect ChatBotKit to Gumroad to query sales data, manage products,
+    track subscribers, and create AI-powered e-commerce assistants.**
+
+huggingface.co:
+  title: Hugging Face
+  description: |
+    Hugging Face is the AI community platform hosting models, datasets, and
+    spaces for machine learning collaboration and deployment.
+  content: |
+    Hugging Face is the home of machine learning, hosting thousands of models,
+    datasets, and applications. From transformers to diffusion models, Hugging
+    Face accelerates AI development with open-source collaboration.
+
+    **Connect ChatBotKit to Hugging Face to access cutting-edge ML models,
+    deploy custom models, and enhance AI agents with specialized capabilities
+    from the Hugging Face ecosystem.**
+
+hunter.io:
+  title: Hunter
+  description: |
+    Hunter is an email outreach platform that helps find and verify
+    professional email addresses for sales and marketing.
+  content: |
+    Hunter makes outreach easier by finding professional email addresses and
+    verifying deliverability. Trusted by sales and marketing teams to connect
+    with prospects and build relationships.
+
+    **Integrate ChatBotKit with Hunter to find email addresses conversationally,
+    verify contacts, manage outreach campaigns, and create AI-powered
+    prospecting assistants.**
+
+hyperproof.app:
+  title: Hyperproof
+  description: |
+    Hyperproof is a compliance operations platform that helps organizations
+    manage audits, evidence collection, and risk assessment.
+  content: |
+    Hyperproof streamlines compliance management with automated evidence
+    collection, continuous monitoring, and audit-ready reporting. Simplify
+    SOC 2, ISO 27001, HIPAA, and other compliance frameworks.
+
+    **Connect ChatBotKit to Hyperproof to query compliance status, automate
+    evidence collection, track audit progress, and create AI-powered
+    compliance assistants.**
+
+instantly.ai:
+  title: Instantly
+  description: |
+    Instantly is a cold email platform that helps businesses scale outreach
+    with unlimited email accounts and AI personalization.
+  content: |
+    Instantly transforms cold outreach with unlimited email sending accounts,
+    AI-powered warmup, and smart sequences. Scale email campaigns while
+    maintaining high deliverability.
+
+    **Integrate ChatBotKit with Instantly to manage email campaigns, personalize
+    outreach conversationally, track responses, and create AI-powered sales
+    development assistants.**
+
+jam.dev:
+  title: Jam
+  description: |
+    Jam is a bug reporting tool that captures browser context, console logs,
+    and network requests automatically for faster debugging.
+  content: |
+    Jam revolutionizes bug reporting by automatically capturing everything
+    developers need to reproduce issues. One-click reports include console
+    logs, network requests, and session replays.
+
+    **Connect ChatBotKit to Jam to query bug reports, analyze issues
+    conversationally, track debugging progress, and create AI-powered
+    development assistants.**
+
+jotform.com:
+  title: Jotform
+  description: |
+    Jotform is an online form builder that makes it easy to create forms,
+    surveys, and collect data with powerful customization options.
+  content: |
+    Jotform empowers users to create professional forms without coding.
+    With thousands of templates, integrations, and automation features,
+    Jotform simplifies data collection for any use case.
+
+    **Integrate ChatBotKit with Jotform to create forms conversationally,
+    analyze responses, automate workflows, and build AI-powered data
+    collection assistants.**
+
+lemonsqueezy.com:
+  title: Lemon Squeezy
+  description: |
+    Lemon Squeezy is a merchant of record platform handling payments, taxes,
+    and subscriptions for digital product creators.
+  content: |
+    Lemon Squeezy simplifies selling digital products by handling payments,
+    sales tax, and compliance worldwide. Focus on creating while Lemon Squeezy
+    manages the business complexity.
+
+    **Connect ChatBotKit to Lemon Squeezy to manage subscriptions, query sales
+    data, handle customer inquiries, and create AI-powered e-commerce
+    assistants.**
+
+linkup.so:
+  title: Linkup
+  description: |
+    Linkup provides search APIs optimized for AI applications, delivering
+    relevant, real-time information from the web.
+  content: |
+    Linkup powers AI applications with search capabilities designed for
+    language models. Get accurate, up-to-date information to enhance AI
+    responses and reduce hallucinations.
+
+    **Integrate ChatBotKit with Linkup to enhance AI agents with real-time
+    search, improve response accuracy, and build assistants with current
+    web knowledge.**
+
+linkedin.com:
+  title: LinkedIn
+  description: |
+    LinkedIn is the world's largest professional networking platform,
+    connecting professionals, enabling career development, and facilitating
+    business relationships.
+  content: |
+    LinkedIn is the essential platform for professional networking, career
+    growth, and business connections. With over 900 million members worldwide,
+    LinkedIn enables professionals to build their personal brand, discover
+    opportunities, and engage with industry leaders.
+
+    **Integrate ChatBotKit with LinkedIn to automate professional outreach,
+    manage posts and engagement, analyze network insights, and build AI-powered
+    assistants for professional networking and career development.**
+
+listennotes.com:
+  title: Listen Notes
+  description: |
+    Listen Notes is a podcast search engine and database providing APIs
+    for podcast discovery and audio content analysis.
+  content: |
+    Listen Notes indexes millions of podcast episodes, making audio content
+    searchable and discoverable. Build podcast applications with comprehensive
+    search, recommendations, and curated directories.
+
+    **Connect ChatBotKit to Listen Notes to search podcasts conversationally,
+    discover content, analyze trends, and create AI-powered podcast discovery
+    assistants.**
+
+magento.com:
+  title: Magento
+  description: |
+    Magento is an open-source e-commerce platform owned by Adobe, offering
+    flexible solutions for online stores of all sizes.
+  content: |
+    Magento powers tens of thousands of online stores with flexible, scalable
+    e-commerce solutions. From small businesses to enterprise brands, Magento
+    provides the customization and control needed for online success.
+
+    **Deploy ChatBotKit with Magento to build shopping assistants, manage
+    products, handle customer inquiries, and enhance the e-commerce experience
+    with AI.**
+
+mailgun.com:
+  title: Mailgun
+  description: |
+    Mailgun is an email API service for developers, providing email sending,
+    receiving, validation, and analytics at scale.
+  content: |
+    Mailgun delivers reliable email infrastructure for developers with
+    powerful APIs for sending, receiving, and tracking emails. Trusted by
+    thousands of companies for transactional and marketing email.
+
+    **Integrate ChatBotKit with Mailgun to send emails conversationally,
+    validate addresses, track deliverability, and create AI-powered email
+    automation assistants.**
+
+make.com:
+  title: Make
+  description: |
+    Make is a visual automation platform that connects apps and automates
+    workflows without coding, formerly known as Integromat.
+  content: |
+    Make enables anyone to build powerful automations connecting thousands
+    of apps. With a visual interface and advanced features, Make transforms
+    complex workflows into simple, automated processes.
+
+    **Connect ChatBotKit to Make to trigger automations, orchestrate complex
+    workflows, and create AI assistants that interact with hundreds of
+    connected applications.**
+
+matillion.com:
+  title: Matillion
+  description: |
+    Matillion is a data productivity cloud platform that enables teams to
+    build, orchestrate, and automate data pipelines at scale with powerful
+    ETL and data transformation capabilities.
+  content: |
+    Matillion's Data Productivity Cloud empowers data teams to move, transform,
+    and orchestrate data across cloud data warehouses like Snowflake, Redshift,
+    and more. With visual pipeline design and powerful automation, Matillion
+    accelerates time-to-insight for modern data organizations.
+
+    **Integrate ChatBotKit with Matillion to manage projects, execute pipelines,
+    monitor schedules, and create AI assistants that automate your entire data
+    workflow operations.**
+
+mixpanel.com:
+  title: Mixpanel
+  description: |
+    Mixpanel is a product analytics platform that helps teams understand
+    user behavior, measure engagement, and optimize experiences.
+  content: |
+    Mixpanel provides powerful analytics for product teams to understand
+    how users interact with their applications. Track events, analyze funnels,
+    and gain insights to build better products.
+
+    **Integrate ChatBotKit with Mixpanel to query analytics data
+    conversationally, generate user insights, automate reporting, and create
+    AI-powered product analytics assistants.**
+
+modelcontextprotocol.io:
+  title: Model Context Protocol
+  description: |
+    Model Context Protocol (MCP) is an open protocol for connecting AI
+    assistants to external data sources and tools.
+  content: |
+    MCP standardizes how AI applications connect to data sources and tools,
+    enabling seamless integration between language models and external
+    systems. Build interoperable AI agents with consistent interfaces.
+
+    **Connect ChatBotKit to MCP servers to extend AI agent capabilities,
+    access specialized tools, and create assistants that leverage the growing
+    MCP ecosystem.**
+
+neon.tech:
+  title: Neon
+  description: |
+    Neon is a serverless Postgres platform offering autoscaling, branching,
+    and modern database capabilities for developers.
+  content: |
+    Neon reimagines Postgres for the modern cloud with serverless scaling,
+    database branching, and instant provisioning. Build applications without
+    worrying about database infrastructure.
+
+    **Connect ChatBotKit to Neon to query databases conversationally, manage
+    database branches, and create AI-powered database administration
+    assistants.**
+
+nubela.co:
+  title: Proxycurl by Nubela
+  description: |
+    Proxycurl by Nubela provides APIs for scraping LinkedIn profiles and
+    company data for sales and recruiting applications.
+  content: |
+    Proxycurl delivers reliable LinkedIn data extraction for enriching B2B
+    contact and company information. Access profile data, company info, and
+    job listings through compliant APIs.
+
+    **Integrate ChatBotKit with Proxycurl to enrich contact data, research
+    prospects conversationally, and create AI-powered sales intelligence
+    assistants.**
+
+openstreetmap.org:
+  title: OpenStreetMap
+  description: |
+    OpenStreetMap is a collaborative map of the world, providing free
+    geographic data and mapping APIs for developers.
+  content: |
+    OpenStreetMap powers location services with community-built map data
+    covering the entire planet. Free to use and continuously updated by
+    millions of contributors worldwide.
+
+    **Connect ChatBotKit to OpenStreetMap to query geographic data, search
+    locations, and build AI assistants with comprehensive mapping capabilities.**
+
+parallel.ai:
+  title: Parallel AI
+  description: |
+    Parallel AI provides AI infrastructure for building and deploying
+    intelligent applications with advanced model capabilities.
+  content: |
+    Parallel AI accelerates AI development with infrastructure designed for
+    modern intelligent applications. Build, deploy, and scale AI solutions
+    with enterprise-grade reliability.
+
+    **Integrate ChatBotKit with Parallel AI to enhance agent capabilities,
+    access advanced AI models, and build sophisticated conversational
+    experiences.**
+
+pagerduty.com:
+  title: PagerDuty
+  description: |
+    PagerDuty is an incident management platform that helps teams detect,
+    respond to, and resolve critical issues faster.
+  content: |
+    PagerDuty is the leading digital operations management platform, helping
+    organizations prevent and resolve business-impacting incidents. With
+    intelligent alerting, on-call management, and automated incident response,
+    PagerDuty keeps services running and customers happy.
+
+    **Integrate ChatBotKit with PagerDuty to manage incidents conversationally,
+    trigger alerts, query on-call schedules, and create AI-powered incident
+    response assistants that help teams resolve issues faster.**
+
+paypal.com:
+  title: PayPal
+  description: |
+    PayPal is a global payment platform enabling online payments, money
+    transfers, and financial services for consumers and businesses.
+  content: |
+    PayPal connects hundreds of millions of users worldwide with secure
+    payment processing. From checkout buttons to invoicing and subscriptions,
+    PayPal simplifies digital commerce.
+
+    **Deploy ChatBotKit with PayPal to manage payments conversationally,
+    process transactions, handle refunds, and create AI-powered payment
+    assistants.**
+
+peopledatalabs.com:
+  title: People Data Labs
+  description: |
+    People Data Labs provides B2B data APIs for person and company
+    enrichment, powering sales, marketing, and recruiting applications.
+  content: |
+    People Data Labs offers access to billions of data points on people and
+    companies. Enrich leads, build audiences, and power applications with
+    comprehensive B2B data.
+
+    **Connect ChatBotKit to People Data Labs to enrich contact information,
+    research companies conversationally, and create AI-powered data
+    enrichment assistants.**
+
+perplexity.ai:
+  title: Perplexity
+  description: |
+    Perplexity is an AI-powered answer engine that provides accurate,
+    cited responses to questions using real-time web information.
+  content: |
+    Perplexity delivers precise answers with citations by combining powerful
+    language models with real-time web search. Get factual, verifiable
+    information for research and learning.
+
+    **Integrate ChatBotKit with Perplexity to enhance AI responses with cited
+    information, answer complex questions accurately, and build research
+    assistants with real-time knowledge.**
+
+pipedream.com:
+  title: Pipedream
+  description: |
+    Pipedream is a developer platform for connecting APIs and building
+    workflows with code, offering thousands of pre-built integrations.
+  content: |
+    Pipedream combines the power of code with the ease of visual workflows
+    for API integration. Connect to thousands of apps, process data, and
+    build automated workflows with JavaScript, Python, or Go.
+
+    **Connect ChatBotKit to Pipedream to orchestrate complex workflows,
+    integrate with hundreds of services, and create AI agents that leverage
+    the Pipedream integration ecosystem.**
+
+pipedrive.com:
+  title: Pipedrive
+  description: |
+    Pipedrive is a sales-focused CRM platform designed to help sales teams
+    manage pipelines, track deals, and close more business efficiently.
+  content: |
+    Pipedrive is a CRM built by salespeople, for salespeople. With intuitive
+    pipeline management, activity tracking, and powerful automation, Pipedrive
+    helps sales teams focus on the right deals and close more revenue.
+
+    **Integrate ChatBotKit with Pipedrive to automate sales workflows, manage
+    deals conversationally, and create AI-powered sales assistants that help
+    your team stay on top of their pipeline.**
+
+postgrest.org:
+  title: PostgREST
+  description: |
+    PostgREST is an open-source tool that generates a RESTful API directly
+    from a PostgreSQL database schema.
+  content: |
+    PostgREST turns your PostgreSQL database into a RESTful API instantly.
+    Define your schema and PostgREST handles queries, authentication, and
+    API generation automatically.
+
+    **Integrate ChatBotKit with PostgREST to query databases conversationally,
+    manage data through natural language, and create AI-powered database
+    interfaces.**
+
+posthog.com:
+  title: PostHog
+  description: |
+    PostHog is an open-source product analytics platform offering event
+    tracking, session recordings, feature flags, and A/B testing.
+  content: |
+    PostHog provides all-in-one product analytics with event tracking, user
+    recordings, feature flags, and experimentation. Self-host or use cloud
+    for complete control over your product data.
+
+    **Deploy ChatBotKit with PostHog to query product analytics, analyze user
+    behavior conversationally, and create AI-powered product intelligence
+    assistants.**
+
+productboard.com:
+  title: Productboard
+  description: |
+    Productboard is a product management platform that helps teams understand
+    what customers need, prioritize what to build, and align everyone around
+    the product roadmap.
+  content: |
+    Productboard transforms product management with customer-centric tools for
+    collecting user feedback, prioritizing features, and creating roadmaps that
+    align teams and stakeholders around shared product goals.
+
+    **Integrate ChatBotKit with Productboard to query product insights, analyze
+    customer feedback conversationally, and create AI-powered product management
+    assistants that help teams make better product decisions.**
+
+prisma.io:
+  title: Prisma
+  description: |
+    Prisma is a next-generation ORM for Node.js and TypeScript, offering
+    type-safe database access and migration management.
+  content: |
+    Prisma simplifies database workflows with type-safe queries, automated
+    migrations, and intuitive data modeling. Build data-intensive applications
+    with confidence and productivity.
+
+    **Connect ChatBotKit to Prisma to query databases with natural language,
+    manage data models, and create AI-powered database development assistants.**
+
+pulumi.com:
+  title: Pulumi
+  description: |
+    Pulumi is an infrastructure as code platform that lets developers
+    define cloud resources using familiar programming languages.
+  content: |
+    Pulumi enables infrastructure as code using Python, TypeScript,
+    Go, and other languages. Define, deploy, and manage cloud resources
+    with the same tools and workflows used for application development.
+
+    **Integrate ChatBotKit with Pulumi to manage infrastructure
+    conversationally, deploy resources with natural language, and create
+    AI-powered DevOps assistants.**
+
+raindrop.io:
+  title: Raindrop.io
+  description: |
+    Raindrop.io is a bookmark manager that helps users save, organize, and
+    share web content with powerful search and tagging.
+  content: |
+    Raindrop.io provides a beautiful way to save and organize bookmarks
+    across devices. With smart collections, full-text search, and team
+    sharing, never lose track of important content again.
+
+    **Integrate ChatBotKit with Raindrop.io to manage bookmarks
+    conversationally, search saved content, organize collections, and create
+    AI-powered research assistants.**
+
+revenuecat.com:
+  title: RevenueCat
+  description: |
+    RevenueCat is a subscription management platform for mobile apps,
+    handling in-app purchases, analytics, and customer management.
+  content: |
+    RevenueCat simplifies subscription management for iOS and Android apps.
+    Track revenue, manage entitlements, and understand subscriber behavior
+    with one SDK integration.
+
+    **Connect ChatBotKit to RevenueCat to query subscription data, manage
+    customers conversationally, analyze revenue, and create AI-powered
+    subscription assistants.**
+
+serpapi.com:
+  title: SerpApi
+  description: |
+    SerpApi provides real-time search engine results APIs for Google, Bing,
+    YouTube, and other major search engines.
+  content: |
+    SerpApi delivers structured search engine results data in real-time.
+    Access Google, Bing, YouTube, and other search engines programmatically
+    for research, SEO, and AI applications.
+
+    **Integrate ChatBotKit with SerpApi to perform web searches, analyze
+    search results, and create AI agents with comprehensive search
+    capabilities.**
+
+tally.so:
+  title: Tally
+  description: |
+    Tally is a free form builder that creates beautiful forms with powerful
+    features and integrations, no coding required.
+  content: |
+    Tally makes form building delightfully simple with a Notion-like editor.
+    Create unlimited forms for free with advanced features like conditional
+    logic, calculations, and integrations.
+
+    **Connect ChatBotKit to Tally to create forms conversationally, analyze
+    responses, automate workflows, and build AI-powered data collection
+    assistants.**
+
+taxjar.com:
+  title: TaxJar
+  description: |
+    TaxJar is a sales tax automation platform that handles calculations,
+    reporting, and filing for e-commerce businesses.
+  content: |
+    TaxJar automates the complexity of sales tax compliance for online
+    sellers. Calculate accurate rates, generate reports, and automate
+    filing across all jurisdictions.
+
+    **Integrate ChatBotKit with TaxJar to calculate sales tax, query tax
+    reports, manage compliance, and create AI-powered tax automation
+    assistants.**
+
+uplead.com:
+  title: Uplead
+  description: |
+    Uplead is a B2B lead enrichment platform that provides accurate company
+    and contact data for sales, marketing, and recruiting teams.
+  content: |
+    Uplead delivers high-quality B2B data with real-time email verification
+    and comprehensive company and contact information. Access over 85 million
+    contacts and 16 million companies to fuel your go-to-market efforts.
+
+    **Connect ChatBotKit to Uplead to enrich leads, lookup company data,
+    verify contact information, and create AI-powered sales prospecting
+    assistants.**
+
+vanta.com:
+  title: Vanta
+  description: |
+    Vanta is a security and compliance automation platform that helps
+    companies achieve and maintain SOC 2, HIPAA, and other certifications.
+  content: |
+    Vanta automates security monitoring and compliance for modern companies.
+    Achieve SOC 2, HIPAA, ISO 27001, and other certifications faster with
+    continuous monitoring and automated evidence collection.
+
+    **Deploy ChatBotKit with Vanta to query compliance status, track security
+    controls, manage audits, and create AI-powered security compliance
+    assistants.**
+
+vercel.com:
+  title: Vercel
+  description: |
+    Vercel is a cloud platform for frontend developers, providing hosting,
+    serverless functions, and the Next.js framework.
+  content: |
+    Vercel enables developers to build and deploy web experiences with the
+    best developer experience. From Next.js to any frontend framework, Vercel
+    provides the infrastructure for fast, global delivery.
+
+    **Connect ChatBotKit to Vercel to manage deployments conversationally,
+    monitor performance, and create AI-powered DevOps assistants for web
+    applications.**
+
+weatherbit.io:
+  title: Weatherbit
+  description: |
+    Weatherbit provides weather APIs including current conditions, forecasts,
+    historical data, and air quality information.
+  content: |
+    Weatherbit delivers accurate weather data worldwide with APIs for current
+    conditions, forecasts, historical records, and air quality. Power weather-
+    aware applications with reliable data.
+
+    **Connect ChatBotKit to Weatherbit to provide weather information, forecast
+    conditions, monitor air quality, and create AI-powered weather assistants.**
+
+wix.com:
+  title: Wix
+  description: |
+    Wix is a website builder platform that enables anyone to create
+    professional websites with drag-and-drop tools and templates.
+  content: |
+    Wix empowers millions to build stunning websites without coding. From
+    portfolios to e-commerce stores, Wix provides the tools and hosting for
+    complete web presence.
+
+    **Integrate ChatBotKit with Wix to manage sites, update content
+    conversationally, and create AI-powered website management assistants.**
+
+woocommerce.com:
+  title: WooCommerce
+  description: |
+    WooCommerce is an open-source e-commerce plugin for WordPress,
+    powering millions of online stores worldwide.
+  content: |
+    WooCommerce transforms WordPress into a powerful e-commerce platform.
+    With endless customization options and a vast plugin ecosystem,
+    WooCommerce powers stores of all sizes.
+
+    **Deploy ChatBotKit with WooCommerce to manage products, handle orders,
+    assist customers, and create AI-powered e-commerce assistants.**
+
+workato.com:
+  title: Workato
+  description: |
+    Workato is an enterprise automation platform that connects apps and
+    automates workflows across IT and business teams.
+  content: |
+    Workato provides enterprise-grade integration and automation with an
+    intuitive interface. Connect hundreds of apps, automate complex workflows,
+    and enable business teams to build their own automations.
+
+    **Connect ChatBotKit to Workato to trigger automations, orchestrate
+    enterprise workflows, and create AI agents that leverage Workato's
+    integration platform.**
+
+zapier.com:
+  title: Zapier
+  description: |
+    Zapier is an automation platform that connects thousands of apps,
+    enabling users to automate workflows without coding.
+  content: |
+    Zapier empowers anyone to automate work by connecting the apps they use
+    every day. With 5,000+ integrations and AI-powered features, Zapier
+    makes automation accessible to everyone.
+
+    **Integrate ChatBotKit with Zapier to trigger automations, connect to
+    thousands of apps, and create AI assistants that orchestrate complex
+    workflows across your tool stack.**
+
+zoominfo.com:
+  title: ZoomInfo
+  description: |
+    ZoomInfo is a B2B data platform providing company and contact
+    intelligence for sales, marketing, and recruiting teams.
+  content: |
+    ZoomInfo delivers the most comprehensive B2B data for go-to-market teams.
+    Access accurate contact information, company insights, and buyer intent
+    data to accelerate revenue.
+
+    **Connect ChatBotKit to ZoomInfo to enrich leads, research accounts
+    conversationally, identify ideal customers, and create AI-powered sales
+    intelligence assistants.**
+
+monday.com:
+  title: Monday.com
+  description: |
+    Monday.com is a work operating system that powers teams to run projects
+    and workflows with confidence, combining project management, CRM, and
+    collaboration tools in one platform.
+  content: |
+    Monday.com is a flexible work OS that enables teams to build custom
+    workflows, manage projects, and collaborate effectively. With visual
+    boards, automations, and integrations, Monday.com adapts to any team's
+    unique way of working.
+
+    **Integrate ChatBotKit with Monday.com to automate task management,
+    create intelligent project assistants, update boards conversationally,
+    and build AI-powered workflows that enhance team productivity.**

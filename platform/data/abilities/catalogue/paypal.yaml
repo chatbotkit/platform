@@ -1,0 +1,50 @@
+paypal/payment/create:
+  provider: 'paypal'
+  icon: '@logo/paypal.com'
+  name: Create PayPal Payment
+  description: Create a new payment in PayPal
+  tags:
+    - paypal
+    - payment
+    - create
+  instruction: |
+    ```fetch
+    POST https://api-m.sandbox.paypal.com/v1/payments/payment HTTP/1.1
+    Authorization: ${SECRET_DEFAULT}
+    Content-Type: application/json
+
+    {
+      "intent": "sale",
+      "payer": {
+        "payment_method": "paypal"
+      },
+      "transactions": [
+        {
+          "amount": {
+            "total": "$[total|Total amount]",
+            "currency": "$[currency|Currency code]"
+          },
+          "description": "$[description|Payment description]"
+        }
+      ],
+      "redirect_urls": {
+        "return_url": "$[return_url|Return URL]",
+        "cancel_url": "$[cancel_url|Cancel URL]"
+      }
+    }
+    ```
+
+paypal/payment/status:
+  provider: 'paypal'
+  icon: '@logo/paypal.com'
+  name: Retrieve PayPal Payment Status
+  description: Retrieve the status of a specific payment in PayPal
+  tags:
+    - paypal
+    - payment
+    - status
+  instruction: |
+    ```fetch
+    GET https://api-m.sandbox.paypal.com/v1/payments/payment/$[payment_id|Payment ID] HTTP/1.1
+    Authorization: ${SECRET_DEFAULT}
+    ```

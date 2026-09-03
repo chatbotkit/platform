@@ -1,0 +1,40 @@
+{
+  "name": "@chatbotkit-dev/db-spec",
+  "version": "0.0.0",
+  "license": "Apache-2.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "true",
+    "check": "tsc6 --noEmit --incremental",
+    "clean": "rimraf node_modules *.tsbuildinfo",
+    "format": "prisma format --schema prisma/schema.prisma",
+    "lint": "eslint src scripts --ext .ts,.js",
+    "test": "NODE_OPTIONS=--experimental-vm-modules jest"
+  },
+  "access": "restricted",
+  "devDependencies": {
+    "@chatbotkit-dev/eslint-config": "workspace:*",
+    "@chatbotkit-dev/jest-jsdom": "workspace:*",
+    "eslint": "^9.0.0",
+    "jest": "^29",
+    "prisma": "^7.3.0",
+    "rimraf": "^5.0.5",
+    "ts-jest": "^29.4.12",
+    "typescript": "npm:@typescript/typescript6@^6.0.2"
+  },
+  "exports": {
+    "./derive": {
+      "import": "./src/derive.js",
+      "default": "./src/derive.js"
+    },
+    "./types": {
+      "import": "./src/types.ts",
+      "default": "./src/types.ts"
+    },
+    "./scripts/post-generate-zod.js": "./scripts/post-generate-zod.js"
+  },
+  "dependencies": {
+    "zod": "3.25.67"
+  }
+}

@@ -1,0 +1,28 @@
+name: Feature request
+description: Something the platform should do that it does not
+labels: ['enhancement']
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem
+      description: >-
+        What you are trying to do and what stops you today. Lead with the
+        problem rather than the solution - it keeps the discussion honest
+        about alternatives.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed shape
+      description: >-
+        How you imagine it working, if you have a shape in mind. API surface,
+        configuration, interface - whatever level you have.
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: What you do instead today
+      description: Workarounds you use now, and where they fall short.

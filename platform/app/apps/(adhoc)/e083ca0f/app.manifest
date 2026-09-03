@@ -1,0 +1,9 @@
+{
+  "start": "/apps/e083ca0f",
+  "name": "Customize",
+  "description": "Customize your ChatbotKit experience",
+  "icon": "@lucide/bot-message-square",
+  "order": 10000,
+  "category": "other",
+  "config": {}
+}

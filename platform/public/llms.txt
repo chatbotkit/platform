@@ -1,0 +1,164 @@
+# ChatBotKit
+
+> ChatBotKit is an AI agent infrastructure platform for building, deploying, and operating production AI agents. It unifies agents, data, integrations, security, and observability in one place, supports any AI model from any vendor, and gives developers both a visual Blueprint designer and code-first SDKs to ship real agentic work.
+
+ChatBotKit lets developers compose AI agents from reusable building blocks - datasets, abilities, and integrations - then deploy them across web widgets, apps, Slack, Discord, WhatsApp, Telegram, and custom interfaces. Agents reason, plan, and execute multi-step tasks autonomously: resolving tickets, qualifying leads, processing documents, calling tools, and completing work using your data and systems. The platform handles tool calling, RAG, streaming, guardrails, and monitoring so teams skip months of infrastructure and go straight to production.
+
+Key capabilities include:
+- Agentic AI: agents that reason, plan, and execute multi-step tasks with tools and data
+- Tool calling and MCP: connect agents to APIs, databases, and internal tools with built-in OAuth and Model Context Protocol support
+- Multi-model support (OpenAI, Anthropic, Google, Meta, and more) - bring any model or your own
+- Knowledge bases and RAG with dataset integration (PDF, DOCX, CSV, JSON, text files)
+- Skillsets and abilities for extending agents with custom functions
+- Multi-channel deployment with embeddable widgets and messaging integrations
+- Built-in guardrails: content moderation, PII filtering, and compliance controls
+- Observability and governance: monitor every conversation, track agent performance, debug at scale
+- Security controls for enterprise deployments; regulatory posture is a property of the operator's deployment, not of the software
+- User API for multi-tenant applications
+
+## Content Indexes
+
+- [Documentation Index](https://chatbotkit.com/docs/index.md): Complete list of all documentation articles
+- [Manuals Index](https://docs.cbk.ai/index.md): Complete list of all technical manuals
+
+## Getting Started
+
+- [Introduction](https://chatbotkit.com/docs/introduction.md): Core concepts including backstories, models, datasets, skillsets, and integrations
+- [API Documentation](https://chatbotkit.com/docs/api.md): Comprehensive API reference with authentication and endpoint details
+- [API Specification](https://api.chatbotkit.com/v1/spec): Full OpenAPI v3 specification for the ChatBotKit API
+
+## Core Concepts
+
+- [Backstories](https://chatbotkit.com/docs/backstories.md): Defining agent personality, context, instructions, and capabilities
+- [Models](https://chatbotkit.com/docs/models.md): Understanding and selecting AI models
+- [Bots](https://chatbotkit.com/docs/bots.md): Creating and managing AI agents
+- [Datasets](https://chatbotkit.com/docs/datasets.md): Managing knowledge bases and RAG data sources
+- [Skillsets](https://chatbotkit.com/docs/skillsets.md): Extending agents with custom abilities, tool calling, and function calling
+- [Conversations](https://chatbotkit.com/docs/conversations.md): Managing agent interactions and session state
+
+## Manuals - Technical Reference Documentation
+
+Comprehensive technical manuals provide detailed reference documentation for all platform features and capabilities:
+
+- [Authentication](https://docs.cbk.ai/authentication.md): API authentication methods and security
+- [Bots](https://docs.cbk.ai/bots.md): Complete agent configuration and management reference
+- [Blueprints](https://docs.cbk.ai/blueprints.md): Designing reusable AI agent templates with the visual Blueprint designer
+- [Starter Templates](https://docs.cbk.ai/starter-templates.md): Pre-built agent templates to get to production fast
+- [Datasets](https://docs.cbk.ai/datasets.md): Dataset creation, file management, and search operations
+- [Skillsets](https://docs.cbk.ai/skillsets.md): Building and managing skillsets with abilities and tool calling
+- [MCP](https://docs.cbk.ai/mcp.md): Model Context Protocol support for connecting agents to external tools
+- [Channels](https://docs.cbk.ai/channels.md): Deploying agents across messaging and web channels
+- [Conversations](https://docs.cbk.ai/conversations.md): Managing agent conversation state and messages
+- [Node.js SDK](https://docs.cbk.ai/node-sdk.md): Official Node.js SDK documentation
+- [Agent SDK](https://docs.cbk.ai/agent-sdk.md): Official Agent SDK documentation
+- [React SDK](https://docs.cbk.ai/react-sdk.md): React components and hooks reference
+- [Next SDK](https://docs.cbk.ai/next-sdk.md): Next.js integration documentation
+
+## REST API for Content Discovery
+
+ChatBotKit provides REST API endpoints for programmatically discovering and accessing documentation and manuals:
+
+### List Available Manuals
+
+```
+GET https://docs.cbk.ai/api/list
+Accept: text/markdown
+```
+
+Returns a complete list of available technical manuals as Markdown. Omit the
+`Accept` header to receive the equivalent JSON response. Metadata includes:
+- Manual ID, title, and description
+- Category and tags for filtering
+- Creation and update timestamps
+- Display order index
+
+Example response structure:
+```json
+{
+  "items": [
+    {
+      "id": "authentication",
+      "name": "Authentication",
+      "description": "API authentication methods and security",
+      "category": null,
+      "tags": [],
+      "index": 1,
+      "createdAt": 1696118400000,
+      "updatedAt": 1696118400000
+    }
+  ]
+}
+```
+
+### Read an Individual Manual
+
+```
+GET https://docs.cbk.ai/{manualId}
+Accept: text/markdown
+```
+
+Retrieves the Markdown content of a specific manual by ID.
+
+For example, to read the "datasets" manual explicitly as Markdown:
+
+```
+GET https://docs.cbk.ai/datasets.md
+```
+
+### Search Manuals
+
+Performs relevance-ranked search across all manuals. Returns ranked results with similarity scores.
+
+```
+POST https://docs.cbk.ai/api/search
+Content-Type: application/json
+Accept: text/markdown
+
+{
+  "search": "your search query"
+}
+```
+
+Response includes relevance scores for ranking search results. Omit the
+`Accept` header to receive JSON.
+
+### Read the Documentation Index
+
+```
+GET https://chatbotkit.com/docs/index.md
+```
+
+Returns the complete documentation index as Markdown.
+
+### Read an Individual Doc
+
+```
+GET https://chatbotkit.com/docs/{docId}.md
+```
+
+Returns a documentation article as Markdown. The normal HTML URL also returns
+Markdown when requested with `Accept: text/markdown`.
+
+For example, to fetch the "datasets" doc:
+
+```
+GET https://chatbotkit.com/docs/datasets.md
+```
+
+## SDKs and Integration
+
+- [Node.js SDK](https://chatbotkit.com/docs/node-sdk.md): Official SDK for Node.js applications
+- [Agent SDK](https://docs.cbk.ai/agent-sdk.md): Code-first SDK for building and orchestrating AI agents
+- [React SDK](https://docs.cbk.ai/react-sdk.md): React components and hooks for building agent interfaces
+- [Next.js SDK](https://docs.cbk.ai/next-sdk.md): Server and client components for Next.js applications
+- [Go SDK](https://chatbotkit.com/docs/go-sdk.md): Official SDK for Go applications and services
+- [Python SDK](https://chatbotkit.com/docs/python-sdk.md): Official async Python SDK (`pip install chatbotkit`)
+- [Widget SDK](https://chatbotkit.com/docs/widget-sdk.md): Embeddable agent widget for any website or app
+- [CLI](https://docs.cbk.ai/cli.md): Manage agents and platform resources from the command line
+- [Terraform Provider](https://chatbotkit.com/docs/terraform-provider.md): Provision and manage ChatBotKit resources as infrastructure-as-code
+
+## Optional
+
+- [Type Documentation](https://chatbotkit.github.io/node-sdk/llms.txt): Full TypeScript definitions
+- [GitHub Repository](https://github.com/chatbotkit/node-sdk): Source code and examples (see https://raw.githubusercontent.com/chatbotkit/node-sdk/refs/heads/main/README.md)
+- [Discord Community](https://go.cbk.ai/discord): Connect with other developers

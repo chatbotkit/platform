@@ -1,0 +1,59 @@
+query platformTemplates($platformAbilityIds: [ID!], $platformSecretIds: [ID!]) {
+  platformAbilities(first: 10000, platformAbilityIds: $platformAbilityIds) {
+    edges {
+      node {
+        id
+
+        template
+
+        name
+        description
+
+        instruction
+
+        schema
+
+        bot
+        file
+        secret
+        space
+
+        provider
+
+        icon
+        tags
+
+        setup
+        commentary
+
+        createdAt
+        updatedAt
+      }
+    }
+  }
+  platformSecrets(first: 10000, platformSecretIds: $platformSecretIds) {
+    edges {
+      node {
+        id
+
+        template
+
+        name
+        description
+
+        type
+        kind
+        config
+
+        icon
+        tags
+
+        setup
+        commentary
+
+        createdAt
+        updatedAt
+      }
+    }
+  }
+}

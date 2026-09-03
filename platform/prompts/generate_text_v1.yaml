@@ -1,0 +1,6 @@
+description: |
+  Generates Text.
+prompt: |
+  {input}
+model: gpt-4o/temperature=1.0
+output: text

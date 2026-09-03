@@ -1,0 +1,249 @@
+# @see https://help.gumroad.com/article/76-gumroads-api
+# @note this is a barebone OpenAPI spec for Gumroad
+# @todo replace with official spec when available
+openapi: 3.0.3
+info:
+  title: Gumroad API
+  version: '2.0'
+servers:
+  - url: https://api.gumroad.com
+paths:
+  /v2/products:
+    get:
+      operationId: listProducts
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductList'
+  /v2/products/{id}:
+    get:
+      operationId: getProduct
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductResponse'
+  /v2/products/{id}/subscribers:
+    get:
+      operationId: listSubscribers
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: email
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubscriberList'
+  /v2/sales:
+    get:
+      operationId: listSales
+      parameters:
+        - name: after
+          in: query
+          schema:
+            type: string
+        - name: before
+          in: query
+          schema:
+            type: string
+        - name: product_id
+          in: query
+          schema:
+            type: string
+        - name: email
+          in: query
+          schema:
+            type: string
+        - name: page_key
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SaleList'
+  /v2/sales/{id}:
+    get:
+      operationId: getSale
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SaleResponse'
+  /v2/subscribers/{id}:
+    get:
+      operationId: getSubscriber
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubscriberResponse'
+  /v2/user:
+    get:
+      operationId: getUser
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+  schemas:
+    Product:
+      type: object
+      properties:
+        id:
+          type: string
+          example: 'A-fkj34kj'
+        name:
+          type: string
+        price:
+          type: integer
+        published:
+          type: boolean
+        url:
+          type: string
+    ProductResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        product:
+          $ref: '#/components/schemas/Product'
+    ProductList:
+      type: object
+      properties:
+        success:
+          type: boolean
+        products:
+          type: array
+          items:
+            $ref: '#/components/schemas/Product'
+    Sale:
+      type: object
+      properties:
+        id:
+          type: string
+          example: '2sQ7zJZ8W7Wl5UYz1234'
+        email:
+          type: string
+        product_id:
+          type: string
+        product_name:
+          type: string
+        price:
+          type: integer
+        created_at:
+          type: string
+    SaleResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        sale:
+          $ref: '#/components/schemas/Sale'
+    SaleList:
+      type: object
+      properties:
+        success:
+          type: boolean
+        next_page_key:
+          type: string
+        sales:
+          type: array
+          items:
+            $ref: '#/components/schemas/Sale'
+    Subscriber:
+      type: object
+      properties:
+        id:
+          type: string
+          example: '1234567890'
+        product_id:
+          type: string
+        user_email:
+          type: string
+        status:
+          type: string
+        created_at:
+          type: string
+    SubscriberResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        subscriber:
+          $ref: '#/components/schemas/Subscriber'
+    SubscriberList:
+      type: object
+      properties:
+        success:
+          type: boolean
+        subscribers:
+          type: array
+          items:
+            $ref: '#/components/schemas/Subscriber'
+    User:
+      type: object
+      properties:
+        user_id:
+          type: string
+        name:
+          type: string
+        email:
+          type: string
+        url:
+          type: string
+    UserResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        user:
+          $ref: '#/components/schemas/User'
+security:
+  - bearerAuth: []

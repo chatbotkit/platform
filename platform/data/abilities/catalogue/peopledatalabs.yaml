@@ -1,0 +1,191 @@
+peopledatalabs/company/schema/fetch:
+  provider: 'peopledatalabs'
+  icon: '@logo/peopledatalabs.com'
+  name: Fetch Company Schema
+  description: Fetch the schema of of a company object - useful for constructing SQL queries.
+  instruction: |
+    ```echo
+    schema:
+      name:
+        description: The company's name.
+        type: string
+      summary:
+        description: The company's summary.
+        type: string
+      headline:
+        description: The company's headline.
+        type: string
+      website:
+        description: The company's website.
+        type: string
+      founded:
+        description: The year the company was founded.
+        type: integer
+      employee_count:
+        description: The number of employees at the company.
+        type: integer
+      linkedin_url:
+        description: The company's LinkedIn URL.
+        type: string
+      facebook_url:
+        description: The company's Facebook URL.
+        type: string
+      twitter_url:
+        description: The company's Twitter URL.
+        type: string
+
+    examples:
+      - SELECT * FROM company WHERE name = 'Apple Inc.'
+      - SELECT * FROM company WHERE website = 'apple.com'
+    ```
+  secret: '@peopledatalabs'
+
+peopledatalabs/person/schema/fetch:
+  provider: 'peopledatalabs'
+  icon: '@logo/peopledatalabs.com'
+  name: Fetch Person Schema
+  description: Fetch the schema of of a person object - useful for constructing SQL queries.
+  instruction: |
+    ```echo
+    schema:
+      first_name:
+        description: The person's first name.
+        type: string
+      last_name:
+        description: The person's last name.
+        type: string
+      full_name:
+        description: The person's full name.
+        type: string
+      emails:
+        description: The person's email addresses.
+        type: array
+        items:
+          type: object
+          properties:
+            address:
+              type: string
+              description: The person's email address.
+      phones:
+        description: The person's phone numbers.
+        type: array
+        items:
+          type: object
+          properties:
+            number:
+              type: string
+              description: The person's phone number.
+      job_title:
+        description: The person's job title.
+        type: string
+      job_summary:
+        description: The person's job summary.
+        type: string
+      job_company_name:
+        description: The person's job company name.
+        type: string
+      job_company_founded:
+        description: The year the person's job company was founded.
+        type: integer
+      job_company_employee_count:
+        description: The number of employees at the person's job company.
+        type: integer
+      job_company_total_funding_raised:
+        description: The total amount of funding raised by the person's job company.
+        type: integer
+      job_company_website:
+        description: The person's job company website.
+        type: string
+      job_company_linkedin_url:
+        description: The person's job company LinkedIn URL.
+        type: string
+      job_company_facebook_url:
+        description: The person's job company Facebook URL.
+        type: string
+      job_company_twitter_url:
+        description: The person's job company Twitter URL.
+        type: string
+
+    examples:
+      - SELECT * FROM person WHERE first_name = 'John' AND last_name = 'Doe'
+      - SELECT * FROM person WHERE (emails.address = 'john@doe.com')
+    ```
+  secret: '@peopledatalabs'
+
+peopledatalabs/company/search:
+  provider: 'peopledatalabs'
+  icon: '@logo/peopledatalabs.com'
+  name: Search Company
+  description: Search for a company using People Data Labs.
+  instruction: |
+    ```fetch
+    method: POST
+    url: https://api.peopledatalabs.com/v5/company/search
+    headers:
+      X-API-Key: ${SECRET_DEFAULT}
+      Content-Type: application/json
+    body:
+      sql: $[sql! ys|an ElasticSearch SQL query of the format: SELECT * FROM company WHERE XXX, where XXX is a standard SQL boolean query involving company fields (must use company schema)]
+    ```
+  secret: '@peopledatalabs'
+
+peopledatalabs/company/enrich:
+  provider: 'peopledatalabs'
+  icon: '@logo/peopledatalabs.com'
+  name: Enrich Company Data
+  description: Find more information about a company using People Data Labs. Requires a minimum combination of two data points.
+  instruction: |
+    ```fetch
+    method: POST
+    url: https://api.peopledatalabs.com/v5/company/enrich
+    headers:
+      X-API-Key: ${SECRET_DEFAULT}
+      Content-Type: application/json
+    body:
+      name: $[name! ys|the company's name]
+      website: $[website! ys|the company's website]
+      profile: $[profile! ys|the company's social profile]
+      ticker: $[ticker! ys|the company's stock ticker if publicly traded]
+      country: $[country! ys|the company's country]
+    ```
+  secret: '@peopledatalabs'
+
+peopledatalabs/person/search:
+  provider: 'peopledatalabs'
+  icon: '@logo/peopledatalabs.com'
+  name: Search Person
+  description: Search for a person using People Data Labs.
+  instruction: |
+    ```fetch
+    method: POST
+    url: https://api.peopledatalabs.com/v5/person/search
+    headers:
+      X-API-Key: ${SECRET_DEFAULT}
+      Content-Type: application/json
+    body:
+      sql: $[sql! ys|an ElasticSearch SQL query of the format: SELECT * FROM person WHERE XXX, where XXX is a standard SQL boolean query involving person fields (must use person schema)]
+    ```
+  secret: '@peopledatalabs'
+
+peopledatalabs/person/enrich:
+  provider: 'peopledatalabs'
+  icon: '@logo/peopledatalabs.com'
+  name: Enrich Person Data
+  description: Find more information about a person using People Data Labs. Requires a minimum combination of two data points.
+  instruction: |
+    ```fetch
+    method: POST
+    url: https://api.peopledatalabs.com/v5/person/enrich
+    headers:
+      X-API-Key: ${SECRET_DEFAULT}
+      Content-Type: application/json
+    body:
+      name: $[name! ys|the person's name]
+      first_name: $[first_name! ys|the person's first name]
+      last_name: $[last_name! ys|the person's last name]
+      location: $[location! ys|the person's location]
+      company: $[company! ys|the person's company]
+      email: $[email! ys|the person's email]
+      phone: $[phone! ys|the person's phone number]
+    ```
+  secret: '@peopledatalabs'

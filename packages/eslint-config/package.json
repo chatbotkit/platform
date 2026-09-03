@@ -1,0 +1,36 @@
+{
+  "name": "@chatbotkit-dev/eslint-config",
+  "version": "0.0.0",
+  "license": "Apache-2.0",
+  "private": true,
+  "type": "commonjs",
+  "exports": {
+    ".": "./index.js"
+  },
+  "scripts": {
+    "build": "true",
+    "check": "true",
+    "clean": "run-s clean:*",
+    "clean:01-tsbuildinfo": "rimraf *.tsbuildinfo",
+    "clean:02-dist": "rimraf dist",
+    "clean:03-node_modules": "rimraf node_modules",
+    "format": "true",
+    "lint": "true",
+    "test": "true"
+  },
+  "access": "restricted",
+  "dependencies": {
+    "@typescript-eslint/eslint-plugin": "^8.56.0",
+    "@typescript-eslint/parser": "^8.56.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-jsdoc": "^63.3.2",
+    "eslint-plugin-unused-imports": "^4.4.1"
+  },
+  "peerDependencies": {
+    "eslint": "^9.0.0"
+  },
+  "devDependencies": {
+    "npm-run-all2": "^9.0.3",
+    "rimraf": "^5.0.5"
+  }
+}

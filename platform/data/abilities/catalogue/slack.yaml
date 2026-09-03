@@ -1,0 +1,102 @@
+.slack/search[channel]:
+  # @note used internally to provide built-in search
+  provider: 'slack'
+  icon: '@logo/slack.com'
+  name: Search in Slack Channel
+  description: |
+    Search for information in specific Slack channels.
+
+    The query supports advanced search syntax:
+      * "phrase" for exact matches
+      * -word to exclude results
+      * from:@name to filter by sender
+      * is:saved/has:pin for saved/pinned items
+      * before:/after:/on:/during: for date filters, e.g. before:YYYY-MM-DD, after:YYYY-MM-DD, during:YYYY-MM, during:august
+      * -from: to exclude locations/senders
+
+    NOTE: Multiple function calls may be required to perform a comprehensive search.
+  tags:
+    - slack
+    - search
+  instruction: |
+    ```fetch
+    method: GET
+    url: https://slack.com/api/search.messages
+    headers:
+      Authorization: ${SECRET_DEFAULT}
+    query:
+      query: "in:#((channel! edq sanitize<#> trim|the slack channel)) $[query! sanitize<\b-?in\x3a?.+?\b> edq|slack search query without channel filters]"
+      count: ((count number default<20>|number of results to return))
+      sort: ((sort enum<timestamp,relevance> default<timestamp> ys|sort order, e.g., 'timestamp', 'relevance'))
+      sort_dir: ((sort_dir enum<desc,asc> default<desc> ys|sort direction, e.g., 'desc', 'asc'))
+    options:
+      error:
+        jsonpath: '$.ok'
+      jmespath: |
+        messages.matches[*].{
+          type: type,
+          channel: channel.name,
+          username: username,
+          ts: {
+            "$epochToDateTime": ts
+          },
+          text: text,
+          permalink: permalink,
+          file: files[*].{
+            permalink: permalink,
+            mimetype: mimetype,
+            preview: preview
+          }
+        }
+    ```
+  secret: '@slack[search]'
+
+.slack/search[safe]:
+  provider: 'slack'
+  icon: '@logo/slack.com'
+  name: Perform a safe search by removing sensitive filters
+  description: |
+    The query supports advanced search syntax:
+      * "phrase" for exact matches
+      * -word to exclude results
+      * from:@name to filter by sender
+      * is:saved/has:pin for saved/pinned items
+      * before:/after:/on:/during: for date filters, e.g. before:YYYY-MM-DD, after:YYYY-MM-DD, during:YYYY-MM, during:august
+      * -from: to exclude locations/senders
+
+    NOTE: Multiple function calls may be required to perform a comprehensive search.
+  tags:
+    - slack
+    - search
+  instruction: |
+    ```fetch
+    method: GET
+    url: https://slack.com/api/search.messages
+    headers:
+      Authorization: ${SECRET_DEFAULT}
+    query:
+      query: "((prefix! edq trim|query prefix)) $[query! sanitize<\b-?in\x3a?.+?\b> edq|slack search query without channel filters]"
+      count: ((count number default<20>|number of results to return))
+      sort: ((sort enum<timestamp,relevance> default<timestamp> ys|sort order, e.g., 'timestamp', 'relevance'))
+      sort_dir: ((sort_dir enum<desc,asc> default<desc> ys|sort direction, e.g., 'desc', 'asc'))
+    options:
+      error:
+        jsonpath: '$.ok'
+      jmespath: |
+        messages.matches[*].{
+          type: type,
+          channel: channel.name,
+          username: username,
+          ts: {
+            "$epochToDateTime": ts
+          },
+          text: text,
+          permalink: permalink,
+          file: files[*].{
+            permalink: permalink,
+            mimetype: mimetype,
+            preview: preview
+          }
+        }
+    ```
+  secret: '@slack[search]'

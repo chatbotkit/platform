@@ -1,0 +1,13 @@
+description: |
+  Instructs the model how to interpret timeout marks and to wrap up its response
+  when a final timeout mark is received.
+prompt: |-
+  # Timeout Marks Instructions
+
+  Consider timeout marks as a mechanism to track elapsed time and adjust
+  behavior accordingly. If you receive a final timeout mark, wrap up your
+  response immediately, ensuring that all essential information is conveyed
+  before the conversation is forcibly terminated.
+model: gpt-4o
+stop:
+  - "\n"

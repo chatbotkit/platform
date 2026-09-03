@@ -1,0 +1,41 @@
+description: |
+  A prompt that describes how to generate mermaid diagrams.
+prompt: |
+  # Mermaid Diagram Rendering Rules
+
+  You are allowed to create diagrams using the Mermaid syntax. The diagrams
+  should be rendered in a way that is clear and easy to understand. Each diagram
+  must be generated in fenced code blocks with the language set to `mermaid`.
+
+  For example, to create a flowchart, you must use the following syntax:
+
+  ```mermaid
+  flowchart TD
+      A[Start] --> B{Decision}
+      B -->|Yes| C[Option 1]
+      B -->|No| D[Option 2]
+      C --> E[End]
+      D --> E
+  ```
+
+  Here is an example of a pie chart:
+
+  ```mermaid
+  pie
+      title Browser market shares
+      "Chrome" : 45.0
+      "Firefox" : 30.0
+      "Safari" : 15.0
+      "Edge" : 10.0
+  ```
+
+  Ensure that the diagrams are well-structured and follow the Mermaid syntax
+  rules. Stick to basic syntax to avoid errors in rendering. Do not use
+  advanced features or custom styles unless explicitly requested.
+
+  Failure to adhere to these rules may result in the diagram not being rendered
+  correctly, which could lead to confusion or misinterpretation of the data
+  presented in the diagram.
+model: gpt-4o/temperature=0.7/frequencyPenalty=0/presencePenalty=0
+stop:
+  - "\n"

@@ -1,0 +1,175 @@
+shopify/search/products:
+  provider: 'shopify'
+  icon: '@logo/shopify.com'
+  name: Search Shopify Products
+  description: Search for products in a Shopify store
+  tags:
+    - shopify
+    - products
+    - search
+  instruction: |
+    ```fetch
+    method: POST
+    url: https://((domain!)).myshopify.com/api/2024-04/graphql.json
+    headers:
+      X-Shopify-Storefront-Access-Token: ${SECRET_DEFAULT}
+      Content-Type: application/json
+    body:
+      query: |
+        query {
+          search(first: 10, sortKey: RELEVANCE, types: PRODUCT, productFilters: { available: true }, query: "$[search_query|search query]") {
+            edges {
+              node {
+                ... on Product {
+                  id
+                  title
+                  description
+                  onlineStoreUrl
+                  featuredImage {
+                    url
+                  }
+                }
+              }
+            }
+          }
+        }
+    ```
+
+shopify/search/pages:
+  provider: 'shopify'
+  icon: '@logo/shopify.com'
+  name: Search Shopify Pages
+  description: Search for pages in a Shopify store
+  tags:
+    - shopify
+    - pages
+    - search
+  instruction: |
+    ```fetch
+    method: POST
+    url: https://((domain!)).myshopify.com/api/2024-04/graphql.json
+    headers:
+      X-Shopify-Storefront-Access-Token: ${SECRET_DEFAULT}
+      Content-Type: application/json
+    body:
+      query: |
+        query {
+          search(first: 10, sortKey: RELEVANCE, types: PAGE, query: "$[search_query|search query]") {
+            edges {
+              node {
+                ... on Page {
+                  id
+                  title
+                  bodySummary
+                  onlineStoreUrl
+                }
+              }
+            }
+          }
+        }
+    ```
+
+shopify/search/articles:
+  provider: 'shopify'
+  icon: '@logo/shopify.com'
+  name: Search Shopify Articles
+  description: Search for articles in a Shopify store
+  tags:
+    - shopify
+    - articles
+    - search
+  instruction: |
+    ```fetch
+    method: POST
+    url: https://((domain!)).myshopify.com/api/2024-04/graphql.json
+    headers:
+      X-Shopify-Storefront-Access-Token: ${SECRET_DEFAULT}
+      Content-Type: application/json
+    body:
+      query: |
+        query {
+          search(first: 10, sortKey: RELEVANCE, types: ARTICLE, query: "$[search_query|search query]") {
+            edges {
+              node {
+                ... on Article {
+                  id
+                  title
+                  excerpt
+                  onlineStoreUrl
+                }
+              }
+            }
+          }
+        }
+    ```
+
+shopify/order/details:
+  provider: 'shopify'
+  icon: '@logo/shopify.com'
+  name: Get Shopify Order Details
+  description: Get details of a specific order in a Shopify store
+  tags:
+    - shopify
+    - order
+    - details
+  instruction: |
+    ```fetch
+    method: GET
+    url: https://((domain!)).myshopify.com/admin/api/2024-04/orders/$[order_id|order ID].json
+    query:
+      fields: name,created_at,fulfillment_status
+    headers:
+      X-Shopify-Access-Token: ${SECRET_DEFAULT}
+    ```
+
+shopify/customer/details:
+  provider: 'shopify'
+  icon: '@logo/shopify.com'
+  name: Get Shopify Customer Details
+  description: Get details of a specific customer in a Shopify store
+  tags:
+    - shopify
+    - customer
+    - details
+  instruction: |
+    ```fetch
+    method: GET
+    url: https://((domain!)).myshopify.com/admin/api/2024-04/customers/$[customer_id|customer ID].json
+    headers:
+      X-Shopify-Access-Token: ${SECRET_DEFAULT}
+    ```
+
+shopify/customer/search:
+  provider: 'shopify'
+  icon: '@logo/shopify.com'
+  name: Search Shopify Customers by Email
+  description: Search for customers in a Shopify store by email
+  tags:
+    - shopify
+    - product
+    - details
+  instruction: |
+    ```fetch
+    method: GET
+    url: https://((domain!)).myshopify.com/admin/api/2024-04/customers/search.json
+    query:
+      query: email:$[email|customer email]
+    headers:
+      X-Shopify-Access-Token: ${SECRET_DEFAULT}
+    ```
+
+shopify/order/paid:
+  provider: 'shopify'
+  icon: '@logo/shopify.com'
+  name: Get Shopify Paid Orders
+  description: Get paid orders from a Shopify store
+  tags:
+    - shopify
+    - order
+    - paid
+  instruction: |
+    ```fetch
+    method: GET
+    url: https://((domain!)).myshopify.com/admin/api/2024-04/orders.json
+    query:
+      financial_status: paid,partially_refunded

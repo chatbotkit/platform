@@ -1,0 +1,8 @@
+{
+  "start": "/apps/c19e4a72",
+  "name": "Triage Inbox",
+  "description": "A reimagined conversation inbox for prioritizing, filtering, and acting on customer conversations.",
+  "icon": "@lucide/inbox",
+  "order": 112,
+  "category": "support"
+}

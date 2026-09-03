@@ -1,0 +1,173 @@
+# This is the default demo. In this demo the user is requesting information on a
+# topic and the bot provides the information.
+
+# default:
+#   initial: 'Hi 👋 How can I help you?'
+#   messages:
+#     - id: tmp-2
+#       type: user
+#       text: Hi there. I need some assistance.
+
+# ---
+# ---
+# ---
+
+default:
+  intro: >
+    Intro that contains formatted text. It can be as long as you want and
+    include links, images and suggestions like the ones below.
+  initial: 'Hi 👋 How can I help you?'
+  messages:
+    - id: tmp-2
+      type: user
+      text: "I'm looking for information on [topic]. Can you help me with that?"
+    - id: tmp-3
+      type: bot
+      text: |
+        Of course! What would you like to know specifically?
+
+        ---
+
+        [Help with topic 1]() [Help with topic 2]() [Help with topic 3]()
+    - id: tmp-4
+      type: user
+      text: 'Can you provide me with some basic information on [topic]?'
+    - id: tmp-5
+      type: bot
+      text: '[Provide basic information on topic.] Also check out this [link](https://example.com) for more information.'
+    - id: tmp-6
+      type: user
+      text: 'Thanks for that information.'
+
+# ---
+# ---
+# ---
+
+eshop:
+  keywords:
+    - shop
+    - purchase
+    - buy
+  intro: >
+    This demo illustrates how a conversational AI can engage with potential
+    customers, understand their specific needs, and guide them towards a
+    purchase decision. Through personalized interaction, the bot demonstrates an
+    understanding of the customer's inquiry, offers detailed product
+    information, and addresses any concerns, leading to a successful conversion.
+  initial: ''
+  messages:
+    - id: tmp-2
+      type: user
+      text: "I'm interested in purchasing a new laptop. Can you help?"
+    - id: tmp-3
+      type: bot
+      text: |
+        Absolutely! Do you have any specific requirements or features you're looking for in a laptop?
+
+        ---
+
+        [Gaming]() [Business]() [Personal Use]()
+    - id: tmp-4
+      type: user
+      text: 'I need it mainly for business purposes.'
+    - id: tmp-5
+      type: bot
+      text: "Great choice! For business use, I'd recommend our [Model X] which features a powerful processor, ample storage, and a long battery life. Would you like more details on this model?"
+    - id: tmp-6
+      type: user
+      text: 'Yes, please. Also, does it come with any warranty?'
+
+# ---
+# ---
+# ---
+
+restaurant:
+  keywords:
+    - restaurant
+    - reservation
+  intro: >
+    This demo showcases how a conversational AI can streamline the booking
+    process for appointments or reservations. By interacting with the user, the
+    chatbot gathers essential details, offers personalized options, and confirms
+    bookings, demonstrating an efficient and user-friendly approach to managing
+    reservations.
+  initial: ''
+  messages:
+    - id: tmp-2
+      type: user
+      text: "I'd like to book a table for dinner."
+    - id: tmp-3
+      type: bot
+      text: 'Sure thing! For how many people would you like to book the table?'
+    - id: tmp-4
+      type: user
+      text: "It's for 4 people."
+    - id: tmp-5
+      type: bot
+      text: 'Got it. And when would you like to make the reservation?'
+    - id: tmp-6
+      type: user
+      text: 'This Friday evening, please.'
+    - id: tmp-7
+      type: bot
+      text: 'Let me check our availability... Yes, we have a table available this Friday evening. Would you prefer an early dinner at 6 PM or a later slot at 8 PM?'
+    - id: tmp-8
+      type: user
+      text: '6 PM would be perfect.'
+    - id: tmp-9
+      type: bot
+      text: "Excellent choice! I've reserved a table for 4 at 6 PM this Friday. May I have a name for the reservation?"
+    - id: tmp-10
+      type: user
+      text: "Yes, it's under the name Alex."
+    - id: tmp-11
+      type: bot
+      text: 'Thank you, Alex. Your table for 4 at 6 PM this Friday is confirmed. We look forward to welcoming you! Would you like an email confirmation?'
+    - id: tmp-12
+      type: user
+      text: 'Yes, please. My email is alex@example.com.'
+    - id: tmp-13
+      type: bot
+      text: "Great! We've sent a confirmation to alex@example.com. If you have any special requests or need to make changes to your booking, feel free to let us know. See you on Friday!"
+
+# ---
+# ---
+# ---
+
+hotel:
+  keywords:
+    - hotel
+    - booking
+    - travel
+  intro: >
+    This demo showcases the chatbot's capability to assist users in finding and
+    booking hotels. It illustrates a seamless interaction where the chatbot
+    gathers the user's preferences, provides tailored hotel options, and guides
+    the user through the booking process, simplifying what can often be a
+    complex task.
+  initial: ''
+  messages:
+    - id: tmp-2
+      type: user
+      text: "I'm planning a trip to New York from April 5th to April 10th."
+    - id: tmp-3
+      type: bot
+      text: "Perfect! What's your budget per night, and do you have any specific requirements like free Wi-Fi or breakfast?"
+    - id: tmp-4
+      type: user
+      text: "My budget is around $150 per night, and I'd like free Wi-Fi."
+    - id: tmp-5
+      type: bot
+      text: 'Got it! One moment while I find the best options for you.'
+    - id: tmp-6
+      type: bot
+      text: 'I found several great options within your budget that offer free Wi-Fi. One standout is [Hotel Luxe], centrally located and highly rated. Would you like to book a room?'
+    - id: tmp-7
+      type: user
+      text: 'Yes, that sounds perfect. Can you book it for those dates?'
+    - id: tmp-8
+      type: bot
+      text: "Absolutely! I've reserved a room at [Hotel Luxe] from April 5th to April 10th, totaling $750. You'll receive an email confirmation shortly. Is there anything else I can help with?"
+    - id: tmp-9
+      type: user
+      text: "That's all, thank you!"

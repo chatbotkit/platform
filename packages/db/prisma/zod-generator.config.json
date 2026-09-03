@@ -1,0 +1,24 @@
+{
+  "mode": "custom",
+  "pureModels": true,
+  "pureModelsLean": true,
+  "pureModelsIncludeRelations": false,
+  "dateTimeStrategy": "date",
+  "emit": {
+    "enums": true,
+    "objects": false,
+    "crud": false,
+    "results": false,
+    "pureModels": true,
+    "variants": false
+  },
+  "naming": {
+    "pureModel": {
+      "filePattern": "{model}.ts",
+      "schemaSuffix": "Model",
+      "typeSuffix": "",
+      "exportNamePattern": "{Model}Model",
+      "legacyAliases": false
+    }
+  }
+}

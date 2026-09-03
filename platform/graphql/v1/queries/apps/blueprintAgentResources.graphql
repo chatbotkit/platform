@@ -1,0 +1,55 @@
+query blueprintAgentResources($blueprintId: ID!) {
+  blueprints(blueprintIds: [$blueprintId], last: 1) {
+    edges {
+      node {
+        id
+        name
+        description
+        bots(last: 1) {
+          edges {
+            node {
+              id
+              name
+              backstory
+              model
+              skillset {
+                id
+                name
+              }
+              dataset {
+                id
+                name
+              }
+            }
+          }
+        }
+        skillsets(last: 1) {
+          edges {
+            node {
+              id
+              name
+              abilities(last: 100) {
+                edges {
+                  node {
+                    id
+                    name
+                    description
+                    instruction
+                  }
+                }
+              }
+            }
+          }
+        }
+        datasets(last: 1) {
+          edges {
+            node {
+              id
+              name
+            }
+          }
+        }
+      }
+    }
+  }
+}

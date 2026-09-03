@@ -1,0 +1,55 @@
+search/web:
+  provider: 'cbk'
+  icon: '@logo/chatbotkit.com'
+  name: Search Web
+  description: |
+    Search the web for specific keywords
+  tags:
+    - search
+    - web
+  instruction: |
+    ```search/web
+    $[query!|search query]
+    ```
+
+search/news:
+  provider: 'cbk'
+  icon: '@logo/chatbotkit.com'
+  name: Search News
+  description: |
+    Search the web for news articles based on specific keywords
+  tags:
+    - search
+    - news
+  instruction: |
+    ```search/news
+    $[query!|search query]
+    ```
+
+search/images:
+  provider: 'cbk'
+  icon: '@logo/chatbotkit.com'
+  name: Search Images
+  description: |
+    Search the web for images based on specific keywords
+  tags:
+    - search
+    - images
+  instruction: |
+    ```search/images
+    $[query!|search query]
+    ```
+
+search/videos:
+  provider: 'cbk'
+  icon: '@logo/chatbotkit.com'
+  name: Search Videos
+  description: |
+    Search the web for videos based on specific keywords
+  tags:
+    - search
+    - videos
+  instruction: |
+    ```search/videos
+    $[query!|search query]
+    ```

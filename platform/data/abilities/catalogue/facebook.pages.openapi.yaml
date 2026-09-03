@@ -1,0 +1,77 @@
+openapi: 3.0.0
+info:
+  title: Facebook Graph API
+  version: '13.0'
+  description: Barebone spec for Facebook Graph API abilities testing
+servers:
+  - url: https://graph.facebook.com/v13.0
+paths:
+  /{page_id}/feed:
+    post:
+      operationId: pagePostFeed
+      summary: Post to a Facebook page
+      parameters:
+        - name: page_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+      security:
+        - Bearer: []
+  /{page_id}/insights:
+    get:
+      operationId: pageGetInsights
+      summary: Get page insights
+      parameters:
+        - name: page_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                        period:
+                          type: string
+                        values:
+                          type: array
+                          items:
+                            type: object
+      security:
+        - Bearer: []
+components:
+  securitySchemes:
+    Bearer:
+      type: http
+      scheme: bearer

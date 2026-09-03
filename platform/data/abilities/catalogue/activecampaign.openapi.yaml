@@ -1,0 +1,758 @@
+# @see https://developers.activecampaign.com/reference/overview
+# @see https://storage.googleapis.com/versori-assets/public-specs/20240205/ActiveCampaign-API-v3.yml
+#
+# @note this is a custom barebone OpenAPI spec for ActiveCampaign API v3 instead
+# of using the versori spec above because:
+# 1. The versori spec uses a fixed base URL (https://youraccountname.api-us1.com)
+#    but ActiveCampaign requires each user to have their own account-specific
+#    API URL, making it incompatible with our dynamic URL field approach
+# 2. The versori spec is quite large (~15k+ lines) with many endpoints not
+#    needed for our core CRM/marketing automation use cases
+# 3. Our templates use a dynamic `apiUrl` placeholder field that users provide,
+#    which requires custom path definitions matching our template structure
+#
+# This simplified spec covers the essential endpoints used by our ability
+# templates: contacts, deals, tags, accounts, lists, and contactTags
+openapi: 3.0.3
+info:
+  title: ActiveCampaign API v3
+  version: '3.0'
+  description: ActiveCampaign API v3 for managing contacts, deals, tags, accounts, and marketing automation
+servers:
+  - url: https://yourname.api-us1.com
+    description: ActiveCampaign API (replace with your account URL)
+security:
+  - ApiToken: []
+paths:
+  /api/3/contacts:
+    get:
+      operationId: listContacts
+      summary: List all contacts
+      parameters:
+        - name: email
+          in: query
+          schema:
+            type: string
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContactsResponse'
+    post:
+      operationId: createContact
+      summary: Create a new contact
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                contact:
+                  $ref: '#/components/schemas/ContactInput'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContactResponse'
+  /api/3/contacts/{contactId}:
+    get:
+      operationId: getContact
+      summary: Get a contact by ID
+      parameters:
+        - name: contactId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContactResponse'
+    put:
+      operationId: updateContact
+      summary: Update a contact
+      parameters:
+        - name: contactId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                contact:
+                  $ref: '#/components/schemas/ContactInput'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContactResponse'
+    delete:
+      operationId: deleteContact
+      summary: Delete a contact
+      parameters:
+        - name: contactId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+  /api/3/deals:
+    get:
+      operationId: listDeals
+      summary: List all deals
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DealsResponse'
+    post:
+      operationId: createDeal
+      summary: Create a new deal
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                deal:
+                  $ref: '#/components/schemas/DealInput'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DealResponse'
+  /api/3/deals/{dealId}:
+    get:
+      operationId: getDeal
+      summary: Get a deal by ID
+      parameters:
+        - name: dealId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DealResponse'
+    put:
+      operationId: updateDeal
+      summary: Update a deal
+      parameters:
+        - name: dealId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                deal:
+                  $ref: '#/components/schemas/DealInput'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DealResponse'
+    delete:
+      operationId: deleteDeal
+      summary: Delete a deal
+      parameters:
+        - name: dealId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+  /api/3/deals/{dealId}/notes:
+    post:
+      operationId: createDealNote
+      summary: Add a note to a deal
+      parameters:
+        - name: dealId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                note:
+                  type: object
+                  properties:
+                    note:
+                      type: string
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NoteResponse'
+  /api/3/tags:
+    get:
+      operationId: listTags
+      summary: List all tags
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TagsResponse'
+    post:
+      operationId: createTag
+      summary: Create a new tag
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                tag:
+                  $ref: '#/components/schemas/TagInput'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TagResponse'
+  /api/3/tags/{tagId}:
+    get:
+      operationId: getTag
+      summary: Get a tag by ID
+      parameters:
+        - name: tagId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TagResponse'
+    put:
+      operationId: updateTag
+      summary: Update a tag
+      parameters:
+        - name: tagId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                tag:
+                  $ref: '#/components/schemas/TagInput'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TagResponse'
+    delete:
+      operationId: deleteTag
+      summary: Delete a tag
+      parameters:
+        - name: tagId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+  /api/3/accounts:
+    get:
+      operationId: listAccounts
+      summary: List all accounts
+      parameters:
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountsResponse'
+    post:
+      operationId: createAccount
+      summary: Create a new account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                account:
+                  $ref: '#/components/schemas/AccountInput'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountResponse'
+  /api/3/accounts/{accountId}:
+    get:
+      operationId: getAccount
+      summary: Get an account by ID
+      parameters:
+        - name: accountId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountResponse'
+    put:
+      operationId: updateAccount
+      summary: Update an account
+      parameters:
+        - name: accountId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                account:
+                  $ref: '#/components/schemas/AccountInput'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountResponse'
+    delete:
+      operationId: deleteAccount
+      summary: Delete an account
+      parameters:
+        - name: accountId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+  /api/3/contactTags:
+    post:
+      operationId: addContactTag
+      summary: Add a tag to a contact
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                contactTag:
+                  type: object
+                  properties:
+                    contact:
+                      type: string
+                    tag:
+                      type: string
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContactTagResponse'
+  /api/3/contactTags/{contactTagId}:
+    delete:
+      operationId: removeContactTag
+      summary: Remove a tag from a contact
+      parameters:
+        - name: contactTagId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+  /api/3/lists:
+    get:
+      operationId: listLists
+      summary: List all email lists
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListsResponse'
+components:
+  securitySchemes:
+    ApiToken:
+      type: apiKey
+      in: header
+      name: Api-Token
+  schemas:
+    Contact:
+      type: object
+      properties:
+        id:
+          type: string
+        email:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        phone:
+          type: string
+        cdate:
+          type: string
+        udate:
+          type: string
+    ContactInput:
+      type: object
+      properties:
+        email:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        phone:
+          type: string
+    ContactResponse:
+      type: object
+      properties:
+        contact:
+          $ref: '#/components/schemas/Contact'
+    ContactsResponse:
+      type: object
+      properties:
+        contacts:
+          type: array
+          items:
+            $ref: '#/components/schemas/Contact'
+        meta:
+          $ref: '#/components/schemas/Meta'
+    Deal:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        value:
+          type: integer
+        currency:
+          type: string
+        contact:
+          type: string
+        group:
+          type: string
+        stage:
+          type: string
+        owner:
+          type: string
+        description:
+          type: string
+        status:
+          type: integer
+        cdate:
+          type: string
+        mdate:
+          type: string
+    DealInput:
+      type: object
+      properties:
+        title:
+          type: string
+        value:
+          type: integer
+        currency:
+          type: string
+        contact:
+          type: string
+        group:
+          type: string
+        stage:
+          type: string
+        owner:
+          type: string
+        description:
+          type: string
+        status:
+          type: integer
+    DealResponse:
+      type: object
+      properties:
+        deal:
+          $ref: '#/components/schemas/Deal'
+    DealsResponse:
+      type: object
+      properties:
+        deals:
+          type: array
+          items:
+            $ref: '#/components/schemas/Deal'
+        meta:
+          $ref: '#/components/schemas/Meta'
+    Tag:
+      type: object
+      properties:
+        id:
+          type: string
+        tag:
+          type: string
+        tagType:
+          type: string
+        description:
+          type: string
+        cdate:
+          type: string
+    TagInput:
+      type: object
+      properties:
+        tag:
+          type: string
+        tagType:
+          type: string
+          enum:
+            - contact
+            - template
+        description:
+          type: string
+    TagResponse:
+      type: object
+      properties:
+        tag:
+          $ref: '#/components/schemas/Tag'
+    TagsResponse:
+      type: object
+      properties:
+        tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/Tag'
+        meta:
+          $ref: '#/components/schemas/Meta'
+    Account:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        accountUrl:
+          type: string
+        cdate:
+          type: string
+        udate:
+          type: string
+    AccountInput:
+      type: object
+      properties:
+        name:
+          type: string
+        accountUrl:
+          type: string
+    AccountResponse:
+      type: object
+      properties:
+        account:
+          $ref: '#/components/schemas/Account'
+    AccountsResponse:
+      type: object
+      properties:
+        accounts:
+          type: array
+          items:
+            $ref: '#/components/schemas/Account'
+        meta:
+          $ref: '#/components/schemas/Meta'
+    ContactTag:
+      type: object
+      properties:
+        id:
+          type: string
+        contact:
+          type: string
+        tag:
+          type: string
+        cdate:
+          type: string
+    ContactTagResponse:
+      type: object
+      properties:
+        contactTag:
+          $ref: '#/components/schemas/ContactTag'
+    List:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        stringid:
+          type: string
+        sender_url:
+          type: string
+        sender_reminder:
+          type: string
+        cdate:
+          type: string
+        udate:
+          type: string
+    ListsResponse:
+      type: object
+      properties:
+        lists:
+          type: array
+          items:
+            $ref: '#/components/schemas/List'
+        meta:
+          $ref: '#/components/schemas/Meta'
+    Note:
+      type: object
+      properties:
+        id:
+          type: string
+        note:
+          type: string
+        cdate:
+          type: string
+        mdate:
+          type: string
+    NoteResponse:
+      type: object
+      properties:
+        note:
+          $ref: '#/components/schemas/Note'
+    Meta:
+      type: object
+      properties:
+        total:
+          type: integer
+        page:
+          type: integer
+        page_input:
+          type: object
+          properties:
+            limit:
+              type: integer
+            offset:
+              type: integer

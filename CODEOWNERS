@@ -1,0 +1,14 @@
+# Initial ownership for the public platform repository. Replace individual
+# ownership with maintainer teams as the maintainer group grows.
+#
+# @note paths here are relative to THIS directory, which becomes the root of
+# the published repository. The monorepo keeps its own CODEOWNERS covering the
+# wider tree; this file governs reviews on the mirror only.
+
+* @pdparchitect
+
+/.github/ @pdparchitect
+/packages/ @pdparchitect
+/patches/ @pdparchitect
+/platform/ @pdparchitect
+/stubs/ @pdparchitect

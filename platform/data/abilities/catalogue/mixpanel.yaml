@@ -1,0 +1,39 @@
+mixpanel/event/track:
+  provider: 'mixpanel'
+  icon: '@logo/mixpanel.com'
+  name: Track Mixpanel Event
+  description: Track an event in Mixpanel
+  tags:
+    - mixpanel
+    - event
+    - track
+  instruction: |
+    ```fetch
+    POST https://api.mixpanel.com/track HTTP/1.1
+    Content-Type: application/json
+
+    {
+      "event": "$[event_name|Event name]",
+      "properties": {
+        "distinct_id": "$[distinct_id|User ID]",
+        "token": "${SECRET_DEFAULT}",
+        "property1": "$[property1|Property 1]",
+        "property2": "$[property2|Property 2]"
+      }
+    }
+    ```
+
+mixpanel/user/profiles:
+  provider: 'mixpanel'
+  icon: '@logo/mixpanel.com'
+  name: Retrieve Mixpanel User Profiles
+  description: Retrieve user profiles from Mixpanel
+  tags:
+    - mixpanel
+    - user
+    - profiles
+  instruction: |
+    ```fetch
+    GET https://mixpanel.com/api/2.0/engage?distinct_id=$[distinct_id|User ID] HTTP/1.1
+    Authorization: ${SECRET_DEFAULT}
+    ```

@@ -1,0 +1,9 @@
+{
+  "start": "/apps/7f1fb51c",
+  "name": "API Specification",
+  "description": "Interactive API documentation with examples and testing capabilities",
+  "icon": "@lucide/book-open-text",
+  "order": 100,
+  "category": "help",
+  "config": {}
+}

@@ -1,0 +1,9 @@
+{
+  "start": "/apps/b7f4c2de",
+  "name": "Blueprint",
+  "description": "Browse blueprints and inspect them in a read-only designer view.",
+  "icon": "@lucide/git-branch",
+  "order": 10000,
+  "category": "developer",
+  "config": {}
+}

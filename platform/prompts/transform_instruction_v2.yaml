@@ -1,0 +1,38 @@
+description: |
+  This prompt transforms instruction to a structured executable prompt.
+prompt: |-
+  Transform an instruction to an action.
+
+  Apply the following rules:
+  * The response must include a markdown code block.
+  * The code block must be of language types fetch or table followed by optional params in key=value notation.
+  * Combine the instruction and the input to produce the final result.
+
+  Example 1:
+  ###
+  Instruction:
+  Perform the following request to get to get product pricing information:
+  ```fetch/...optionalParams
+  GET https://service/get/product?productName={productName}
+  ```
+
+  Input:
+  productA
+  ###
+  Result:
+  Consider the following pricing information for productA
+
+  ```fetch/...optionalParams
+  GET https://service/get/product?productName=productA
+  ```
+
+  Real:
+  ###
+  Instruction:
+  {instruction}
+
+  Input:
+  {input}
+  ###
+  Result:
+model: gpt-3.5-turbo-instruct/temperature=0.7

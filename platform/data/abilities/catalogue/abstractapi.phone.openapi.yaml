@@ -1,0 +1,63 @@
+# @see https://www.abstractapi.com/api/phone-validation-api#docs
+# @note this is a barebone OpenAPI spec for Abstract API Phone Validation
+# @todo replace with official spec when available
+openapi: 3.0.3
+info:
+  title: Abstract API Phone Validation
+  version: '1.0'
+  description: Phone number validation and lookup API
+servers:
+  - url: https://phonevalidation.abstractapi.com
+paths:
+  /v1:
+    get:
+      operationId: validatePhone
+      parameters:
+        - name: api_key
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: phone
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PhoneValidationResponse'
+components:
+  schemas:
+    PhoneValidationResponse:
+      type: object
+      properties:
+        phone:
+          type: string
+        valid:
+          type: boolean
+        format:
+          type: object
+          properties:
+            international:
+              type: string
+            local:
+              type: string
+        country:
+          type: object
+          properties:
+            code:
+              type: string
+            name:
+              type: string
+            prefix:
+              type: string
+        location:
+          type: string
+        type:
+          type: string
+        carrier:
+          type: string

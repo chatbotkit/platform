@@ -1,0 +1,10 @@
+- question: What are conversations?
+  answer: Conversations refer to the interactions between a user and a chatbot. A conversation can include exchanges of text, voice, or other forms of communication, depending on the chatbot's capabilities. During a conversation, the chatbot may use data from a dataset to provide relevant information or responses to the user's input.
+- question: How can I access previous conversations?
+  answer: To access your previous conversations, you need to log in to ChatBotKit and navigate to the conversations section. This section should display a list of all previous conversations, and you can select one to view the full message history.
+- question: Can I delete a conversation?
+  answer: Yes, you have the option to delete any of your previous conversations. To do this, simply select the conversation you wish to delete and click the delete button.
+- question: Can I continue a previous conversation?
+  answer: Yes, you can resume a previous conversation by selecting it from the list. This allows you to pick up where you left off in the conversation and continue interacting with the chatbot.
+- question: Is there a limit to the number of conversations I can have?
+  answer: Our monthly "Basic" membership includes 1000 chat sessions, which should provide ample opportunities for you to have conversations with the chatbot. This means that you can engage in 1000 chat sessions every month. If you need more chat sessions, you may need to upgrade your subscription.

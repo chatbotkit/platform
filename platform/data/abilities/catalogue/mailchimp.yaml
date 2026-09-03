@@ -1,0 +1,169 @@
+# @note we cannot migrate these templates yet until we can use fields inside the
+# request urls
+
+mailchimp/list/list:
+  provider: 'mailchimp'
+  icon: '@logo/mailchimp.com'
+  name: List Audience Lists
+  description: |
+    Get information about all lists (audiences) in the account
+  tags:
+    - mailchimp
+    - audience
+    - list
+  secret: '@platform/mailchimp'
+  instruction: |
+    ```fetch
+    method: GET
+    url: https://((dc! enum<us1,us2>|server prefix e.g., us1, us2)).api.mailchimp.com
+    path: 
+      - /3.0/lists
+    query:
+      count: $[count number? default<10>|Number of lists to return]
+    ```
+
+mailchimp/list/fetch:
+  provider: 'mailchimp'
+  icon: '@logo/mailchimp.com'
+  name: Get Audience List
+  description: |
+    Get information about a specific list (audience)
+  tags:
+    - mailchimp
+    - audience
+    - list
+  secret: '@platform/mailchimp'
+  instruction: |
+    ```fetch
+    method: GET
+    url: https://((dc! enum<us1,us2>|server prefix e.g., us1, us2)).api.mailchimp.com
+    path: 
+      - /3.0/lists/
+      - ((listId! ys|The unique ID for the list))
+    ```
+
+mailchimp/member/list:
+  provider: 'mailchimp'
+  icon: '@logo/mailchimp.com'
+  name: List List Members
+  description: |
+    Get information about members in a list
+  tags:
+    - mailchimp
+    - member
+    - subscriber
+    - list
+  secret: '@platform/mailchimp'
+  instruction: |
+    ```fetch
+    method: GET
+    url: https://((dc! enum<us1,us2>|server prefix e.g., us1, us2)).api.mailchimp.com
+    path: 
+      - /3.0/lists/
+      - ((listId! ys|The unique ID for the list))
+      - /members
+    query:
+      count: $[count number? default<10>|Number of members to return]
+      status: $[status? enum<subscribed,unsubscribed,cleaned,pending>|Subscriber status to filter by]
+    ```
+
+mailchimp/member/create:
+  provider: 'mailchimp'
+  icon: '@logo/mailchimp.com'
+  name: Add List Member
+  description: |
+    Add a new member to a list
+  tags:
+    - mailchimp
+    - member
+    - subscriber
+    - create
+  secret: '@platform/mailchimp'
+  instruction: |
+    ```fetch
+    method: POST
+    url: https://((dc! enum<us1,us2>|server prefix e.g., us1, us2)).api.mailchimp.com
+    path:
+      - /3.0/lists/
+      - ((listId! ys|The unique ID for the list))
+      - /members
+    body:
+      email_address: $[emailAddress ys|Email address for the subscriber]
+      status: $[status enum<subscribed,unsubscribed,cleaned,pending> default<subscribed>|Subscriber status]
+      merge_fields: $[mergeFields?|Merge fields for the subscriber (e.g., FNAME, LNAME)]
+    ```
+
+mailchimp/member/update:
+  provider: 'mailchimp'
+  icon: '@logo/mailchimp.com'
+  name: Update List Member
+  description: |
+    Update a list member
+  tags:
+    - mailchimp
+    - member
+    - subscriber
+    - update
+  secret: '@platform/mailchimp'
+  instruction: |
+    ```fetch
+    method: PATCH
+    url: https://((dc! enum<us1,us2>|server prefix e.g., us1, us2)).api.mailchimp.com
+    path: 
+      - /3.0/lists/
+      - ((listId! ys|The unique ID for the list))
+      - /members/
+      - ((subscriberHash! ys|The MD5 hash of the lowercase version of the list member email address))
+    body:
+      email_address: $[emailAddress? ys|Email address for the subscriber]
+      status: $[status? enum<subscribed,unsubscribed,cleaned,pending>|Subscriber status]
+      merge_fields: $[mergeFields?|Merge fields to update]
+    ```
+
+mailchimp/campaign/list:
+  provider: 'mailchimp'
+  icon: '@logo/mailchimp.com'
+  name: List Campaigns
+  description: |
+    Get information about all campaigns
+  tags:
+    - mailchimp
+    - campaign
+    - list
+  secret: '@platform/mailchimp'
+  instruction: |
+    ```fetch
+    method: GET
+    url: https://((dc! enum<us1,us2>|server prefix e.g., us1, us2)).api.mailchimp.com
+    path: /3.0/campaigns
+    query:
+      count: $[count number? default<10>|Number of campaigns to return]
+      status: $[status? enum<save,paused,schedule,sending,sent>|Campaign status to filter by]
+    ```
+
+mailchimp/campaign/create:
+  provider: 'mailchimp'
+  icon: '@logo/mailchimp.com'
+  name: Create Campaign
+  description: |
+    Create a new campaign
+  tags:
+    - mailchimp
+    - campaign
+    - create
+  secret: '@platform/mailchimp'
+  instruction: |
+    ```fetch
+    method: POST
+    url: https://((dc! enum<us1,us2>|server prefix e.g., us1, us2)).api.mailchimp.com
+    path: /3.0/campaigns
+    body:
+      type: $[type enum<regular,plaintext,absplit,rss,variate> default<regular>|Campaign type]
+      recipients:
+        list_id: ((listId ys|The unique ID for the list))
+      settings:
+        subject_line: $[subjectLine ys|The subject line for the campaign]
+        from_name: $[fromName ys|The from name for the campaign]
+        reply_to: $[replyTo ys|The reply-to email address for the campaign]
+        title: $[title? ys|The title of the campaign]
+    ```

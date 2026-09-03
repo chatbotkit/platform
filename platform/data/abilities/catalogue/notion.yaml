@@ -1,0 +1,440 @@
+# ---
+# ---
+# ---
+
+pack/notion:
+  provider: 'notion'
+  icon: '@logo/notion.so'
+  name: Perform Notion Operation
+  description: |
+    Use this pack to interact with Notion. You can search for pages, list all
+    pages, fetch specific pages, and perform database operations.
+  tags:
+    - notion
+    - pack
+    - beta
+  instruction: |
+    ```pack
+    backstory: |
+      You are a Notion assistant. You can access all of the Notion abilities to
+      search, list, fetch pages, and perform database operations.
+
+      Use the available abilities to perform tasks in Notion per the
+      instructions provided.
+
+      When asked to find a piece of information, you must not give up until you
+      are certain that you have exhausted all possibilities and have
+      provided the most accurate and relevant information.
+
+      When asked to perform a task, you must ensure that the task is performed
+      correctly and that all necessary steps are taken to complete the task
+      successfully.
+
+      Use the abilities to perform tasks in Notion per the instructions
+      provided.
+
+      Do not be lazy and do not skip steps.
+
+      Failure to follow the instructions may result in unexpected outcomes and
+      unintended consequences.
+    task: ((task! ys|the task to perform in Notion))
+    abilities:
+      - notion/search
+      - notion/list
+      - notion/page/list
+      - notion/page/fetch
+      - notion/database/list
+      - notion/database/property/search
+      - notion/database/property/introspect
+      - notion/database/item/list
+      - notion/database/item/fetch
+      - notion/database/item/create
+      - notion/database/item/update
+      - notion/database/item/delete
+    ```
+  secret: '@platform/notion'
+
+pack/notion[search-only]:
+  provider: 'notion'
+  icon: '@logo/notion.so'
+  name: Search Notion
+  description: |
+    Use this pack to search for pages in Notion. You can search for specific
+    keywords and list all pages.
+  tags:
+    - notion
+    - pack
+    - beta
+  instruction: |
+    ```pack
+    backstory: |
+      You are a Notion search assistant. You can access all of the Notion search
+      abilities to search for pages and list all pages.
+
+      Use the available abilities to perform tasks in Notion per the
+      instructions provided.
+
+      When asked to find a piece of information, you must not give up until you
+      are certain that you have exhausted all possibilities and have
+      provided the most accurate and relevant information.
+
+      Do not be lazy and do not skip steps.
+
+      Failure to follow the instructions may result in unexpected outcomes and
+      unintended consequences.
+    task: ((task! ys|the task to perform in Notion))
+    abilities:
+      - notion/search
+      - notion/list
+      - notion/page/list
+      - notion/page/fetch
+      - notion/database/list
+      - notion/database/property/search
+      - notion/database/property/introspect
+      - notion/database/item/list
+      - notion/database/item/fetch
+    ```
+  secret: '@platform/notion'
+
+# ---
+
+notion/search:
+  provider: 'notion'
+  icon: '@logo/notion.so'
+  name: Search Notion
+  description: Search all of Notion for specific keywords
+  tags:
+    - notion
+    - search
+  instruction: |
+    ```fetch
+    method: POST
+    url: /api/auxiliary/skillset/ability/notion/search
+    headers:
+      X-Access-Token: ${SECRET_DEFAULT}
+      Content-Type: application/json
+    body:
+      query: $[query! ys|a search phrase to use]
+      startCursor?: $[cursor ys?|a cursor to use for pagination, if needed]
+    options:
+      auth: internal
+    ```
+  commentary: |
+    This search is based on the page title. This means that multiple search
+    requests may be required to find the exact page you are looking for. This
+    can be achieved by providing additional instructions in the agent backstory.
+
+    Alternatively you can use the exhaustive search variant of this ability
+    which has is a bit slower but will perform multiple in parallel.
+  secret: '@platform/notion'
+
+notion/search[exhaustive]:
+  provider: 'notion'
+  icon: '@logo/notion.so'
+  name: Search Notion
+  description: Search all of Notion for specific keywords using multiple queries
+  tags:
+    - notion
+    - search
+  instruction: |
+    ```pack
+    backstory: |
+      You are a Notion search assistant. You can access all of the Notion search
+      abilities to search for pages and list all pages.
+
+      Use the available abilities to perform tasks in Notion per the
+      instructions provided.
+
+      When asked to find a piece of information, you must not give up until you
+      are certain that you have exhausted all possibilities and have
+      provided the most accurate and relevant information.
+
+      Do not be lazy and do not skip steps.
+
+      Failure to follow the instructions may result in unexpected outcomes and
+      unintended consequences.
+    task: ((task! ys|the task to perform in Notion))
+    abilities:
+      - notion/search
+      - notion/list
+      - notion/page/list
+      - notion/page/fetch
+      - notion/database/list
+      - notion/database/property/search
+      - notion/database/property/introspect
+      - notion/database/item/list
+      - notion/database/item/fetch
+    ```
+  secret: '@platform/notion'
+
+notion/list:
+  provider: 'notion'
+  icon: '@logo/notion.so'
+  name: List Notion
+  description: List all of Notion
+  tags:
+    - notion
+    - list
+  instruction: |
+    ```fetch
+    method: POST
+    url: /api/auxiliary/skillset/ability/notion/search
+    headers:
+      X-Access-Token: ${SECRET_DEFAULT}
+      Content-Type: application/json
+    body:
+      startCursor?: $[cursor ys?|a cursor to use for pagination, if needed]
+    options:
+      auth: internal
+    ```
+  secret: '@platform/notion'
+
+# ---
+
+notion/page/list:
+  provider: 'notion'
+  icon: '@logo/notion.so'
+  name: List Notion Pages
+  description: List all pages in Notion
+  tags:
+    - notion
+    - page
+    - list
+  instruction: |
+    ```fetch
+    method: POST
+    url: /api/auxiliary/skillset/ability/notion/page/list
+    headers:
+      x-access-token: ${SECRET_DEFAULT}
+      content-type: application/json
+    body:
+      startCursor?: $[cursor ys?|a cursor to use for pagination, if needed]
+    options:
+      auth: internal
+    ```
+  secret: '@platform/notion'
+
+notion/page/fetch:
+  provider: 'notion'
+  icon: '@logo/notion.so'
+  name: Fetch Notion Page
+  description: Fetch details of a specific page in Notion
+  tags:
+    - notion
+    - page
+    - fetch
+  instruction: |
+    ```fetch
+    method: POST
+    url: /api/auxiliary/skillset/ability/notion/page/fetch
+    headers:
+      x-access-token: ${SECRET_DEFAULT}
+      content-type: application/json
+    body:
+      pageId: ((pageId! euc|the page id))
+    options:
+      auth: internal
+    ```
+  secret: '@platform/notion'
+
+# ---
+
+notion/database/list:
+  provider: 'notion'
+  icon: '@logo/notion.so'
+  name: List Notion Databases
+  description: List all databases in Notion
+  tags:
+    - notion
+    - database
+    - list
+  instruction: |
+    ```fetch
+    method: POST
+    url: /api/auxiliary/skillset/ability/notion/database/list
+    headers:
+      x-access-token: ${SECRET_DEFAULT}
+      content-type: application/json
+    body:
+      startCursor?: $[cursor ys?|a cursor to use for pagination, if needed]
+    options:
+      auth: internal
+    ```
+  secret: '@platform/notion'
+
+# ---
+
+notion/database/property/search:
+  provider: 'notion'
+  icon: '@logo/notion.so'
+  name: Search Notion Database by Property
+  description: Perform a search in a Notion database by a specific property value
+  tags:
+    - notion
+    - database
+    - item
+    - properties
+  instruction: |
+    ```fetch
+    method: POST
+    url: /api/auxiliary/skillset/ability/notion/database/property/search
+    headers:
+      x-access-token: ${SECRET_DEFAULT}
+      content-type: application/json
+    body:
+      databaseId: ((databaseId! ys|the database id))
+      query: $[properties! j|json object with the properties to search in the form of a record of simple key-value pairs composed of primitive values, e.g. {"k1": "v1", "k2", "v2"}]
+      startCursor?: $[cursor ys?|a cursor to use for pagination, if needed]
+    options:
+      auth: internal
+    ```
+  secret: '@platform/notion'
+
+notion/database/property/introspect:
+  provider: 'notion'
+  icon: '@logo/notion.so'
+  name: Introspect Notion Database Properties
+  description: Get all item property names and corresponding types of a Notion database to be used in subsequent operations
+  tags:
+    - notion
+    - database
+    - item
+    - properties
+  instruction: |
+    ```fetch
+    method: POST
+    url: /api/auxiliary/skillset/ability/notion/database/property/introspect
+    headers:
+      x-access-token: ${SECRET_DEFAULT}
+      content-type: application/json
+    body:
+      databaseId: ((databaseId! ys|the database id))
+    options:
+      auth: internal
+    ```
+  secret: '@platform/notion'
+
+# ---
+
+notion/database/item/list:
+  provider: 'notion'
+  icon: '@logo/notion.so'
+  name: List Notion Database Items
+  description: List all items in a Notion database
+  tags:
+    - notion
+    - database
+    - item
+    - list
+  instruction: |
+    ```fetch
+    method: POST
+    url: /api/auxiliary/skillset/ability/notion/database/item/list
+    headers:
+      x-access-token: ${SECRET_DEFAULT}
+      content-type: application/json
+    body:
+      databaseId: ((databaseId! ys|the database id))
+      startCursor?: $[cursor ys?|a cursor to use for pagination, if needed]
+    options:
+      auth: internal
+    ```
+  secret: '@platform/notion'
+
+notion/database/item/fetch:
+  provider: 'notion'
+  icon: '@logo/notion.so'
+  name: Fetch Notion Database Item
+  description: Fetch details of a specific item in a Notion database
+  tags:
+    - notion
+    - database
+    - item
+    - fetch
+  instruction: |
+    ```fetch
+    method: POST
+    url: /api/auxiliary/skillset/ability/notion/database/item/fetch
+    headers:
+      x-access-token: ${SECRET_DEFAULT}
+      content-type: application/json
+    body:
+      databaseId: ((databaseId! ys|the database id))
+      itemId: ((itemId! ys|the item/page id))
+    options:
+      auth: internal
+    ```
+  secret: '@platform/notion'
+
+notion/database/item/create:
+  provider: 'notion'
+  icon: '@logo/notion.so'
+  name: Create Notion Database Item
+  description: Create a new item in a Notion database
+  tags:
+    - notion
+    - page
+    - create
+  instruction: |
+    ```fetch
+    method: POST
+    url: /api/auxiliary/skillset/ability/notion/database/item/create
+    headers:
+      x-access-token: ${SECRET_DEFAULT}
+      content-type: application/json
+    body:
+      databaseId: ((databaseId! ys|the database id))
+      properties: $[properties! j|json object with the properties of the item to be updated in the form of a record of simple key-value pairs composed of primitive values, e.g. {"k1": "v1", "k2", "v2"}]
+    options:
+      auth: internal
+    ```
+  secret: '@platform/notion'
+
+notion/database/item/update:
+  provider: 'notion'
+  icon: '@logo/notion.so'
+  name: Update Notion Database Item
+  description: Update an existing item in a Notion database
+  tags:
+    - notion
+    - page
+    - update
+  instruction: |
+    ```fetch
+    method: POST
+    url: /api/auxiliary/skillset/ability/notion/database/item/update
+    headers:
+      x-access-token: ${SECRET_DEFAULT}
+      content-type: application/json
+    body:
+      databaseId: ((databaseId! ys|the database id))
+      itemId: ((itemId! ys|the item/page id))
+      properties: $[properties! j|json object with the properties of the item to be updated in the form of a record of simple key-value pairs composed of primitive values, e.g. {"k1": "v1", "k2", "v2"}]
+    options:
+      auth: internal
+    ```
+  secret: '@platform/notion'
+
+notion/database/item/delete:
+  provider: 'notion'
+  icon: '@logo/notion.so'
+  name: Delete Notion Database Item
+  description: Delete an existing item in a Notion database
+  tags:
+    - notion
+    - page
+    - delete
+  instruction: |
+    ```fetch
+    method: POST
+    url: /api/auxiliary/skillset/ability/notion/database/item/delete
+    headers:
+      x-access-token: ${SECRET_DEFAULT}
+      content-type: application/json
+    body:
+      databaseId: ((databaseId! ys|the database id))
+      itemId: ((itemId! ys|the item/page id))
+    options:
+      auth: internal
+    ```
+  secret: '@platform/notion'

@@ -1,0 +1,62 @@
+description: |
+  This prompt transforms instruction to a structured executable prompt.
+prompt: |-
+  Transform an instruction to an action.
+
+  Apply the following rules:
+  * The response MUST include a markdown code block, i.e fenced code block.
+  * The code block must be of language types {availableActions} followed by optional params in key=value notation, i.e. language/param1=abc/param2=xyz.
+  * You must combine the instruction and the input to produce the final result.
+
+  Failure to follow these rules will result in a failed transformation and a low score. So be sure to follow the rules carefully.
+
+  Example 1:
+  ----------
+  ###
+  Instruction:
+  Perform the following request to get to get product pricing information:
+  ```fetch/format=markdown
+  GET https://service/get/product?productName={productName}
+  ```
+
+  Input:
+  productA
+  ###
+  Result:
+  Consider the following pricing information for productA:
+
+  ```fetch/format=markdown
+  GET https://service/get/product?productName=productA
+  ```
+
+  Example 2:
+  ----------
+  ###
+  Instruction:
+  Generate an image by enhancement:
+
+  ```image/model=dalle3
+  [enhanced image description]
+  ```
+
+  Input:
+  image of a cat
+  ###
+  Result:
+  Consider the following enhanced image of a cat:
+
+  ```image/model=dalle3
+  an image of a cat with enhanced features such as sharper edges and brighter colors
+  ```
+
+  Your Try:
+  ---------
+  ###
+  Instruction:
+  {instruction}
+
+  Input:
+  {input}
+  ###
+  Result:
+model: gpt-3.5-turbo-instruct/temperature=0.7

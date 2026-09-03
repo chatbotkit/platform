@@ -1,0 +1,8 @@
+diff --git a/lib/complex-types.ts b/lib/complex-types.ts
+--- a/lib/complex-types.ts
++++ b/lib/complex-types.ts
+@@ -1,3 +1,4 @@
++// @ts-nocheck -- @types/react 19 rejects the TagName constraint below; runtime is untouched. Drop this patch with the react-markdown 10 / unified 11 bump.
+ import type {ReactNode, ComponentType, ComponentPropsWithoutRef} from 'react'
+ import type {Position} from 'unist'
+ import type {Element} from 'hast'

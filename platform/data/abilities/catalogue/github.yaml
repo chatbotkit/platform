@@ -1,0 +1,1114 @@
+github/repository/list:
+  provider: 'github'
+  icon: '@logo/github.com'
+  name: List GitHub Repositories
+  description: List all repositories for a specific user or organization on GitHub
+  tags:
+    - github
+    - repository
+    - list
+  instruction: |
+    ```fetch
+    method: GET
+    url: https://api.github.com/users/$[username! euc|the github username]/repos
+    headers:
+      Authorization: ${SECRET_DEFAULT}
+      Accept: application/vnd.github.v3+json
+    query:
+      type?: $[type ys? enum<all,owner,public,forks,private,member>|repository type (e.g., all, owner, public, forks, private, member)]
+      sort?: $[sort ys? enum<created,updated,pushed,full_name>|sort order (e.g., created, updated, pushed, full_name)]
+      direction?: $[direction ys? enum<asc,desc>|sort direction (e.g., asc, desc)]
+    options:
+      jmespath: |
+        [*].{
+          id: id,
+          name: name,
+          full_name: full_name,
+          private: private,
+          owner: owner.login,
+          html_url: html_url,
+          description: description,
+          created_at: created_at,
+          updated_at: updated_at,
+          pushed_at: pushed_at
+        }
+    ```
+  secret: '@platform/github'
+
+github/repository/fetch:
+  provider: 'github'
+  icon: '@logo/github.com'
+  name: Fetch GitHub Repository Details
+  description: Fetch details of a specific repository on GitHub
+  tags:
+    - github
+    - repository
+    - fetch
+  instruction: |
+    ```fetch
+    method: GET
+    url: https://api.github.com/repos/$[owner! euc|repository owner]/$[repo! euc|repository name]
+    headers:
+      Authorization: ${SECRET_DEFAULT}
+      Accept: application/vnd.github.v3+json
+    options:
+      jmespath: |
+        {
+          id: id,
+          name: name,
+          full_name: full_name,
+          private: private,
+          owner: owner.login,
+          html_url: html_url,
+          description: description,
+          created_at: created_at,
+          updated_at: updated_at,
+          pushed_at: pushed_at
+        }
+    ```
+  secret: '@platform/github'
+
+github/repository/issue/list:
+  provider: 'github'
+  icon: '@logo/github.com'
+  name: List GitHub Repository Issues
+  description: List all issues for a specific repository on GitHub
+  tags:
+    - github
+    - issue
+    - list
+  instruction: |
+    ```fetch
+    method: GET
+    url: https://api.github.com/repos/$[owner! euc|repository owner]/$[repo! euc|repository name]/issues
+    headers:
+      Authorization: ${SECRET_DEFAULT}
+      Accept: application/vnd.github.v3+json
+    query:
+      state?: $[state ys? enum<open,closed,all>|issue state (e.g., open, closed, all)]
+      sort?: $[sort ys? enum<created,updated,comments>|sort order (e.g., created, updated, comments)]
+      direction?: $[direction ys? enum<asc,desc>|sort direction (e.g., asc, desc)]
+    ```
+  secret: '@platform/github'
+
+github/repository/issue/fetch:
+  provider: 'github'
+  icon: '@logo/github.com'
+  name: Fetch GitHub Repository Issue
+  description: Fetch details of a specific issue in a repository on GitHub
+  tags:
+    - github
+    - issue
+    - fetch
+  instruction: |
+    ```fetch
+    method: GET
+    url: https://api.github.com/repos/$[owner! euc|repository owner]/$[repo! euc|repository name]/issues/$[issue_number! euc|issue number]
+    headers:
+      Authorization: ${SECRET_DEFAULT}
+      Accept: application/vnd.github.v3+json
+    ```
+  secret: '@platform/github'
+
+github/repository/issue/create:
+  provider: 'github'
+  icon: '@logo/github.com'
+  name: Create GitHub Repository Issue
+  description: Create a new issue in a specific repository on GitHub
+  tags:
+    - github
+    - issue
+    - create
+  instruction: |
+    ```fetch
+    method: POST
+    url: https://api.github.com/repos/$[owner! euc|repository owner]/$[repo! euc|repository name]/issues
+    headers:
+      Authorization: ${SECRET_DEFAULT}
+      Accept: application/vnd.github.v3+json
+      Content-Type: application/json
+    body:
+      title: $[title! ys|issue title]
+      body: $[body! ys|issue description]
+      assignees?: $[assignees j?|json array of usernames to assign to the issue, e.g. ["user1", "user2"]]
+      labels?: $[labels j?|json array of labels to apply to the issue, e.g. ["bug", "enhancement"]]
+    ```
+  secret: '@platform/github'
+
+github/repository/issue/comment/list:
+  provider: 'github'
+  icon: '@logo/github.com'
+  name: List GitHub Repository Issue Comments
+  description: List all comments for a specific issue in a repository on GitHub
+  tags:
+    - github
+    - issue
+    - comment
+    - list
+  instruction: |
+    ```fetch
+    method: GET
+    url: https://api.github.com/repos/$[owner! euc|repository owner]/$[repo! euc|repository name]/issues/$[issue_number! euc|issue number]/comments
+    headers:
+      Authorization: ${SECRET_DEFAULT}
+      Accept: application/vnd.github.v3+json
+    ```
+  secret: '@platform/github'
+
+github/repository/issue/comment/fetch:
+  provider: 'github'
+  icon: '@logo/github.com'
+  name: Fetch GitHub Repository Issue Comment
+  description: Fetch details of a specific comment on an issue in a repository on GitHub
+  tags:
+    - github
+    - issue
+    - comment
+    - fetch
+  instruction: |
+    ```fetch
+    method: GET
+    url: https://api.github.com/repos/$[owner! euc|repository owner]/$[repo! euc|repository name]/issues/comments/$[comment_id! euc|comment ID]
+    headers:
+      Authorization: ${SECRET_DEFAULT}
+      Accept: application/vnd.github.v3+json
+    ```
+  secret: '@platform/github'
+
+github/repository/issue/comment/create:
+  provider: 'github'
+  icon: '@logo/github.com'
+  name: Create GitHub Repository Issue Comment
+  description: Create a new comment on a specific issue in a repository on GitHub
+  tags:
+    - github
+    - issue
+    - comment
+    - create
+  instruction: |
+    ```fetch
+    method: POST
+    url: https://api.github.com/repos/$[owner! euc|repository owner]/$[repo! euc|repository name]/issues/$[issue_number! euc|issue number]/comments
+    headers:
+      Authorization: ${SECRET_DEFAULT}
+      Accept: application/vnd.github.v3+json
+      Content-Type: application/json
+    body:
+      body: $[comment! ys|comment text]
+    ```
+  secret: '@platform/github'
+
+github/repository/issue/update:
+  provider: 'github'
+  icon: '@logo/github.com'
+  name: Update GitHub Repository Issue
+  description: Update an existing issue in a repository on GitHub
+  tags:
+    - github
+    - issue
+    - update
+  instruction: |
+    ```fetch
+    method: PATCH
+    url: https://api.github.com/repos/$[owner! euc|repository owner]/$[repo! euc|repository name]/issues/$[issue_number! euc|issue number]
+    headers:
+      Authorization: ${SECRET_DEFAULT}
+      Accept: application/vnd.github.v3+json
+      Content-Type: application/json
+    body:
+      title?: $[title ys?|issue title]
+      body?: $[body ys?|issue description]
+      state?: $[state ys? enum<open,closed>|issue state (open or closed)]
+      assignees?: $[assignees j?|json array of usernames to assign to the issue, e.g. ["user1", "user2"]]
+      labels?: $[labels j?|json array of labels to apply to the issue, e.g. ["bug", "enhancement"]]
+    ```
+  secret: '@platform/github'
+
+github/repository/issue/close:
+  provider: 'github'
+  icon: '@logo/github.com'
+  name: Close GitHub Repository Issue
+  description: Close a specific issue in a repository on GitHub
+  tags:
+    - github
+    - issue
+    - close
+  instruction: |
+    ```fetch
+    method: PATCH
+    url: https://api.github.com/repos/$[owner! euc|repository owner]/$[repo! euc|repository name]/issues/$[issue_number! euc|issue number]
+    headers:
+      Authorization: ${SECRET_DEFAULT}
+      Accept: application/vnd.github.v3+json
+      Content-Type: application/json
+    body:
+      state: closed
+    ```
+  secret: '@platform/github'
+
+github/repository/issue/comment/update:
+  provider: 'github'
+  icon: '@logo/github.com'
+  name: Update GitHub Repository Issue Comment
+  description: Update an existing comment on an issue in a repository on GitHub
+  tags:
+    - github
+    - issue
+    - comment
+    - update
+  instruction: |
+    ```fetch
+    method: PATCH
+    url: https://api.github.com/repos/$[owner! euc|repository owner]/$[repo! euc|repository name]/issues/comments/$[comment_id! euc|comment ID]
+    headers:
+      Authorization: ${SECRET_DEFAULT}
+      Accept: application/vnd.github.v3+json
+      Content-Type: application/json
+    body:
+      body: $[comment! ys|updated comment text]
+    ```
+  secret: '@platform/github'
+
+github/repository/branch/list:
+  provider: 'github'
+  icon: '@logo/github.com'
+  name: List GitHub Repository Branches
+  description: List all branches for a specific repository on GitHub
+  tags:
+    - github
+    - branch
+    - list
+  instruction: |
+    ```fetch
+    method: GET
+    url: https://api.github.com/repos/$[owner! euc|repository owner]/$[repo! euc|repository name]/branches
+    headers:
+      Authorization: ${SECRET_DEFAULT}
+      Accept: application/vnd.github.v3+json
+    query:
+      protected?: $[protected ys? enum<true,false>|filter by protected branches]
+    options:
+      jmespath: |
+        [*].{
+          name: name,
+          commit_sha: commit.sha,
+          commit_url: commit.url,
+          protected: protected
+        }
+    ```
+  secret: '@platform/github'
+
+github/repository/branch/fetch:
+  provider: 'github'
+  icon: '@logo/github.com'
+  name: Fetch GitHub Repository Branch
+  description: Fetch details of a specific branch in a repository on GitHub
+  tags:
+    - github
+    - branch
+    - fetch
+  instruction: |
+    ```fetch
+    method: GET
+    url: https://api.github.com/repos/$[owner! euc|repository owner]/$[repo! euc|repository name]/branches/$[branch! euc|branch name]
+    headers:
+      Authorization: ${SECRET_DEFAULT}
+      Accept: application/vnd.github.v3+json
+    options:
+      jmespath: |
+        {
+          name: name,
+          commit_sha: commit.sha,
+          commit_url: commit.url,
+          protected: protected,
+          protection_url: protection_url
+        }
+    ```
+  secret: '@platform/github'
+
+github/repository/branch/create:
+  provider: 'github'
+  icon: '@logo/github.com'
+  name: Create GitHub Repository Branch
+  description: Create a new branch in a repository on GitHub
+  tags:
+    - github
+    - branch
+    - create
+  instruction: |
+    ```fetch
+    method: POST
+    url: https://api.github.com/repos/$[owner! euc|repository owner]/$[repo! euc|repository name]/git/refs
+    headers:
+      Authorization: ${SECRET_DEFAULT}
+      Accept: application/vnd.github.v3+json
+      Content-Type: application/json
+    body:
+      ref: "refs/heads/$[branch_name! edq|new branch name]"
+      sha: $[sha! ys|commit SHA to branch from]
+    ```
+  secret: '@platform/github'
+
+github/repository/branch/delete:
+  provider: 'github'
+  icon: '@logo/github.com'
+  name: Delete GitHub Repository Branch
+  description: Delete a branch from a repository on GitHub
+  tags:
+    - github
+    - branch
+    - delete
+  instruction: |
+    ```fetch
+    method: DELETE
+    url: https://api.github.com/repos/$[owner! euc|repository owner]/$[repo! euc|repository name]/git/refs/heads/$[branch! euc|branch name]
+    headers:
+      Authorization: ${SECRET_DEFAULT}
+      Accept: application/vnd.github.v3+json
+    ```
+  secret: '@platform/github'
+
+github/repository/pull/list:
+  provider: 'github'
+  icon: '@logo/github.com'
+  name: List GitHub Repository Pull Requests
+  description: List all pull requests for a specific repository on GitHub
+  tags:
+    - github
+    - pull
+    - list
+  instruction: |
+    ```fetch
+    method: GET
+    url: https://api.github.com/repos/$[owner! euc|repository owner]/$[repo! euc|repository name]/pulls
+    headers:
+      Authorization: ${SECRET_DEFAULT}
+      Accept: application/vnd.github.v3+json
+    query:
+      state?: $[state ys? enum<open,closed,all>|pull request state (e.g., open, closed, all)]
+      head?: $[head ys?|filter by head branch]
+      base?: $[base ys?|filter by base branch]
+      sort?: $[sort ys? enum<created,updated,popularity,long-running>|sort order (e.g., created, updated, popularity, long-running)]
+      direction?: $[direction ys? enum<asc,desc>|sort direction (e.g., asc, desc)]
+    options:
+      jmespath: |
+        [*].{
+          id: id,
+          number: number,
+          title: title,
+          state: state,
+          user: user.login,
+          created_at: created_at,
+          updated_at: updated_at,
+          html_url: html_url,
+          head_branch: head.ref,
+          base_branch: base.ref
+        }
+    ```
+  secret: '@platform/github'
+
+github/repository/pull/fetch:
+  provider: 'github'
+  icon: '@logo/github.com'
+  name: Fetch GitHub Repository Pull Request
+  description: Fetch details of a specific pull request in a repository on GitHub
+  tags:
+    - github
+    - pull
+    - fetch
+  instruction: |
+    ```fetch
+    method: GET
+    url: https://api.github.com/repos/$[owner! euc|repository owner]/$[repo! euc|repository name]/pulls/$[pull_number! euc|pull request number]
+    headers:
+      Authorization: ${SECRET_DEFAULT}
+      Accept: application/vnd.github.v3+json
+    options:
+      jmespath: |
+        {
+          id: id,
+          number: number,
+          title: title,
+          body: body,
+          state: state,
+          user: user.login,
+          created_at: created_at,
+          updated_at: updated_at,
+          html_url: html_url,
+          head_branch: head.ref,
+          base_branch: base.ref,
+          mergeable: mergeable,
+          merged: merged,
+          merged_at: merged_at
+        }
+    ```
+  secret: '@platform/github'
+
+github/repository/pull/create:
+  provider: 'github'
+  icon: '@logo/github.com'
+  name: Create GitHub Repository Pull Request
+  description: Create a new pull request in a repository on GitHub
+  tags:
+    - github
+    - pull
+    - create
+  instruction: |
+    ```fetch
+    method: POST
+    url: https://api.github.com/repos/$[owner! euc|repository owner]/$[repo! euc|repository name]/pulls
+    headers:
+      Authorization: ${SECRET_DEFAULT}
+      Accept: application/vnd.github.v3+json
+      Content-Type: application/json
+    body:
+      title: $[title! ys|pull request title]
+      head: $[head! ys|name of the branch where your changes are implemented]
+      base: $[base! ys|name of the branch you want the changes pulled into]
+      body?: $[body ys?|pull request description]
+      maintainer_can_modify?: $[maintainer_can_modify ys? enum<true,false>|whether maintainers can modify the pull request]
+      draft?: $[draft ys? enum<true,false>|whether the pull request is a draft]
+    ```
+  secret: '@platform/github'
+
+github/repository/pull/update:
+  provider: 'github'
+  icon: '@logo/github.com'
+  name: Update GitHub Repository Pull Request
+  description: Update an existing pull request in a repository on GitHub
+  tags:
+    - github
+    - pull
+    - update
+  instruction: |
+    ```fetch
+    method: PATCH
+    url: https://api.github.com/repos/$[owner! euc|repository owner]/$[repo! euc|repository name]/pulls/$[pull_number! euc|pull request number]
+    headers:
+      Authorization: ${SECRET_DEFAULT}
+      Accept: application/vnd.github.v3+json
+      Content-Type: application/json
+    body:
+      title?: $[title ys?|pull request title]
+      body?: $[body ys?|pull request description]
+      state?: $[state ys? enum<open,closed>|pull request state (open or closed)]
+      base?: $[base ys?|name of the branch you want the changes pulled into]
+      maintainer_can_modify?: $[maintainer_can_modify ys? enum<true,false>|whether maintainers can modify the pull request]
+    ```
+  secret: '@platform/github'
+
+github/repository/pull/merge:
+  provider: 'github'
+  icon: '@logo/github.com'
+  name: Merge GitHub Repository Pull Request
+  description: Merge a pull request in a repository on GitHub
+  tags:
+    - github
+    - pull
+    - merge
+  instruction: |
+    ```fetch
+    method: PUT
+    url: https://api.github.com/repos/$[owner! euc|repository owner]/$[repo! euc|repository name]/pulls/$[pull_number! euc|pull request number]/merge
+    headers:
+      Authorization: ${SECRET_DEFAULT}
+      Accept: application/vnd.github.v3+json
+      Content-Type: application/json
+    body:
+      commit_title?: $[commit_title ys?|title for the automatic commit message]
+      commit_message?: $[commit_message ys?|extra detail to append to automatic commit message]
+      merge_method?: $[merge_method ys? enum<merge,squash,rebase> default<merge>|merge method to use (merge, squash, or rebase)]
+    ```
+  secret: '@platform/github'
+
+github/repository/pull/comment/list:
+  provider: 'github'
+  icon: '@logo/github.com'
+  name: List GitHub Repository Pull Request Comments
+  description: List all comments for a specific pull request in a repository on GitHub
+  tags:
+    - github
+    - pull
+    - comment
+    - list
+  instruction: |
+    ```fetch
+    method: GET
+    url: https://api.github.com/repos/$[owner! euc|repository owner]/$[repo! euc|repository name]/pulls/$[pull_number! euc|pull request number]/comments
+    headers:
+      Authorization: ${SECRET_DEFAULT}
+      Accept: application/vnd.github.v3+json
+    query:
+      sort?: $[sort ys? enum<created,updated>|sort order (e.g., created, updated)]
+      direction?: $[direction ys? enum<asc,desc>|sort direction (e.g., asc, desc)]
+    options:
+      jmespath: |
+        [*].{
+          id: id,
+          body: body,
+          user: user.login,
+          created_at: created_at,
+          updated_at: updated_at,
+          html_url: html_url
+        }
+    ```
+  secret: '@platform/github'
+
+github/repository/pull/comment/create:
+  provider: 'github'
+  icon: '@logo/github.com'
+  name: Create GitHub Repository Pull Request Comment
+  description: Create a new comment on a specific pull request in a repository on GitHub
+  tags:
+    - github
+    - pull
+    - comment
+    - create
+  instruction: |
+    ```fetch
+    method: POST
+    url: https://api.github.com/repos/$[owner! euc|repository owner]/$[repo! euc|repository name]/pulls/$[pull_number! euc|pull request number]/comments
+    headers:
+      Authorization: ${SECRET_DEFAULT}
+      Accept: application/vnd.github.v3+json
+      Content-Type: application/json
+    body:
+      body: $[comment! ys|comment text]
+      commit_id: $[commit_id! ys|SHA of the commit to comment on]
+      path: $[path! ys|relative path of the file to comment on]
+      line?: $[line number?|line index in the diff to comment on]
+    ```
+  secret: '@platform/github'
+
+github/repository/release/list:
+  provider: 'github'
+  icon: '@logo/github.com'
+  name: List GitHub Repository Releases
+  description: List all releases for a specific repository on GitHub
+  tags:
+    - github
+    - release
+    - list
+  instruction: |
+    ```fetch
+    method: GET
+    url: https://api.github.com/repos/$[owner! euc|repository owner]/$[repo! euc|repository name]/releases
+    headers:
+      Authorization: ${SECRET_DEFAULT}
+      Accept: application/vnd.github.v3+json
+    options:
+      jmespath: |
+        [*].{
+          id: id,
+          tag_name: tag_name,
+          name: name,
+          body: body,
+          draft: draft,
+          prerelease: prerelease,
+          created_at: created_at,
+          published_at: published_at,
+          html_url: html_url,
+          author: author.login
+        }
+    ```
+  secret: '@platform/github'
+
+github/repository/release/fetch:
+  provider: 'github'
+  icon: '@logo/github.com'
+  name: Fetch GitHub Repository Release
+  description: Fetch details of a specific release in a repository on GitHub
+  tags:
+    - github
+    - release
+    - fetch
+  instruction: |
+    ```fetch
+    method: GET
+    url: https://api.github.com/repos/$[owner! euc|repository owner]/$[repo! euc|repository name]/releases/$[release_id! euc|release ID]
+    headers:
+      Authorization: ${SECRET_DEFAULT}
+      Accept: application/vnd.github.v3+json
+    options:
+      jmespath: |
+        {
+          id: id,
+          tag_name: tag_name,
+          name: name,
+          body: body,
+          draft: draft,
+          prerelease: prerelease,
+          created_at: created_at,
+          published_at: published_at,
+          html_url: html_url,
+          author: author.login,
+          assets: assets[*].{
+            id: id,
+            name: name,
+            size: size,
+            download_count: download_count,
+            browser_download_url: browser_download_url
+          }
+        }
+    ```
+  secret: '@platform/github'
+
+github/repository/release/create:
+  provider: 'github'
+  icon: '@logo/github.com'
+  name: Create GitHub Repository Release
+  description: Create a new release in a repository on GitHub
+  tags:
+    - github
+    - release
+    - create
+  instruction: |
+    ```fetch
+    method: POST
+    url: https://api.github.com/repos/$[owner! euc|repository owner]/$[repo! euc|repository name]/releases
+    headers:
+      Authorization: ${SECRET_DEFAULT}
+      Accept: application/vnd.github.v3+json
+      Content-Type: application/json
+    body:
+      tag_name: $[tag_name! ys|tag name for the release]
+      target_commitish?: $[target_commitish ys?|commitish value that determines where the tag is created from (defaults to main branch)]
+      name?: $[name ys?|name of the release]
+      body?: $[body ys?|text describing the contents of the release]
+      draft?: $[draft ys? enum<true,false>|true to create a draft release, false to create a published one]
+      prerelease?: $[prerelease ys? enum<true,false>|true to identify the release as a prerelease, false to identify as a full release]
+    ```
+  secret: '@platform/github'
+
+github/repository/tag/list:
+  provider: 'github'
+  icon: '@logo/github.com'
+  name: List GitHub Repository Tags
+  description: List all tags for a specific repository on GitHub
+  tags:
+    - github
+    - tag
+    - list
+  instruction: |
+    ```fetch
+    method: GET
+    url: https://api.github.com/repos/$[owner! euc|repository owner]/$[repo! euc|repository name]/tags
+    headers:
+      Authorization: ${SECRET_DEFAULT}
+      Accept: application/vnd.github.v3+json
+    options:
+      jmespath: |
+        [*].{
+          name: name,
+          commit_sha: commit.sha,
+          commit_url: commit.url,
+          zipball_url: zipball_url,
+          tarball_url: tarball_url
+        }
+    ```
+  secret: '@platform/github'
+
+github/repository/tag/fetch:
+  provider: 'github'
+  icon: '@logo/github.com'
+  name: Fetch GitHub Repository Tag
+  description: Fetch details of a specific tag in a repository on GitHub
+  tags:
+    - github
+    - tag
+    - fetch
+  instruction: |
+    ```fetch
+    method: GET
+    url: https://api.github.com/repos/$[owner! euc|repository owner]/$[repo! euc|repository name]/git/refs/tags/$[tag! euc|tag name]
+    headers:
+      Authorization: ${SECRET_DEFAULT}
+      Accept: application/vnd.github.v3+json
+    options:
+      jmespath: |
+        {
+          ref: ref,
+          node_id: node_id,
+          url: url,
+          object_sha: object.sha,
+          object_type: object.type,
+          object_url: object.url
+        }
+    ```
+  secret: '@platform/github'
+
+github/repository/tag/create:
+  provider: 'github'
+  icon: '@logo/github.com'
+  name: Create GitHub Repository Tag
+  description: Create a new tag in a repository on GitHub
+  tags:
+    - github
+    - tag
+    - create
+  instruction: |
+    ```fetch
+    method: POST
+    url: https://api.github.com/repos/$[owner! euc|repository owner]/$[repo! euc|repository name]/git/refs
+    headers:
+      Authorization: ${SECRET_DEFAULT}
+      Accept: application/vnd.github.v3+json
+      Content-Type: application/json
+    body:
+      ref: refs/tags/$[tag_name! ys|tag name]
+      sha: $[sha! ys|commit SHA to tag]
+    ```
+  secret: '@platform/github'
+
+github/repository/create:
+  provider: 'github'
+  icon: '@logo/github.com'
+  name: Create GitHub Repository
+  description: Create a new repository on GitHub
+  tags:
+    - github
+    - repository
+    - create
+  instruction: |
+    ```fetch
+    method: POST
+    url: https://api.github.com/user/repos
+    headers:
+      Authorization: ${SECRET_DEFAULT}
+      Accept: application/vnd.github.v3+json
+      Content-Type: application/json
+    body:
+      name: $[name! ys|repository name]
+      description?: $[description ys?|repository description]
+      homepage?: $[homepage ys?|repository homepage URL]
+      private?: $[private ys? enum<true,false>|whether the repository is private]
+      has_issues: $[has_issues boolean|whether to enable issues]
+      has_projects: $[has_projects boolean|whether to enable projects]
+      has_wiki: $[has_wiki boolean|whether to enable wiki]
+      auto_init: $[auto_init boolean|whether to initialize repository with README]
+      gitignore_template?: $[gitignore_template ys?|gitignore template to use]
+      license_template?: $[license_template ys?|license template to use]
+    ```
+  secret: '@platform/github'
+
+github/repository/update:
+  provider: 'github'
+  icon: '@logo/github.com'
+  name: Update GitHub Repository
+  description: Update settings of an existing repository on GitHub
+  tags:
+    - github
+    - repository
+    - update
+  instruction: |
+    ```fetch
+    method: PATCH
+    url: https://api.github.com/repos/$[owner! euc|repository owner]/$[repo! euc|repository name]
+    headers:
+      Authorization: ${SECRET_DEFAULT}
+      Accept: application/vnd.github.v3+json
+      Content-Type: application/json
+    body:
+      name?: $[name ys?|repository name]
+      description?: $[description ys?|repository description]
+      homepage?: $[homepage ys?|repository homepage URL]
+      private?: $[private ys? enum<true,false>|whether the repository is private]
+      has_issues?: $[has_issues ys? enum<true,false>|whether to enable issues]
+      has_projects?: $[has_projects ys? enum<true,false>|whether to enable projects]
+      has_wiki?: $[has_wiki ys? enum<true,false>|whether to enable wiki]
+      default_branch?: $[default_branch ys?|default branch name]
+      archived?: $[archived ys? enum<true,false>|whether the repository is archived]
+    ```
+  secret: '@platform/github'
+
+github/repository/delete:
+  provider: 'github'
+  icon: '@logo/github.com'
+  name: Delete GitHub Repository
+  description: Delete a repository on GitHub (requires admin access)
+  tags:
+    - github
+    - repository
+    - delete
+  instruction: |
+    ```fetch
+    method: DELETE
+    url: https://api.github.com/repos/$[owner! euc|repository owner]/$[repo! euc|repository name]
+    headers:
+      Authorization: ${SECRET_DEFAULT}
+      Accept: application/vnd.github.v3+json
+    ```
+  secret: '@platform/github'
+
+github/repository/collaborator/list:
+  provider: 'github'
+  icon: '@logo/github.com'
+  name: List GitHub Repository Collaborators
+  description: List all collaborators for a specific repository on GitHub
+  tags:
+    - github
+    - repository
+    - collaborator
+    - list
+  instruction: |
+    ```fetch
+    method: GET
+    url: https://api.github.com/repos/$[owner! euc|repository owner]/$[repo! euc|repository name]/collaborators
+    headers:
+      Authorization: ${SECRET_DEFAULT}
+      Accept: application/vnd.github.v3+json
+    query:
+      affiliation?: $[affiliation ys? enum<outside,direct,all> default<all>|filter by affiliation (outside, direct, all)]
+    options:
+      jmespath: |
+        [*].{
+          id: id,
+          login: login,
+          type: type,
+          site_admin: site_admin,
+          permissions: permissions,
+          html_url: html_url
+        }
+    ```
+  secret: '@platform/github'
+
+github/repository/collaborator/add:
+  provider: 'github'
+  icon: '@logo/github.com'
+  name: Add GitHub Repository Collaborator
+  description: Add a collaborator to a repository on GitHub
+  tags:
+    - github
+    - repository
+    - collaborator
+    - add
+  instruction: |
+    ```fetch
+    method: PUT
+    url: https://api.github.com/repos/$[owner! euc|repository owner]/$[repo! euc|repository name]/collaborators/$[username! euc|username to add as collaborator]
+    headers:
+      Authorization: ${SECRET_DEFAULT}
+      Accept: application/vnd.github.v3+json
+      Content-Type: application/json
+    body:
+      permission?: $[permission ys? enum<pull,triage,push,maintain,admin> default<push>|permission level to grant (pull, triage, push, maintain, admin)]
+    ```
+  secret: '@platform/github'
+
+github/repository/collaborator/remove:
+  provider: 'github'
+  icon: '@logo/github.com'
+  name: Remove GitHub Repository Collaborator
+  description: Remove a collaborator from a repository on GitHub
+  tags:
+    - github
+    - repository
+    - collaborator
+    - remove
+  instruction: |
+    ```fetch
+    method: DELETE
+    url: https://api.github.com/repos/$[owner! euc|repository owner]/$[repo! euc|repository name]/collaborators/$[username! euc|username to remove as collaborator]
+    headers:
+      Authorization: ${SECRET_DEFAULT}
+      Accept: application/vnd.github.v3+json
+    ```
+  secret: '@platform/github'
+
+github/repository/content/list:
+  provider: 'github'
+  icon: '@logo/github.com'
+  name: List GitHub Repository Contents
+  description: List contents of a directory in a repository on GitHub
+  tags:
+    - github
+    - repository
+    - content
+    - list
+  instruction: |
+    ```fetch
+    method: GET
+    url: https://api.github.com/repos/$[owner! euc|repository owner]/$[repo! euc|repository name]/contents/$[path euc default<>|directory path (empty for root)]
+    headers:
+      Authorization: ${SECRET_DEFAULT}
+      Accept: application/vnd.github.v3+json
+    query:
+      ref?: $[ref ys?|branch, tag, or commit SHA (defaults to main branch)]
+    options:
+      jmespath: |
+        [*].{
+          name: name,
+          path: path,
+          type: type,
+          size: size,
+          sha: sha,
+          url: url,
+          html_url: html_url,
+          download_url: download_url
+        }
+    ```
+  secret: '@platform/github'
+
+github/repository/content/fetch:
+  provider: 'github'
+  icon: '@logo/github.com'
+  name: Fetch GitHub Repository File Content
+  description: Fetch the content of a specific file in a repository on GitHub
+  tags:
+    - github
+    - repository
+    - content
+    - fetch
+  instruction: |
+    ```fetch
+    method: GET
+    url: https://api.github.com/repos/$[owner! euc|repository owner]/$[repo! euc|repository name]/contents/$[path! euc|file path]
+    headers:
+      Authorization: ${SECRET_DEFAULT}
+      Accept: application/vnd.github.v3+json
+    query:
+      ref?: $[ref ys?|branch, tag, or commit SHA (defaults to main branch)]
+    options:
+      jmespath: |
+        {
+          name: name,
+          path: path,
+          type: type,
+          size: size,
+          sha: sha,
+          content: content,
+          encoding: encoding,
+          download_url: download_url,
+          html_url: html_url
+        }
+    ```
+  secret: '@platform/github'
+
+github/repository/content/create:
+  provider: 'github'
+  icon: '@logo/github.com'
+  name: Create GitHub Repository File
+  description: Create or update a file in a repository on GitHub
+  tags:
+    - github
+    - repository
+    - content
+    - create
+  instruction: |
+    ```fetch
+    method: PUT
+    url: https://api.github.com/repos/$[owner! euc|repository owner]/$[repo! euc|repository name]/contents/$[path! euc|file path]
+    headers:
+      Authorization: ${SECRET_DEFAULT}
+      Accept: application/vnd.github.v3+json
+      Content-Type: application/json
+    body:
+      message: $[message! ys|commit message]
+      content: $[content! ys|base64 encoded file content]
+      sha?: $[sha ys?|blob SHA of the file being replaced (required for updates)]
+      branch?: $[branch ys?|branch name (defaults to main branch)]
+      committer?: $[committer j?|object containing committer information]
+      author?: $[author j?|object containing author information]
+    ```
+  secret: '@platform/github'
+
+github/repository/content/delete:
+  provider: 'github'
+  icon: '@logo/github.com'
+  name: Delete GitHub Repository File
+  description: Delete a file from a repository on GitHub
+  tags:
+    - github
+    - repository
+    - content
+    - delete
+  instruction: |
+    ```fetch
+    method: DELETE
+    url: https://api.github.com/repos/$[owner! euc|repository owner]/$[repo! euc|repository name]/contents/$[path! euc|file path]
+    headers:
+      Authorization: ${SECRET_DEFAULT}
+      Accept: application/vnd.github.v3+json
+      Content-Type: application/json
+    body:
+      message: $[message! ys|commit message]
+      sha: $[sha! ys|blob SHA of the file being deleted]
+      branch?: $[branch ys?|branch name (defaults to main branch)]
+      committer?: $[committer j?|object containing committer information]
+      author?: $[author j?|object containing author information]
+    ```
+  secret: '@platform/github'
+
+pack/github:
+  provider: 'github'
+  icon: '@logo/github.com'
+  name: Comprehensive GitHub Operations
+  description: |
+    Complete GitHub management pack with full repository, issue, pull request,
+    branch, release, and content operations.
+  tags:
+    - github
+    - pack
+    - beta
+  instruction: |
+    ```pack
+    backstory: |
+      You are a GitHub repository management assistant with comprehensive access
+      to all GitHub operations. Use the available abilities to:
+      
+      - Manage repositories (create, update, delete, list)
+      - Handle issues and pull requests (create, update, merge, comment)
+      - Manage branches, tags, and releases
+      - Work with repository content and files
+      - Manage collaborators and permissions
+      
+      When performing operations:
+      1. Always verify repository ownership and permissions
+      2. Use descriptive commit messages for content operations
+      3. Provide clear feedback on operation success/failure
+      4. Follow Git best practices for branching and merging
+      5. Be careful with destructive operations (delete, force merge)
+      
+      Always ask for confirmation before performing destructive operations.
+    task: ((task! ys|the GitHub operation to perform))
+    abilities:
+      - github/repository/list
+      - github/repository/fetch
+      - github/repository/create
+      - github/repository/update
+      - github/repository/delete
+      - github/repository/issue/list
+      - github/repository/issue/fetch
+      - github/repository/issue/create
+      - github/repository/issue/update
+      - github/repository/issue/close
+      - github/repository/issue/comment/list
+      - github/repository/issue/comment/fetch
+      - github/repository/issue/comment/create
+      - github/repository/issue/comment/update
+      - github/repository/branch/list
+      - github/repository/branch/fetch
+      - github/repository/branch/create
+      - github/repository/branch/delete
+      - github/repository/pull/list
+      - github/repository/pull/fetch
+      - github/repository/pull/create
+      - github/repository/pull/update
+      - github/repository/pull/merge
+      - github/repository/pull/comment/list
+      - github/repository/pull/comment/create
+      - github/repository/release/list
+      - github/repository/release/fetch
+      - github/repository/release/create
+      - github/repository/tag/list
+      - github/repository/tag/fetch
+      - github/repository/tag/create
+      - github/repository/collaborator/list
+      - github/repository/collaborator/add
+      - github/repository/collaborator/remove
+      - github/repository/content/list
+      - github/repository/content/fetch
+      - github/repository/content/create
+      - github/repository/content/delete
+    ```
+  secret: '@platform/github'

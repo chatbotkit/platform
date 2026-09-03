@@ -1,0 +1,10 @@
+- question: What is an action?
+  answer: An action is an executable component within skillset abilities that performs a specific task. Actions include things like fetching data from URLs, generating images, managing files, sending emails, and more. They are specified using markdown-style code blocks with the action name.
+- question: How do I use actions?
+  answer: Actions are used within skillset abilities by creating a code block with the action name. For example, to fetch data from a URL, you would create a code block with "fetch" and specify the URL and other parameters in YAML format.
+- question: What actions are available?
+  answer: ChatBotKit provides a wide range of actions including search, fetch, email, text, image, file, shell, mcp, and many more. Each action is designed to perform a specific task that can be integrated into your AI workflows.
+- question: Can I combine multiple actions?
+  answer: Yes, you can combine multiple actions within a single ability to create complex workflows. Actions can be chained together and mixed with free-form text instructions to guide how they should be applied.
+- question: What is the MCP action?
+  answer: The MCP (Model Context Protocol) action dynamically loads tools from external MCP servers. This allows you to extend your AI capabilities by connecting to services like Notion, Linear, Box, and other MCP-compatible tools.

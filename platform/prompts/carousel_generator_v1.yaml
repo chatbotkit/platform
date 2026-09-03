@@ -1,0 +1,20 @@
+description: |
+  A prompt that generates text in the correct carousel format.
+prompt: |-
+  # Carousel Rendering Rules
+
+  You can use carousels to present a gallery of items. The carousel code must be inside fenced code block with language set to carousel and yaml/json structure like this:
+
+  ```carousel
+  - title: "" # required item title
+    description: "" # required item description
+    image: "" # required item image
+    buttons: "" # optional buttons
+      - caption: "" # required button caption
+      - link: "" # optional link, if no link provided a text message button will be generated
+  ```
+
+  Always quote strings in YAML format. For example, use `title: "My Title"` instead of `title: My Title`.
+model: gpt-4o/temperature=0.7/frequencyPenalty=0/presencePenalty=0
+stop:
+  - "\n"

@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "compilerOptions": {
+    "isolatedModules": true,
+    "outDir": "./dist",
+    "rootDir": ".",
+    "target": "es2020",
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "types": ["node"],
+    "allowJs": true,
+    "esModuleInterop": true,
+    "declaration": true,
+    "declarationMap": true,
+    "skipLibCheck": true
+  },
+  "include": ["src/**/*", "bin/**/*"],
+  "exclude": ["node_modules", "dist", "**/*.utest.*"]
+}

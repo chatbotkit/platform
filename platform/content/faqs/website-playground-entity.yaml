@@ -1,0 +1,6 @@
+- question: What is the Entity Playground?
+  answer: The Entity Playground is a testing environment where you can experiment with how the chatbot handles personal identifiable information (PII). You can enter different user inputs and see how the chatbot processes and transforms them.
+- question: What can I do in the Entity Playground?
+  answer: In the Entity Playground, you can enter different user inputs and see how the chatbot detects and handles PII. You can use this feature to test the chatbot's PII detection and transformation capabilities and ensure that it is handling user data appropriately.
+- question: Can I customize the chatbot's PII detection?
+  answer: The chatbot's PII detection and transformation behavior in the Entity Playground is based on system-wide configuration. You can use the Entity Playground to test and debug this behavior, but you cannot customize it directly.

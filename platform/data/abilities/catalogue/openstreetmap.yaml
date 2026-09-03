@@ -1,0 +1,56 @@
+openweathermap/weather/current:
+  provider: 'openweathermap'
+  icon: '@logo/openweathermap.org'
+  name: Retrieve Current Weather from OpenWeatherMap
+  description: Retrieve the current weather for a specific location using OpenWeatherMap
+  tags:
+    - openweathermap
+    - weather
+  instruction: |
+    ```fetch
+    GET https://api.openweathermap.org/data/2.5/weather?q=$[location|City name]&appid=${SECRET_DEFAULT}
+    ```
+
+openweathermap/weather/forecast:
+  provider: 'openweathermap'
+  icon: '@logo/openweathermap.org'
+  name: Retrieve Weather Forecast from OpenWeatherMap
+  description: Retrieve the weather forecast for a specific location using OpenWeatherMap
+  tags:
+    - openweathermap
+    - weather
+    - forecast
+  instruction: |
+    ```fetch
+    GET https://api.openweathermap.org/data/2.5/forecast?q=$[location|City name]&appid=${SECRET_DEFAULT}
+    ```
+
+# ---
+# ---
+# ---
+
+openstreetmap/overpass/amenity/around/list:
+  provider: 'openweathermap'
+  icon: '@logo/openstreetmap.org'
+  name: Find Nearby Amenities
+  description: Get a list of amenities around a specific location
+  tags:
+    - openstreetmap
+    - overpass
+    - amenity
+  instruction: |
+    ```fetch
+    method: POST
+    url: /api/auxiliary/skillset/ability/openstreetmap/overpass/amenity/around/list
+    headers:
+      content-type: application/json
+    body:
+      url: ((url! ys|the overpass API URL))
+      types: ((types! js|query types separated by comma e.g., node, way, relation))
+      tags: ((tags! js|the tags to search for in format key=value separated by semicolon))
+      radius: ((radius! js|the search radius in meters))
+      lat: $[lat! ys|latitude]
+      lon: $[lon! ys|longitude]
+    options:
+      auth: internal
+    ```

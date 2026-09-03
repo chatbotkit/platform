@@ -1,0 +1,45 @@
+{
+  "name": "@chatbotkit-dev/billing",
+  "version": "0.0.0",
+  "license": "Apache-2.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./assert": {
+      "import": "./src/assert.ts",
+      "default": "./src/assert.ts"
+    },
+    "./provider": {
+      "import": "./src/provider.ts",
+      "default": "./src/provider.ts"
+    }
+  },
+  "main": "./src/index.ts",
+  "scripts": {
+    "build": "tsc6 --emitDeclarationOnly",
+    "check": "tsc6 --noEmit --incremental",
+    "clean": "run-s clean:*",
+    "clean:01-tsbuildinfo": "rimraf *.tsbuildinfo",
+    "clean:02-dist": "rimraf dist",
+    "clean:03-node_modules": "rimraf node_modules",
+    "format": "true",
+    "lint": "eslint src --ext .ts,.js",
+    "test": "true"
+  },
+  "access": "restricted",
+  "types": "./types/src/index.d.ts",
+  "dependencies": {
+    "@chatbotkit-dev/billing-spec": "workspace:*"
+  },
+  "devDependencies": {
+    "@chatbotkit-dev/eslint-config": "workspace:*",
+    "eslint": "^9.0.0",
+    "npm-run-all2": "^9.0.3",
+    "rimraf": "^5.0.5",
+    "typescript": "npm:@typescript/typescript6@^6.0.2"
+  }
+}

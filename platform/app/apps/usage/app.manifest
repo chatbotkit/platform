@@ -1,0 +1,9 @@
+{
+  "start": "/apps/usage",
+  "name": "Usage",
+  "description": "Account usage & general statistics",
+  "icon": "@lucide/chart-no-axes-column-increasing",
+  "order": 50,
+  "category": "admin",
+  "config": {}
+}

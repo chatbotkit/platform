@@ -1,0 +1,11 @@
+description: |
+  This prompt is used to summarize a text
+prompt: |
+  Summarize the text.
+  Be as specific as possible.
+  Provide detailed instructions.
+  Summarize step by step processes.
+  ###
+  {text}
+  ###
+model: text-davinci-003/temperature=0.7

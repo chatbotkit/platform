@@ -1,0 +1,10 @@
+description: |
+  Translate Text.
+prompt: |
+  Translate the following text to {language}.
+
+  """
+  {input}
+  """
+model: gpt-4o/temperature=1.0
+output: text

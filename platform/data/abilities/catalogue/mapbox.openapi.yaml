@@ -1,0 +1,154 @@
+# @see https://docs.mapbox.com/api/overview/
+# @note this is a barebone OpenAPI spec for Mapbox Geocoding API
+# @todo replace with official spec when available
+openapi: 3.0.3
+info:
+  title: Mapbox Geocoding API
+  description: Mapbox Geocoding API for forward and reverse geocoding
+  version: '5.0'
+servers:
+  - url: https://api.mapbox.com
+paths:
+  /geocoding/v5/mapbox.places/{search_text}.json:
+    get:
+      operationId: forwardGeocode
+      summary: Forward Geocode
+      description: Convert an address or place name to coordinates
+      parameters:
+        - name: search_text
+          in: path
+          required: true
+          description: The address or place name to geocode
+          schema:
+            type: string
+        - name: access_token
+          in: query
+          required: true
+          description: Mapbox access token
+          schema:
+            type: string
+        - name: country
+          in: query
+          required: false
+          description: Limit results to specific countries (ISO 3166-1 alpha-2)
+          schema:
+            type: string
+        - name: limit
+          in: query
+          required: false
+          description: Maximum number of results to return (1-10)
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 10
+      responses:
+        '200':
+          description: Successful geocoding response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GeocodingResponse'
+              example:
+                type: FeatureCollection
+                query:
+                  - san
+                  - francisco
+                features:
+                  - id: place.123456
+                    type: Feature
+                    place_type:
+                      - place
+                    relevance: 1
+                    properties:
+                      wikidata: Q62
+                    text: San Francisco
+                    place_name: San Francisco, California, United States
+                    center:
+                      - -122.4194
+                      - 37.7749
+                    geometry:
+                      type: Point
+                      coordinates:
+                        - -122.4194
+                        - 37.7749
+                    context:
+                      - id: region.123
+                        text: California
+                      - id: country.456
+                        text: United States
+                attribution: NOTICE - Mapbox
+components:
+  securitySchemes:
+    accessToken:
+      type: apiKey
+      in: query
+      name: access_token
+  schemas:
+    GeocodingResponse:
+      type: object
+      properties:
+        type:
+          type: string
+          example: FeatureCollection
+        query:
+          type: array
+          items:
+            type: string
+        features:
+          type: array
+          items:
+            $ref: '#/components/schemas/Feature'
+        attribution:
+          type: string
+    Feature:
+      type: object
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+          example: Feature
+        place_type:
+          type: array
+          items:
+            type: string
+        relevance:
+          type: number
+        properties:
+          type: object
+          properties:
+            wikidata:
+              type: string
+        text:
+          type: string
+        place_name:
+          type: string
+        center:
+          type: array
+          items:
+            type: number
+        geometry:
+          $ref: '#/components/schemas/Geometry'
+        context:
+          type: array
+          items:
+            $ref: '#/components/schemas/Context'
+    Geometry:
+      type: object
+      properties:
+        type:
+          type: string
+          example: Point
+        coordinates:
+          type: array
+          items:
+            type: number
+    Context:
+      type: object
+      properties:
+        id:
+          type: string
+        text:
+          type: string
+security:
+  - accessToken: []

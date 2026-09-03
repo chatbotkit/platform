@@ -1,0 +1,363 @@
+# @see https://codeqr.io/docs/api
+# @note this is a barebone OpenAPI spec for CodeQR API
+openapi: 3.0.3
+info:
+  title: CodeQR API
+  description: API for creating and managing QR codes and short links with tracking capabilities
+  version: '1.0'
+servers:
+  - url: https://api.codeqr.io
+paths:
+  /qrcodes:
+    get:
+      operationId: listQRCodes
+      summary: List all QR codes
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+          description: Page number for pagination
+      responses:
+        '200':
+          description: Successful response with list of QR codes
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QRCodeListResponse'
+        '401':
+          description: Unauthorized
+    post:
+      operationId: createQRCode
+      summary: Create a new QR code
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateQRCodeRequest'
+      responses:
+        '200':
+          description: QR code created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QRCodeResponse'
+        '401':
+          description: Unauthorized
+        '400':
+          description: Bad request
+  /qrcodes/info:
+    get:
+      operationId: getQRCodeInfo
+      summary: Get QR code information
+      parameters:
+        - name: id
+          in: query
+          required: true
+          schema:
+            type: string
+          description: The unique ID of the QR code
+      responses:
+        '200':
+          description: Successful response with QR code details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QRCodeResponse'
+        '401':
+          description: Unauthorized
+        '404':
+          description: QR code not found
+  /qrcodes/{id}:
+    delete:
+      operationId: deleteQRCode
+      summary: Delete a QR code
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The unique ID of the QR code
+      responses:
+        '200':
+          description: QR code deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+        '401':
+          description: Unauthorized
+        '404':
+          description: QR code not found
+  /qrcodes/stats:
+    get:
+      operationId: getQRCodeStats
+      summary: Get QR code statistics
+      parameters:
+        - name: id
+          in: query
+          required: true
+          schema:
+            type: string
+          description: The unique ID of the QR code
+      responses:
+        '200':
+          description: Successful response with QR code statistics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QRCodeStatsResponse'
+        '401':
+          description: Unauthorized
+        '404':
+          description: QR code not found
+  /links:
+    get:
+      operationId: listLinks
+      summary: List all short links
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+          description: Page number for pagination
+      responses:
+        '200':
+          description: Successful response with list of links
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LinkListResponse'
+        '401':
+          description: Unauthorized
+    post:
+      operationId: createLink
+      summary: Create a new short link
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateLinkRequest'
+      responses:
+        '200':
+          description: Link created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LinkResponse'
+        '401':
+          description: Unauthorized
+        '400':
+          description: Bad request
+  /links/info:
+    get:
+      operationId: getLinkInfo
+      summary: Get link information
+      parameters:
+        - name: id
+          in: query
+          required: true
+          schema:
+            type: string
+          description: The unique ID of the link
+      responses:
+        '200':
+          description: Successful response with link details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LinkResponse'
+        '401':
+          description: Unauthorized
+        '404':
+          description: Link not found
+  /links/{id}:
+    delete:
+      operationId: deleteLink
+      summary: Delete a link
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The unique ID of the link
+      responses:
+        '200':
+          description: Link deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+        '401':
+          description: Unauthorized
+        '404':
+          description: Link not found
+components:
+  securitySchemes:
+    apiKey:
+      type: apiKey
+      in: header
+      name: Authorization
+  schemas:
+    QRCode:
+      type: object
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+          enum: [url, text]
+        url:
+          type: string
+        text:
+          type: string
+        title:
+          type: string
+        static:
+          type: boolean
+        bgColor:
+          type: string
+        fgColor:
+          type: string
+        showLogo:
+          type: boolean
+        src:
+          type: string
+        qrCode:
+          type: string
+        shortLink:
+          type: string
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+    QRCodeResponse:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/QRCode'
+    QRCodeListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/QRCode'
+        pagination:
+          type: object
+          properties:
+            page:
+              type: integer
+            totalPages:
+              type: integer
+            totalItems:
+              type: integer
+    CreateQRCodeRequest:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [url, text]
+          default: url
+        static:
+          type: boolean
+          default: true
+        url:
+          type: string
+        text:
+          type: string
+        title:
+          type: string
+        trackConversion:
+          type: boolean
+        bgColor:
+          type: string
+        fgColor:
+          type: string
+        showLogo:
+          type: boolean
+        src:
+          type: string
+        comments:
+          type: string
+        expiresAt:
+          type: string
+        expiredUrl:
+          type: string
+    QRCodeStatsResponse:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            totalScans:
+              type: integer
+            uniqueScans:
+              type: integer
+            lastScanAt:
+              type: string
+    Link:
+      type: object
+      properties:
+        id:
+          type: string
+        url:
+          type: string
+        shortLink:
+          type: string
+        title:
+          type: string
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+        clicks:
+          type: integer
+    LinkResponse:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/Link'
+    LinkListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Link'
+        pagination:
+          type: object
+          properties:
+            page:
+              type: integer
+            totalPages:
+              type: integer
+            totalItems:
+              type: integer
+    CreateLinkRequest:
+      type: object
+      properties:
+        url:
+          type: string
+        title:
+          type: string
+        comments:
+          type: string
+        expiresAt:
+          type: string
+        expiredUrl:
+          type: string
+security:
+  - apiKey: []

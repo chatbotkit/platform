@@ -1,0 +1,182 @@
+# @see https://docs.zapier.com/ai-actions/intro
+
+zapier/ai-actions/account/list:
+  provider: 'zapier'
+  icon: '@logo/zapier.com'
+  name: List Zapier AI Action Accounts
+  description: List all AI action accounts in Zapier
+  tags:
+    - zapier
+    - ai
+    - action
+  instruction: |
+    ```fetch
+    method: GET
+    url: https://actions.zapier.com/api/v2/auth/accounts/
+    headers:
+      x-api-key: ${SECRET_DEFAULT}
+    ```
+  secret: '@zapier/ai-actions'
+
+zapier/ai-actions/app/search:
+  provider: 'zapier'
+  icon: '@logo/zapier.com'
+  name: Search Zapier AI Action Apps
+  description: Search for AI action apps in Zapier
+  tags:
+    - zapier
+    - ai
+    - action
+  instruction: |
+    ```fetch
+    method: GET
+    url: https://actions.zapier.com/api/v2/apps/search/
+    headers:
+      x-api-key: ${SECRET_DEFAULT}
+    query:
+      search: $[search_query|search query]
+    ```
+  secret: '@zapier/ai-actions'
+
+zapier/ai-actions/app/fetch:
+  provider: 'zapier'
+  icon: '@logo/zapier.com'
+  name: Fetch Zapier AI Action App
+  description: Fetch details of a specific AI action app in Zapier
+  tags:
+    - zapier
+    - ai
+    - action
+  instruction: |
+    ```fetch
+    method: GET
+    url: https://actions.zapier.com/api/v2/apps/$[app_id|app ID]/
+    headers:
+      x-api-key: ${SECRET_DEFAULT}
+    ```
+  secret: '@zapier/ai-actions'
+
+zapier/ai-actions/app/auth/fetch:
+  provider: 'zapier'
+  icon: '@logo/zapier.com'
+  name: Fetch Zapier AI Action App Auth
+  description: Fetch authentication details of a specific AI action app in Zapier
+  tags:
+    - zapier
+    - ai
+    - action
+  instruction: |
+    ```fetch
+    method: GET
+    url: https://actions.zapier.com/api/v2/apps/$[app_id|app ID]/auths/
+    headers:
+      x-api-key: ${SECRET_DEFAULT}
+    ```
+  secret: '@zapier/ai-actions'
+
+zapier/ai-actions/action/stateless/execute:
+  provider: 'zapier'
+  icon: '@logo/zapier.com'
+  name: Execute Stateless AI Action
+  description: Execute a stateless AI action in Zapier
+  tags:
+    - zapier
+    - ai
+    - action
+  instruction: |
+    ```fetch
+    method: POST
+    url: https://actions.zapier.com/api/v2/execute/
+    headers:
+      x-api-key: ${SECRET_DEFAULT}
+      Content-Type: application/json
+    body:
+      action: ((action! ys|the action to run i.e. direct_message or add_row))
+      app: ((app! ys|the app to use i.e. SlackAPI or GoogleSheetsV2API))
+      instructions: ((instructions! ys|plain English instructions about how to run the action))
+      params: {}
+      account_id: ((account_id number|the account ID to use - some users have multiple accounts))
+      action_type: ((action_type! ys enum<read,write,search,read_bulk>|the type of the action to run - most likely write or search))
+      authentication_id: ((authentication_id number|the authentication ID to use))
+    ```
+  secret: '@zapier/ai-actions'
+
+zapier/ai-actions/action/stored/list:
+  provider: 'zapier'
+  icon: '@logo/zapier.com'
+  name: List Stored AI Actions
+  description: List all stored AI actions in Zapier
+  tags:
+    - zapier
+    - ai
+    - action
+  instruction: |
+    ```fetch
+    method: GET
+    url: https://actions.zapier.com/api/v2/ai-actions/
+    headers:
+      x-api-key: ${SECRET_DEFAULT}
+    ```
+  secret: '@zapier/ai-actions'
+
+zapier/ai-actions/action/stored/fetch:
+  provider: 'zapier'
+  icon: '@logo/zapier.com'
+  name: Fetch Stored AI Action
+  description: Fetch details of a specific stored AI action in Zapier
+  tags:
+    - zapier
+    - ai
+    - action
+  instruction: |
+    ```fetch
+    method: GET
+    url: https://actions.zapier.com/api/v2/ai-actions/$[action_id|action ID]/
+    headers:
+      x-api-key: ${SECRET_DEFAULT}
+    ```
+  secret: '@zapier/ai-actions'
+
+zapier/ai-actions/action/stored/execute:
+  provider: 'zapier'
+  icon: '@logo/zapier.com'
+  name: Execute Stored AI Action
+  description: Execute a stored AI action in Zapier
+  tags:
+    - zapier
+    - ai
+    - action
+  instruction: |
+    ```fetch
+    method: POST
+    url: https://actions.zapier.com/api/v2/ai-actions/$[action_id|action ID]/execute/
+    headers:
+      x-api-key: ${SECRET_DEFAULT}
+      Content-Type: application/json
+    body:
+      instructions: ((instructions! ys|plain English instructions about how to run the action))
+      params: {}
+    ```
+  secret: '@zapier/ai-actions'
+
+# ---
+
+example/zapier/webhook:
+  provider: 'zapier'
+  icon: '@logo/zapier.com'
+  name: Trigger Zapier Webhook
+  description: Trigger a Zapier webhook with data
+  tags:
+    - zapier
+    - webhook
+  instruction: |
+    ```fetch
+    method: POST
+    url: ((url! ys|zappier.com webhook url))
+    headers:
+      Content-Type: application/json
+    body:
+      callback: ${CONVERSATION_CALLBACK}
+      param1: $[param1 ys|param description]
+      param2: $[param2 ys|param description]
+    ```

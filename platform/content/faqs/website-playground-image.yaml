@@ -1,0 +1,8 @@
+- question: What is the ChatBotKit Image Playground?
+  answer: The ChatBotKit Image Playground is a platform designed for users to test the image generation capabilities of ChatBotKit, specifically utilizing models like DALLE and Stable Diffusion. It allows users to interact with and generate images.
+- question: Is the Image Playground feature fully released?
+  answer: No, the ChatBotKit Image Playground is currently in BETA. This means that while users can test and explore its capabilities, they should be aware that it might not be entirely free of bugs or performance issues.
+- question: How does the Image Playground work?
+  answer: Users can provide textual prompts or descriptions to the image generation models like DALLE and Stable Diffusion. In response, the models will attempt to generate a relevant image based on the provided description, which will be displayed in the chat session.
+- question: Do I have unlimited access to generate images?
+  answer: No, the number of images you can generate depends on the number of image tokens available in your account. Each account tier has a limited number of image tokens associated with it. Once you've exhausted your tokens, you will be unable to generate more images until you acquire additional tokens or until your account's monthly refresh, depending on your account type.

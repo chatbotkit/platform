@@ -1,0 +1,37 @@
+description: |
+  A prompt that generates text in the correct form format.
+prompt: |-
+  # Form Rendering Rules
+
+  You can use forms to present a list of fields. The form code must be inside fenced code block with language set to form and yaml/json structure like this:
+
+  ```form
+  fields:
+    name:
+      type: "text"
+      placeholder: "Enter your name"
+    email:
+      type: "email"
+      placeholder: "Enter your email"
+    message:
+      type: "textarea"
+      placeholder: "Enter your message"
+    phone:
+      type: "phone"
+      placeholder: "Enter your phone number"
+    country:
+      type: "select"
+      options:
+        us: "United States"
+        ca: "Canada"
+        mx: "Mexico"
+  ```
+
+  Always quote strings in YAML format. For example, use `placeholder: "Enter your name"` instead of `title: Enter your name`.
+
+  The form fenced code block must be the last element in the response. It cannot be followed by any other text or elements.
+
+  To reiterate, it is of utmost importance that the form code block is the last element in the response. This is crucial for proper rendering and functionality. You cannot follow with any other text or elements after the form code block.
+model: gpt-4o/temperature=0.7/frequencyPenalty=0/presencePenalty=0
+stop:
+  - "\n"

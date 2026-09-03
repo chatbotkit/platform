@@ -1,0 +1,52 @@
+# The quality gate for this repository: every pull request must install from
+# the committed lockfile and type-check cleanly with the public module defaults
+# - the exact environment every fresh checkout gets. The gate itself lives in
+# _verify.yaml so pushes to `next` can run the same checks before an image
+# build.
+#
+# SECURITY: this workflow is safe to run on code from strangers, and it is
+# designed to stay that way. Fork pull requests run through the plain
+# `pull_request` event, which GitHub executes on the fork's merge ref with a
+# read-only token and NO access to repository secrets; the job runs on a
+# GitHub-hosted runner that is discarded afterwards; the workflow declares
+# `contents: read` and uses no secrets of its own. Together those are the
+# whole boundary, so there is no fork guard: an approved outside
+# contribution gets the same check as a maintainer's branch, which is what
+# "required check" has to mean for it to be worth requiring.
+#
+# What keeps the boundary:
+#   - never use `pull_request_target` here, and never check out and execute
+#     pull request code from a job that has secrets or a write token
+#   - a runner must not survive the job; anything it ran is a foothold. The
+#     GitHub-hosted runner below is a fresh VM for the job and is discarded
+#     afterwards. A persistent self-hosted runner must never be used here
+#   - never add secrets to this workflow or to _verify.yaml; a step that
+#     needs one belongs in a separate workflow that does not execute
+#     contributed code
+#   - keep the repository setting "Require approval for all outside
+#     collaborators" (Settings > Actions > General) so a stranger's first run
+#     is still a maintainer's deliberate click, and their compute is not
+#     spent on drive-by pull requests
+
+name: Pull Request Checks
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    # @note the promotion pull request (next -> main) is exempt: its head
+    # commit is the tip of next, and the push-triggered publish workflow has
+    # already run this exact gate on that SHA - check runs attach to the
+    # commit, so the pull request inherits the green check without a second
+    # run. Every other head branch (forks included) still gets its own run.
+    if: github.event_name != 'pull_request' || github.head_ref != 'next'
+    uses: ./.github/workflows/_verify.yaml

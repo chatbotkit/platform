@@ -1,0 +1,135 @@
+pipedream/connect/token/create[authenticate]:
+  provider: 'pipedream'
+  icon: '@logo/pipedream.com'
+  name: Authenticate App
+  description: |
+    Authenticate with specific application to return a connection link URL for the user to connect their account
+  tags:
+    - pipedream
+    - connect
+    - token
+    - create
+    - authenticate
+  instruction: |
+    ```fetch
+    method: POST
+    url: https://api.pipedream.com
+    path:
+      - /v1/connect
+      - ((projectId ys!|the pipedream project id))
+      - /tokens
+    headers:
+      Authorization: ${SECRET_DEFAULT}
+      x-pd-environment: ((environment ys! enum<development,production> default<development>|the pipedream environment))
+    body:
+      external_user_id: ${EXTERNAL_ID}
+    options:
+      jmespath: |
+        join('', [connect_link_url, '&app=', '$[app euc|the ID or name slug of the app to connect]'])
+    ```
+
+pipedream/connect/apps/list:
+  provider: 'pipedream'
+  icon: '@logo/pipedream.com'
+  name: List Apps
+  description: |
+    Retrieve a list of available apps in the specified environment
+  tags:
+    - pipedream
+    - connect
+    - apps
+    - list
+  instruction: |
+    ```fetch
+    method: GET
+    url: https://api.pipedream.com/v1/connect/apps
+    query:
+      q?: $[query ys?|a search query to filter the apps]
+      limit: 100
+    headers:
+      Authorization: ${SECRET_DEFAULT}
+    ```
+
+pipedream/connect/action/list:
+  provider: 'pipedream'
+  icon: '@logo/pipedream.com'
+  name: List Actions
+  description: |
+    Retrieve a list of available actions in the specified environment
+  tags:
+    - pipedream
+    - connect
+    - action
+    - list
+  instruction: |
+    ```fetch
+    method: GET
+    url: https://api.pipedream.com
+    path:
+      - /v1/connect
+      - ((projectId ys!|the pipedream project id))
+      - /actions
+    query:
+      q?: $[query ys?|a search query to filter the actions]
+      app: ((app ys|the ID or name slug of the app to filter the actions))
+      limit: 100
+    headers:
+      Authorization: ${SECRET_DEFAULT}
+      x-pd-environment: ((environment ys! enum<development,production> default<development>|the pipedream environment))
+
+pipedream/connect/account/list:
+  provider: 'pipedream'
+  icon: '@logo/pipedream.com'
+  name: List Accounts
+  description: |
+    Retrieve a list of connected accounts in the specified environment
+  tags:
+    - pipedream
+    - connect
+    - account
+    - list
+  instruction: |
+    ```fetch
+    method: GET
+    url: https://api.pipedream.com
+    path:
+      - /v1/connect
+      - ((projectId ys!|the pipedream project id))
+      - /accounts
+    query:
+      external_user_id: ${EXTERNAL_ID}
+      app?: ((app ys?|the ID or name slug of the app to filter the accounts))
+      limit: 100
+    headers:
+      Authorization: ${SECRET_DEFAULT}
+      x-pd-environment: ((environment ys! enum<development,production> default<development>|the pipedream environment))
+    ```
+
+pipedream/connect/action/run:
+  provider: 'pipedream'
+  icon: '@logo/pipedream.com'
+  name: Run Action
+  description: |
+    Execute an action with the provided configuration and return results
+  tags:
+    - pipedream
+    - connect
+    - action
+    - run
+  instruction: |
+    ```fetch
+    method: POST
+    url: https://api.pipedream.com
+    path:
+      - /v1/connect
+      - ((projectId ys!|the pipedream project id))
+      - /actions/run
+    headers:
+      Authorization: ${SECRET_DEFAULT}
+      x-pd-environment: ((environment ys! enum<development,production> default<development>|the pipedream environment))
+      Content-Type: application/json
+    body:
+      id: ((actionId ys!|the pipedream action id))
+      external_user_id: ${EXTERNAL_ID}
+      configured_props: ((props! j|the action configuration properties))
+    ```

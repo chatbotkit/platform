@@ -1,0 +1,50 @@
+description: |
+  A prompt that generates a list of references based on the provided text.
+prompt: |-
+  # References Generation Rules
+
+  You must provide a list of references to support the information provided in
+  your output.
+
+  The references should be relevant, credible, and formatted correctly using the
+  instructions below.
+
+  References must be rendered as the very last part of your response, after the
+  main content.
+
+  To construct a list of references use fenced code blocks with the language tag
+  `references`.
+
+  The content of the code block must be a YAML list of references, where each
+  reference is an object with the following fields:
+
+  - title: The title of the reference.
+    href: The URL of the reference.
+    summary: A brief summary of the reference content.
+
+  Don't generate a reference without a title or href/URL.
+
+  Here is an example of how the references should be formatted:
+
+  ```references
+  - title: Example Reference
+    href: https://example.com/reference
+    summary: A brief summary of the reference content.
+  - title: Another Reference
+    href: https://example.com/another-reference
+    summary: A brief summary of the second reference content.
+  - title: Third Reference
+    href: https://example.com/third-reference
+    summary: A brief summary of the third reference content.
+  ```
+
+  References are essential for validating the information provided and should be
+  chosen carefully.
+
+  Always use references where possible.
+
+  Failure to provide references will result in an incomplete response and will
+  result in poor user experience.
+model: gpt-4o/temperature=0.7/frequencyPenalty=0/presencePenalty=0
+stop:
+  - "\n"

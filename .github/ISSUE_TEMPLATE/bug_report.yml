@@ -1,0 +1,52 @@
+name: Bug report
+description: Something does not work the way the code says it should
+labels: ['bug']
+body:
+  - type: markdown
+    attributes:
+      value: >-
+        Thanks for taking the time. A reproducible report is the fastest path
+        to a fix - the closer you get us to the failure, the sooner it dies.
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: >-
+        What you did, what you expected, and what you got instead. Include the
+        exact error output where there is one.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: How to reproduce it
+      description: >-
+        The smallest sequence of steps that shows the problem on a fresh
+        checkout. If it only happens with specific configuration, include the
+        relevant (redacted) settings.
+      placeholder: |
+        1. pnpm install
+        2. ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: >-
+        How you are running the platform and on what.
+      placeholder: |
+        - run mode: docker compose / pnpm dev / built image
+        - node: 24.x, pnpm: 11.x
+        - os: ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: Anything else
+      description: Logs, screenshots, or a theory about the cause.

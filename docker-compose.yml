@@ -1,0 +1,267 @@
+# =============================================================================
+# ChatBotKit Platform - full local stack in one command
+# =============================================================================
+# Three ways to use it - no mode ever builds or starts another mode's
+# services:
+#
+#   docker compose up                            # THE DEFAULT: a ready dev
+#                                                # server. The checkout is
+#                                                # copied into a container,
+#                                                # installed, provisioned
+#                                                # (SQLite), and `next dev`
+#                                                # runs against redis - hot
+#                                                # reload, no image build
+#   docker compose --profile distro up --build platform
+#                                                # the full compiled stack.
+#                                                # WARNING: this compiles the
+#                                                # entire platform - expect
+#                                                # 10-15+ minutes on first
+#                                                # build depending on hardware
+#   docker compose --profile distro up --no-build --pull always platform
+#                                                # pull the prebuilt community
+#                                                # app and initializer images
+#   docker compose up redis                      # backing services only,
+#                                                # then `pnpm dev` on the host
+#
+# The dev server mounts the checkout READ-ONLY and copies it into the
+# container, installing there - the host tree is never written, so it runs
+# identically from a plain checkout and when nested in another workspace. The
+# .devcontainer provides the host-side toolchain and works with all three.
+#
+# The end-user distribution - the image-only stack published as a Compose OCI
+# artifact (`docker compose -f oci://ghcr.io/chatbotkit/platform-community:latest
+# up -d`) - lives separately in docker/distro/, one folder per package flavor.
+# =============================================================================
+
+# @note the storage environment every application service shares. The store
+# is Garage, spoken to over the plain S3 protocol - see docker/garage/.
+# The credentials are the known development values garage-init provisions.
+#
+# @note presigned upload/download URLs carry this endpoint, so a browser on
+# the host needs to resolve it too: add `127.0.0.1 garage` to /etc/hosts to
+# use browser-facing file flows with the containerized modes. (When running
+# `pnpm dev` on the host instead, point SERVICE_AWS_ENDPOINT at
+# http://localhost:3900 in platform/.env and the question does not arise.)
+x-storage-env: &storage-env
+  SERVICE_AWS_ENDPOINT: http://garage:3900
+  SERVICE_AWS_REGION: garage
+  SERVICE_AWS_ACCESS_KEY_ID: GK31e57eba9df26b2e7e1b0eaa
+  SERVICE_AWS_SECRET_ACCESS_KEY: 9f3c1e2b8a4d5f6071829304a5b6c7d8e9f00112233445566778899aabbccdde
+  SERVICE_AWS_FORCE_PATH_STYLE: 'true'
+  FILE_S3_BUCKET_NAME: file
+  IMAGE_S3_BUCKET_NAME: image
+  VIDEO_S3_BUCKET_NAME: video
+  AUDIO_S3_BUCKET_NAME: audio
+  CONVERSATION_S3_BUCKET_NAME: conversation
+  NAMESPACE_S3_BUCKET_NAME: namespace
+  SESSION_S3_BUCKET_NAME: session
+  SPACE_S3_BUCKET_NAME: space
+  TEMP_S3_BUCKET_NAME: temp
+  OUTPUT_S3_BUCKET_NAME: output
+
+services:
+  platform:
+    profiles: ['distro']
+    image: ${PLATFORM_IMAGE:-ghcr.io/chatbotkit/platform-community-app:next}
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+      args:
+        # @note override for a real deployment: the site url is baked into the
+        # build by Next.js
+        SITE_URL: ${SITE_URL:-http://localhost:3000}
+    ports:
+      - '3000:3000'
+    environment:
+      <<: *storage-env
+      NODE_ENV: production
+      PORT: 3000
+      SITE_URL: ${SITE_URL:-http://localhost:3000}
+      NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3000}
+      # @note left empty, the image generates these secrets on first boot and
+      # persists them in the platform-data volume - see docker/entrypoint.sh;
+      # set explicitly to override
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:-}
+      QUEUE_SECRET: ${QUEUE_SECRET:-}
+      JWT_TOKEN_SECRET_KEY: ${JWT_TOKEN_SECRET_KEY:-}
+      PRISMA_DATABASE_URL: file:/data/chatbotkit.db
+      # @note optional: encrypts stored credentials in the database; unset,
+      # they are stored as given. See docs/configuration.md, "Encryption at rest"
+      PRISMA_FIELD_ENCRYPTION_KEY: ${PRISMA_FIELD_ENCRYPTION_KEY:-}
+      REDIS_URL: redis://redis:6379
+      QDRANT_URL: http://qdrant:6333
+    # @note extra configuration (provider keys and the like) goes here; the
+    # file is optional. Values can also be persisted in the platform-data
+    # volume with `docker compose run --rm --no-deps platform setup`; the
+    # environment and this file win over them - see docker/entrypoint.sh
+    env_file:
+      - path: .env
+        required: false
+    volumes:
+      - platform-data:/data
+    depends_on:
+      db-init:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+      qdrant:
+        condition: service_healthy
+      garage-init:
+        condition: service_completed_successfully
+    restart: unless-stopped
+    healthcheck:
+      # Use node for the healthcheck since the alpine image has no wget/curl
+      test:
+        [
+          'CMD',
+          'node',
+          '-e',
+          "fetch('http://localhost:3000/').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 90s
+
+  db-init:
+    profiles: ['distro']
+    image: ${PLATFORM_INIT_IMAGE:-ghcr.io/chatbotkit/platform-community-init:next}
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+      target: initializer
+    environment:
+      PRISMA_DATABASE_URL: file:/data/chatbotkit.db
+    volumes:
+      - platform-data:/data
+    restart: 'no'
+
+  dev:
+    image: mcr.microsoft.com/devcontainers/javascript-node:24-bookworm
+    working_dir: /workspace
+    # @note the checkout is mounted READ-ONLY at /src and copied into the
+    # container, where the install lives - the host tree is never written. A
+    # background loop re-syncs edits every 2 seconds for hot reload.
+    # Provisioning (.env from the example, SQLite client and schema) happens
+    # here in the compose file; the application itself has no provisioning
+    # logic. `corepack pnpm` dispatches the exact version pinned in
+    # package.json's packageManager field, immune to the image's own pnpm.
+    command:
+      - bash
+      - -lc
+      - >-
+        command -v rsync >/dev/null || { apt-get update -qq && apt-get install -y -qq rsync >/dev/null; };
+        SYNC="rsync -a --delete
+        --exclude node_modules --exclude .next --exclude .turbo
+        --exclude .dev --exclude .env --exclude .pnpm-store
+        --exclude .git --exclude prisma/generated --exclude prisma/zod
+        /src/ /workspace/";
+        $$SYNC &&
+        corepack pnpm install &&
+        { [ -f platform/.env ] || cp platform/.env.example platform/.env; } &&
+        sed -i "s|^PRISMA_DATABASE_URL=.*|PRISMA_DATABASE_URL=file:/workspace/platform/.dev/platform.db|" platform/.env &&
+        { ls node_modules/.pnpm/@pothos+plugin-prisma*/node_modules/@pothos/plugin-prisma/generated.js >/dev/null 2>&1 || corepack pnpm -F @chatbotkit-dev/db db:gen; } &&
+        { [ -f platform/.dev/platform.db ] || { mkdir -p platform/.dev && PRISMA_DATABASE_URL=file:/workspace/platform/.dev/platform.db corepack pnpm -F @chatbotkit-dev/db db:push; }; } &&
+        { while true; do sleep 2; $$SYNC; done & } &&
+        corepack pnpm -F @chatbotkit/platform dev
+    environment:
+      <<: *storage-env
+      REDIS_URL: redis://redis:6379
+      QDRANT_URL: http://qdrant:6333
+      APP_PORT: 8080
+      # @note the store lives in a volume so installs stay warm across
+      # container recreations
+      NPM_CONFIG_STORE_DIR: /pnpm-store
+    volumes:
+      - .:/src:ro
+      - dev-workspace:/workspace
+      - dev-pnpm-store:/pnpm-store
+    ports:
+      - '127.0.0.1:8080:8080'
+    depends_on:
+      redis:
+        condition: service_healthy
+      qdrant:
+        condition: service_healthy
+      garage-init:
+        condition: service_completed_successfully
+
+  redis:
+    image: redis:7-alpine
+    command: ['redis-server', '--appendonly', 'yes']
+    ports:
+      # @note published on localhost only, so `pnpm dev` on the host can use
+      # this same Redis (REDIS_URL=redis://localhost:6379) without building
+      # anything
+      - '127.0.0.1:6379:6379'
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  qdrant:
+    image: qdrant/qdrant:v1.15.1
+    ports:
+      # @note published on localhost only, so `pnpm dev` on the host can use
+      # this same Qdrant (QDRANT_URL=http://localhost:6333) without building
+      # anything
+      - '127.0.0.1:6333:6333'
+    volumes:
+      - qdrant-data:/qdrant/storage
+    healthcheck:
+      # @note the qdrant image ships no curl or wget, so the check is bash
+      # opening a TCP connection to the HTTP port
+      test: ['CMD-SHELL', 'bash -c ": > /dev/tcp/127.0.0.1/6333" || exit 1']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  garage:
+    image: dxflrs/garage:v2.1.0
+    ports:
+      # @note published on localhost only, so `pnpm dev` on the host can use
+      # this same store (SERVICE_AWS_ENDPOINT=http://localhost:3900) without
+      # building anything
+      - '127.0.0.1:3900:3900'
+    volumes:
+      - ./docker/garage/garage.toml:/etc/garage.toml:ro
+      - garage-data:/var/lib/garage
+    healthcheck:
+      # @note the image is a bare binary - no shell - so the check is the
+      # garage CLI talking to the daemon over RPC
+      test: ['CMD', '/garage', '-c', '/etc/garage.toml', 'status']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  garage-init:
+    # @note one-shot: provisions the single-node layout, the development
+    # access key and one bucket per storage scope through Garage's admin API.
+    # Idempotent, so it reruns harmlessly on every `up`.
+    image: node:24.20.0-alpine
+    command: ['node', '/init.mjs']
+    environment:
+      GARAGE_ADMIN_URL: http://garage:3903
+      GARAGE_ADMIN_TOKEN: dev-admin-token
+      STORAGE_ACCESS_KEY_ID: GK31e57eba9df26b2e7e1b0eaa
+      STORAGE_SECRET_ACCESS_KEY: 9f3c1e2b8a4d5f6071829304a5b6c7d8e9f00112233445566778899aabbccdde
+    volumes:
+      - ./docker/garage/init.mjs:/init.mjs:ro
+    depends_on:
+      garage:
+        condition: service_healthy
+    restart: 'no'
+
+volumes:
+  platform-data:
+  redis-data:
+  qdrant-data:
+  garage-data:
+  dev-pnpm-store:
+  dev-workspace:

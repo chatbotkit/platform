@@ -1,0 +1,3500 @@
+// @note THE schema - the one hand-edited source, here in
+// @chatbotkit-dev/db-spec. Every implementation derives its own
+// prisma/schema.prisma from this file; none of those is edited directly. It stays
+// MySQL-complete on purpose: the engine-specific information (native types, the
+// expression defaults TEXT columns force) only flows downhill, so deriving is
+// subtractive. See src/derive.js for exactly what each engine changes.
+
+generator client {
+  provider        = "prisma-client"
+  output          = "./generated/prisma"
+  previewFeatures = ["typedSql"]
+}
+
+generator json {
+  provider  = "prisma-json-types-generator"
+  namespace = "PrismaJson"
+  allowAny  = false
+}
+
+generator zod {
+  provider = "prisma-zod-generator"
+  output   = "./zod/schemas"
+  config   = "./zod-generator.config.json"
+}
+
+generator pothos {
+  provider          = "prisma-pothos-types"
+  output            = "./generated/pothos.ts"
+  generateDatamodel = true
+  documentation     = false
+  clientOutput      = "./prisma"
+}
+
+// ---
+// ---
+// ---
+
+datasource db {
+  provider     = "mysql"
+  relationMode = "prisma"
+}
+
+// ---
+// ---
+// ---
+
+// @see https://next-auth.js.org/adapters/prisma
+
+model Account {
+  id String @id @default(cuid())
+
+  // owner
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // fields
+  type String
+
+  provider          String
+  providerAccountId String
+
+  refresh_token String? @db.Text /// @encrypted
+  access_token  String? @db.Text /// @encrypted
+  id_token      String? @db.Text /// @encrypted
+  token_type    String?
+
+  expires_at Int?
+
+  scope String?
+
+  session_state String?
+
+  refresh_token_expires_in Int?
+
+  meta Json? /// [Meta]
+
+  // timestamps
+  // @note disabled because new
+  // createdAt DateTime @default(now())
+  // updatedAt DateTime @updatedAt
+
+  // indexes: unique
+  @@unique([provider, providerAccountId])
+  // indexes: other
+  @@index(fields: [userId])
+}
+
+model Session {
+  id String @id @default(cuid())
+
+  // owner
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // fields
+  name        String? // @note deliberately optional
+  description String? // @note deliberately optional
+
+  sessionToken String @unique
+
+  expires DateTime
+
+  audience String?
+
+  payload Json? /// [JsonRecord]
+
+  options Json? /// [JsonRecord]
+
+  meta Json? /// [Meta]
+
+  // timestamps
+  // @note disabled because new
+  // createdAt DateTime @default(now())
+  // updatedAt DateTime @updatedAt
+
+  // indexes: other
+  @@index(fields: [userId])
+}
+
+model VerificationToken {
+  // fields
+  identifier String
+
+  token String @unique
+
+  expires DateTime
+
+  meta Json? /// [Meta]
+
+  // timestamps
+  // @note disabled because new
+  // createdAt DateTime @default(now())
+  // updatedAt DateTime @updatedAt 
+
+  // indexes: unique
+  @@unique([identifier, token])
+}
+
+// ---
+// ---
+// ---
+
+model User {
+  id String @id @default(cuid())
+
+  // relationships
+  parentId String?
+  parent   User?   @relation("ParentChild", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction) // @note prevents deletion - must use deleteUser function
+
+  // ref
+  alias String? // @note only used for child Users (parentId must be set)
+
+  // fields
+  name        String? // @note deliberately optional
+  description String? @db.Text // @note deliberately optional
+
+  email         String    @unique
+  emailVerified DateTime?
+
+  parentContextName String?
+
+  parentContextEmail         String?
+  parentContextEmailVerified DateTime?
+
+  image String?
+
+  billingCustomerId            String?   @unique
+  billingSubscriptionId        String?
+  billingSubscriptionStatus    String?
+  billingSubscriptionStartedAt DateTime?
+  billingSubscriptionTrialedAt DateTime?
+
+  channel      String?
+  organization String?
+  industry     String?
+  role         String?
+  goal         String? @db.Text
+
+  limits Json? /// [Limits]
+
+  meta Json? /// [Meta]
+
+  // timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // connections: account
+  accounts Account[]
+  sessions Session[]
+
+  // connections: children
+  children User[] @relation("ParentChild")
+
+  // connections: teams
+  teams Team[]
+
+  // connections: developer
+  tokens   Token[]
+  webhooks Webhook[]
+
+  // connections: objects
+  contacts      Contact[]
+  conversations Conversation[]
+  tasks         Task[]
+  ratings       Rating[]
+  memories      Memory[]
+  spaces        Space[]
+
+  // connections: executions
+  taskExecutions TaskExecution[]
+
+  // connections: resources
+  blueprints Blueprint[]
+  bots       Bot[]
+  datasets   Dataset[]
+  skillsets  Skillset[]
+  abilities  Ability[]
+  secrets    Secret[]
+  files      File[]
+  portals    Portal[]
+  policies   Policy[]
+
+  // connections: publishing
+  spaceSites SpaceSite[]
+
+  // connections: special
+  contexts Context[]
+
+  // connections: integrations
+  triggerIntegrations        TriggerIntegration[]
+  widgetIntegrations         WidgetIntegration[]
+  slackIntegrations          SlackIntegration[]
+  discordIntegrations        DiscordIntegration[]
+  microsoftteamsIntegrations MicrosoftteamsIntegration[]
+  googlechatIntegrations     GooglechatIntegration[]
+  whatsappIntegrations       WhatsappIntegration[]
+  messengerIntegrations      MessengerIntegration[]
+  instagramIntegrations      InstagramIntegration[]
+  telegramIntegrations       TelegramIntegration[]
+  twilioIntegrations         TwilioIntegration[]
+  anamIntegrations           AnamIntegration[]
+  avatarIntegrations         AvatarIntegration[]
+  recallIntegrations         RecallIntegration[]
+  githubIntegrations         GithubIntegration[]
+  emailIntegrations          EmailIntegration[]
+  sitemapIntegrations        SitemapIntegration[]
+  notionIntegrations         NotionIntegration[]
+  supportIntegrations        SupportIntegration[]
+  extractIntegrations        ExtractIntegration[]
+  mcpserverIntegrations      McpserverIntegration[]
+  skillserverIntegrations    SkillserverIntegration[]
+
+  // connections: oauth
+  oAuthConnections       OAuthConnection[]
+  oAuthApplications      OAuthApplication[]
+  oAuthApplicationTokens OAuthApplicationToken[]
+
+  // connections: hub
+  hubBotPages       HubBotPage[]
+  hubDatasetPages   HubDatasetPage[]
+  hubSkillsetPages  HubSkillsetPage[]
+  hubBlueprintPages HubBlueprintPage[]
+  hubWidgetPages    HubWidgetPage[]
+
+  // connections: secret values
+  secretValues SecretValue[]
+
+  // connections: lock
+  locks Lock[]
+
+  // connections: usage
+  usages      Usage[] @relation("UserUsage")
+  childUsages Usage[] @relation("ParentUserUsage")
+
+  // connections: observability
+  eventLogs    EventLog[]
+  eventMetrics EventMetric[]
+  auditLogs    AuditLog[]
+
+  // indexes: unique
+  @@unique([parentId, alias]) // for alias lookup by parent
+  @@unique([parentId, parentContextEmail])
+  // indexes: other
+  @@index(fields: [parentId])
+  @@index(fields: [id, parentId])
+}
+
+// ---
+// ---
+// ---
+
+enum ResourceState {
+  // @note the order is important because the default value is the first one
+
+  enabled
+  disabled
+}
+
+// ---
+// ---
+// ---
+
+model Team {
+  id String @id @default(cuid())
+
+  // owner
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // fields
+  name        String @default("")
+  description String @default(dbgenerated("(_utf8mb4\\'\\')")) @db.Text
+
+  meta Json? /// [Meta]
+
+  // timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // connections: team
+  memberships TeamMembership[]
+
+  // indexes: other
+  @@index(fields: [userId])
+}
+
+model TeamMembership {
+  id String @id @default(cuid())
+
+  // relationships
+  teamId String
+  team   Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  // fields
+  name        String @default("")
+  description String @default(dbgenerated("(_utf8mb4\\'\\')")) @db.Text
+
+  email String
+
+  meta Json? /// [Meta]
+
+  // timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // indexes: unique
+  @@unique([teamId, email])
+  // indexes: other
+  @@index(fields: [email])
+}
+
+// ---
+// ---
+// ---
+
+model OAuthConnection {
+  id String @id @default(cuid())
+
+  // owner
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // relationships
+  blueprintId String?
+  blueprint   Blueprint? @relation(fields: [blueprintId], references: [id], onDelete: SetNull)
+
+  // fields
+  name        String @default("")
+  description String @default(dbgenerated("(_utf8mb4\\'\\')")) @db.Text
+
+  issuer       String?
+  clientId     String?
+  clientSecret String? @db.Text /// @encrypted
+
+  scopes String @default("openid email profile")
+
+  allowedDomains String? @db.Text
+  requiredClaims Json? /// [JsonRecord]
+
+  meta Json? /// [Meta]
+
+  // timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // connections: integrations
+  mcpserverIntegrations McpserverIntegration[]
+
+  // indexes: other
+  @@index(fields: [userId])
+  @@index(fields: [blueprintId])
+}
+
+model OAuthApplication {
+  id String @id @default(cuid())
+
+  // owner
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // fields
+  name        String @default("")
+  description String @default(dbgenerated("(_utf8mb4\\'\\')")) @db.Text
+
+  clientId     String @unique
+  clientSecret String @unique /// @digest
+
+  redirectUris Json @default("[]") /// [OAuthRedirectUris]
+
+  scopes Json @default("[]") /// [OAuthScopes]
+
+  grants Json @default("[]") /// [OAuthGrants]
+
+  accessTokenLifetime  Int?
+  refreshTokenLifetime Int?
+
+  meta Json? /// [Meta]
+
+  // timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // connections: oauth
+  oAuthApplicationTokens OAuthApplicationToken[]
+
+  // indexes: other
+  @@index(fields: [userId])
+}
+
+model OAuthApplicationToken {
+  id String @id @default(cuid())
+
+  // owner
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // relationships
+  applicationId String
+  application   OAuthApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  // fields
+  name        String @default("")
+  description String @default(dbgenerated("(_utf8mb4\\'\\')")) @db.Text
+
+  accessToken          String    @unique /// @digest
+  accessTokenExpiresAt DateTime?
+
+  refreshToken          String?   @unique /// @digest
+  refreshTokenExpiresAt DateTime?
+
+  scopes Json @default("[]") /// [OAuthScopes]
+
+  // timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // indexes: other
+  @@index(fields: [userId])
+  @@index(fields: [applicationId])
+}
+
+// ---
+// ---
+// ---
+
+enum Visibility {
+  // @note the order is important because of the default value is the first one
+
+  private
+  protected
+  public
+}
+
+// ---
+// ---
+// ---
+
+model Lock {
+  id String @id @default(cuid())
+
+  // owner
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // fields
+  name        String @default("")
+  description String @default(dbgenerated("(_utf8mb4\\'\\')")) @db.Text
+
+  meta Json? /// [Meta]
+
+  // timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // connections: resources
+  blueprints Blueprint[]
+  bots       Bot[]
+  datasets   Dataset[]
+  skillsets  Skillset[]
+  files      File[]
+  secrets    Secret[]
+  policies   Policy[]
+  portals    Portal[]
+
+  // connections: integrations
+  triggerIntegrations        TriggerIntegration[]
+  widgetIntegrations         WidgetIntegration[]
+  slackIntegrations          SlackIntegration[]
+  discordIntegrations        DiscordIntegration[]
+  microsoftteamsIntegrations MicrosoftteamsIntegration[]
+  googlechatIntegrations     GooglechatIntegration[]
+  whatsappIntegrations       WhatsappIntegration[]
+  messengerIntegrations      MessengerIntegration[]
+  instagramIntegrations      InstagramIntegration[]
+  telegramIntegrations       TelegramIntegration[]
+  twilioIntegrations         TwilioIntegration[]
+  githubIntegrations         GithubIntegration[]
+  emailIntegrations          EmailIntegration[]
+  sitemapIntegrations        SitemapIntegration[]
+  notionIntegrations         NotionIntegration[]
+  supportIntegrations        SupportIntegration[]
+  extractIntegrations        ExtractIntegration[]
+  mcpserverIntegrations      McpserverIntegration[]
+  skillserverIntegrations    SkillserverIntegration[]
+}
+
+// ---
+// ---
+// ---
+
+model Context {
+  id String @id @default(cuid())
+
+  // owner
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // relationships
+  blueprintId String?
+  blueprint   Blueprint? @relation(fields: [blueprintId], references: [id], onDelete: SetNull)
+  botId       String?
+  bot         Bot?       @relation(fields: [botId], references: [id], onDelete: SetNull)
+  datasetId   String?
+  dataset     Dataset?   @relation(fields: [datasetId], references: [id], onDelete: SetNull)
+  skillsetId  String?
+  skillset    Skillset?  @relation(fields: [skillsetId], references: [id], onDelete: SetNull)
+  contactId   String?
+  contact     Contact?   @relation(fields: [contactId], references: [id], onDelete: Cascade)
+
+  // fields
+  name        String @default("")
+  description String @default(dbgenerated("(_utf8mb4\\'\\')")) @db.Text
+
+  payload Json? /// [JsonRecord]
+
+  meta Json? /// [Meta]
+
+  // timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // indexes: listing
+  @@index(fields: [userId, createdAt(sort: Desc), id(sort: Desc)]) // used for cursor pagination in list endpoint
+  // indexes: other
+  @@index(fields: [userId])
+  @@index(fields: [blueprintId])
+  @@index(fields: [botId])
+  @@index(fields: [datasetId])
+  @@index(fields: [skillsetId])
+  @@index(fields: [contactId])
+}
+
+// ---
+// ---
+// ---
+
+enum BlueprintVisibility {
+  // @note the order is important because of the default value is the first one
+
+  private
+  protected
+  public
+}
+
+model Blueprint {
+  id String @id @default(cuid())
+
+  // owner
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // relationships
+  lockId String?
+  lock   Lock?   @relation(fields: [lockId], references: [id], onDelete: SetNull)
+
+  // ref
+  alias String?
+
+  // fields
+  name        String @default("")
+  description String @default(dbgenerated("(_utf8mb4\\'\\')")) @db.Text
+
+  visibility BlueprintVisibility @default(private)
+
+  config Json? /// [JsonRecord]
+
+  meta Json? /// [Meta]
+
+  // timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // connections: hub
+  hubBlueprintPage HubBlueprintPage?
+
+  // connections: resources
+  bots      Bot[] /// @resource
+  datasets  Dataset[] /// @resource
+  skillsets Skillset[] /// @resource
+  abilities Ability[] /// @resource
+  secrets   Secret[] /// @resource
+  files     File[] /// @resource
+  spaces    Space[] /// @resource
+  portals   Portal[] /// @resource
+  policies  Policy[] /// @resource
+  tasks     Task[] /// @resource
+
+  // connections: special
+  contexts Context[]
+
+  // connections: oauth
+  oAuthConnections OAuthConnection[] /// @resource
+
+  // connections: integrations
+  triggerIntegrations        TriggerIntegration[] /// @resource
+  widgetIntegrations         WidgetIntegration[] /// @resource
+  slackIntegrations          SlackIntegration[] /// @resource
+  discordIntegrations        DiscordIntegration[] /// @resource
+  microsoftteamsIntegrations MicrosoftteamsIntegration[] /// @resource
+  googlechatIntegrations     GooglechatIntegration[] /// @resource
+  whatsappIntegrations       WhatsappIntegration[] /// @resource
+  messengerIntegrations      MessengerIntegration[] /// @resource
+  instagramIntegrations      InstagramIntegration[] /// @resource
+  telegramIntegrations       TelegramIntegration[] /// @resource
+  twilioIntegrations         TwilioIntegration[] /// @resource
+  avatarIntegrations         AvatarIntegration[] /// @resource
+  anamIntegrations           AnamIntegration[] /// @resource
+  recallIntegrations         RecallIntegration[] /// @resource
+  githubIntegrations         GithubIntegration[] /// @resource
+  emailIntegrations          EmailIntegration[] /// @resource
+  supportIntegrations        SupportIntegration[] /// @resource
+  extractIntegrations        ExtractIntegration[] /// @resource
+  sitemapIntegrations        SitemapIntegration[] /// @resource
+  notionIntegrations         NotionIntegration[] /// @resource
+  mcpserverIntegrations      McpserverIntegration[] /// @resource
+  skillserverIntegrations    SkillserverIntegration[] /// @resource
+
+  // indexes: unique
+  @@unique([userId, alias]) // for alias lookup by user
+  // indexes: other
+  @@index(fields: [userId])
+}
+
+// ---
+// ---
+// ---
+
+enum BotVisibility {
+  // @note the order is important because of the default value is the first one
+
+  private
+  protected
+  public
+}
+
+model Bot {
+  id String @id @default(cuid())
+
+  // owner
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // relationships
+  blueprintId String?
+  blueprint   Blueprint? @relation(fields: [blueprintId], references: [id], onDelete: SetNull)
+  datasetId   String?
+  dataset     Dataset?   @relation(fields: [datasetId], references: [id], onDelete: SetNull)
+  skillsetId  String?
+  skillset    Skillset?  @relation(fields: [skillsetId], references: [id], onDelete: SetNull)
+  lockId      String?
+  lock        Lock?      @relation(fields: [lockId], references: [id], onDelete: SetNull)
+
+  // ref
+  alias String?
+
+  // fields
+  name        String @default("")
+  description String @default(dbgenerated("(_utf8mb4\\'\\')")) @db.Text
+
+  backstory String @default(dbgenerated("(_utf8mb4\\'\\')")) @db.MediumText
+
+  model String @default("") @db.VarChar(512)
+
+  privacy    Boolean @default(false)
+  moderation Boolean @default(false)
+
+  visibility BotVisibility @default(private)
+
+  meta Json? /// [Meta]
+
+  // timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // connections: hub
+  hubBotPage HubBotPage?
+
+  // connections: objects
+  conversations Conversation[]
+  tasks         Task[]
+  ratings       Rating[]
+  memories      Memory[]
+
+  // connections: resources
+  abilities Ability[]
+  policies  Policy[]
+
+  // connections: special
+  contexts Context[]
+
+  // connections: integrations
+  triggerIntegrations        TriggerIntegration[]
+  widgetIntegrations         WidgetIntegration[]
+  slackIntegrations          SlackIntegration[]
+  discordIntegrations        DiscordIntegration[]
+  microsoftteamsIntegrations MicrosoftteamsIntegration[]
+  googlechatIntegrations     GooglechatIntegration[]
+  whatsappIntegrations       WhatsappIntegration[]
+  messengerIntegrations      MessengerIntegration[]
+  instagramIntegrations      InstagramIntegration[]
+  telegramIntegrations       TelegramIntegration[]
+  twilioIntegrations         TwilioIntegration[]
+  anamIntegrations           AnamIntegration[]
+  avatarIntegrations         AvatarIntegration[]
+  recallIntegrations         RecallIntegration[]
+  githubIntegrations         GithubIntegration[]
+  emailIntegrations          EmailIntegration[]
+  supportIntegrations        SupportIntegration[]
+  extractIntegrations        ExtractIntegration[]
+
+  // connections: connections
+
+  // indexes: unique
+  @@unique([userId, alias]) // for alias lookup by user
+  // indexes: listing
+  @@index(fields: [userId, createdAt(sort: Desc), id(sort: Desc)]) // used for cursor pagination in list endpoint
+  // indexes: other
+  @@index(fields: [userId])
+  @@index(fields: [blueprintId])
+  @@index(fields: [datasetId])
+  @@index(fields: [skillsetId])
+  @@index(fields: [id, datasetId])
+}
+
+// ---
+// ---
+// ---
+
+// @idea A/B Testing / Experiments
+//
+// This is a proposed design for A/B testing bots. The idea is that an
+// Experiment acts as a "router" that distributes traffic across multiple
+// bot variants based on configurable weights.
+//
+// How it works:
+// 1. User creates multiple bots (each bot is effectively a "version")
+// 2. User creates an Experiment with ExperimentVariants pointing to those bots
+// 3. Integration (Widget, Slack, etc.) references the experimentId
+// 4. Session creation selects a variant based on weights and routes to that bot
+// 5. Conversation records experimentId + experimentVariantId for analytics
+//
+// Precedence logic for integrations:
+// - If experimentId is set and experiment is active → use experiment routing
+// - Otherwise fall back to botId
+//
+// Example:
+//   Experiment "New Prompt Test"
+//     ├─ Variant "Control" (50%) → Bot A
+//     └─ Variant "Friendly Tone" (50%) → Bot B
+//
+// Analytics can then compare ratings, engagement, etc. per variant.
+//
+// Schema:
+//
+// enum ExperimentStatus {
+//   draft     // not yet running
+//   active    // accepting traffic
+//   paused    // temporarily stopped
+//   completed // finished, winner declared
+// }
+//
+// model Experiment {
+//   id String @id @default(cuid())
+//
+//   // owner
+//   userId String
+//   user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+//
+//   // relationships
+//   blueprintId String?
+//   blueprint   Blueprint? @relation(fields: [blueprintId], references: [id], onDelete: SetNull)
+//
+//   // fields
+//   name        String @default("")
+//   description String @default(dbgenerated("(_utf8mb4\\'\\')")) @db.Text
+//
+//   status ExperimentStatus @default(draft)
+//
+//   startedAt   DateTime?
+//   completedAt DateTime?
+//
+//   // optional: reference to winning variant after experiment concludes
+//   winnerVariantId String?
+//
+//   meta Json? /// [Meta]
+//
+//   // timestamps
+//   createdAt DateTime @default(now())
+//   updatedAt DateTime @updatedAt
+//
+//   // connections
+//   variants      ExperimentVariant[]
+//   conversations Conversation[]
+//
+//   // indexes
+//   @@index(fields: [userId, status, createdAt(sort: Desc)])
+//   @@index(fields: [userId, createdAt(sort: Desc), id(sort: Desc)])
+// }
+//
+// model ExperimentVariant {
+//   id String @id @default(cuid())
+//
+//   // relationships
+//   experimentId String
+//   experiment   Experiment @relation(fields: [experimentId], references: [id], onDelete: Cascade)
+//   botId        String
+//   bot          Bot @relation(fields: [botId], references: [id], onDelete: Cascade)
+//
+//   // fields
+//   name      String  @default("")   // e.g., "Control", "Variant A", "Friendly Tone"
+//   weight    Int     @default(1)    // relative weight (not percentage) - traffic is distributed proportionally
+//   isControl Boolean @default(false)
+//
+//   meta Json? /// [Meta]
+//
+//   // timestamps
+//   createdAt DateTime @default(now())
+//   updatedAt DateTime @updatedAt
+//
+//   // connections
+//   conversations Conversation[]
+//
+//   // indexes
+//   @@index(fields: [experimentId])
+//   @@index(fields: [botId])
+// }
+//
+// Additional changes needed:
+//
+// 1. Add to integrations (WidgetIntegration, SlackIntegration, etc.):
+//    experimentId String?
+//    experiment   Experiment? @relation(fields: [experimentId], references: [id], onDelete: SetNull)
+//
+// 2. Add to Conversation:
+//    experimentId        String?
+//    experiment          Experiment? @relation(fields: [experimentId], references: [id], onDelete: SetNull)
+//    experimentVariantId String?
+//    experimentVariant   ExperimentVariant? @relation(fields: [experimentVariantId], references: [id], onDelete: SetNull)
+//
+// 3. Add to Bot:
+//    experimentVariants ExperimentVariant[]
+
+// ---
+// ---
+// ---
+
+enum DatasetVisibility {
+  // @note the order is important because of the default value is the first one
+
+  private
+  protected
+  public
+}
+
+model Dataset {
+  id String @id @default(cuid())
+
+  // owner
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // relationships
+  blueprintId String?
+  blueprint   Blueprint? @relation(fields: [blueprintId], references: [id], onDelete: SetNull)
+  lockId      String?
+  lock        Lock?      @relation(fields: [lockId], references: [id], onDelete: SetNull)
+
+  // ref
+  alias String?
+
+  // fields
+  name        String @default("")
+  description String @default(dbgenerated("(_utf8mb4\\'\\')")) @db.Text
+
+  reranker String?
+
+  recordMaxTokens Int?
+
+  searchMinScore   Float?
+  searchMaxRecords Int?
+  searchMaxTokens  Int?
+
+  separators String?
+
+  matchInstruction    String? @db.Text // do not tempt to set to empty string
+  mismatchInstruction String? @db.Text // do not tempt to set to empty string
+
+  visibility DatasetVisibility @default(private)
+
+  meta Json? /// [Meta]
+
+  // timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // connections: hub
+  hubDatasetPage HubDatasetPage?
+
+  // connections: objects
+  conversations Conversation[]
+
+  // connections: resources
+  bots  Bot[]
+  files DatasetFileAttachment[]
+
+  // connections: special
+  contexts Context[]
+
+  // connections: integrations
+  sitemapIntegrations SitemapIntegration[]
+  notionIntegrations  NotionIntegration[]
+
+  // connections: many-to-many
+
+  // indexes: unique
+  @@unique([userId, alias]) // for alias lookup by user
+  // indexes: listing
+  @@index(fields: [userId, createdAt(sort: Desc), id(sort: Desc)]) // used for cursor pagination in list endpoint
+  // indexes: other
+  @@index(fields: [userId])
+  @@index(fields: [blueprintId])
+}
+
+// ---
+// ---
+// ---
+
+enum SkillsetVisibility {
+  // @note the order is important because of the default value is the first one
+
+  private
+  protected
+  public
+}
+
+model Skillset {
+  id String @id @default(cuid())
+
+  // owner
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // relationships
+  blueprintId String?
+  blueprint   Blueprint? @relation(fields: [blueprintId], references: [id], onDelete: SetNull)
+  lockId      String?
+  lock        Lock?      @relation(fields: [lockId], references: [id], onDelete: SetNull)
+
+  // ref
+  alias String?
+
+  // fields
+  name        String @default("")
+  description String @default(dbgenerated("(_utf8mb4\\'\\')")) @db.Text
+
+  visibility SkillsetVisibility @default(private)
+
+  // lifecycle state - toggle the whole skillset on/off without deleting it
+  state ResourceState @default(enabled)
+
+  meta Json? /// [Meta]
+
+  // timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // connections: conversation
+  conversations Conversation[]
+
+  // connections: resources
+  bots      Bot[]
+  abilities Ability[]
+
+  // connections: special
+  contexts Context[]
+
+  // connections: integrations
+  mcpserverIntegrations   McpserverIntegration[]
+  skillserverIntegrations SkillserverIntegration[]
+
+  // connections: hub
+  hubSkillsetPage HubSkillsetPage?
+
+  // connections: many-to-many
+
+  // indexes: unique
+  @@unique([userId, alias]) // for alias lookup by user
+  // indexes: listing
+  @@index(fields: [userId, createdAt(sort: Desc), id(sort: Desc)]) // used for cursor pagination in list endpoint
+  // indexes: other
+  @@index(fields: [userId])
+  @@index(fields: [blueprintId])
+}
+
+model Ability {
+  id String @id @default(cuid())
+
+  // owner
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // relationships
+  blueprintId    String?
+  blueprint      Blueprint? @relation(fields: [blueprintId], references: [id], onDelete: SetNull)
+  skillsetId     String?
+  skillset       Skillset?  @relation(fields: [skillsetId], references: [id], onDelete: SetNull)
+  // @note the resource an ability is linked to (what it acts on), as opposed
+  // to the owner/container relations above
+  linkedSecretId String?
+  linkedSecret   Secret?    @relation(fields: [linkedSecretId], references: [id], onDelete: SetNull)
+  linkedFileId   String?
+  linkedFile     File?      @relation(fields: [linkedFileId], references: [id], onDelete: SetNull)
+  linkedBotId    String?
+  linkedBot      Bot?       @relation(fields: [linkedBotId], references: [id], onDelete: SetNull)
+  linkedSpaceId  String?
+  linkedSpace    Space?     @relation(fields: [linkedSpaceId], references: [id], onDelete: SetNull)
+
+  // ref
+  alias String?
+
+  // fields
+  name        String @default("")
+  description String @default(dbgenerated("(_utf8mb4\\'\\')")) @db.Text
+
+  instruction String @default(dbgenerated("(_utf8mb4\\'\\')")) @db.Text
+
+  // lifecycle state - toggle the ability on/off without deleting it
+  state ResourceState @default(enabled)
+
+  meta Json? /// [Meta]
+
+  // timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // indexes: unique
+  @@unique([userId, alias]) // for alias lookup by user
+  // indexes: other
+  @@index(fields: [blueprintId])
+  @@index(fields: [skillsetId])
+}
+
+// ---
+// ---
+// ---
+
+enum FileVisibility {
+  // @note the order is important because of the default value is the first one
+
+  private
+  protected
+  public
+}
+
+model File {
+  id String @id @default(cuid())
+
+  // owner
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // relationships
+  blueprintId String?
+  blueprint   Blueprint? @relation(fields: [blueprintId], references: [id], onDelete: SetNull)
+  lockId      String?
+  lock        Lock?      @relation(fields: [lockId], references: [id], onDelete: SetNull)
+
+  // ref
+  alias String?
+
+  // fields
+  name        String @default("")
+  description String @default(dbgenerated("(_utf8mb4\\'\\')")) @db.Text
+
+  visibility FileVisibility @default(private)
+
+  meta Json? /// [Meta]
+
+  // timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // connections: resources
+  abilities          Ability[]
+  datasets           DatasetFileAttachment[]
+  widgetIntegrations WidgetIntegrationFileAttachment[]
+
+  // indexes: unique
+  @@unique([userId, alias]) // for alias lookup by user
+  // indexes: listing
+  @@index(fields: [userId, createdAt(sort: Desc), id(sort: Desc)]) // used for cursor pagination in list endpoint
+  // indexes: other
+  @@index(fields: [userId])
+  @@index(fields: [blueprintId])
+  @@index(fields: [createdAt(sort: Desc)])
+}
+
+// ---
+// ---
+// ---
+
+enum SecretKind {
+  shared
+  personal
+}
+
+enum SecretType {
+  plain
+  basic
+  bearer
+  jwt
+  oauth
+  template
+  reference
+}
+
+enum SecretVisibility {
+  // @note the order is important because of the default value is the first one
+
+  private
+  protected
+  public
+}
+
+model Secret {
+  id String @id @default(cuid())
+
+  // owner
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // relationships
+  blueprintId String?
+  blueprint   Blueprint? @relation(fields: [blueprintId], references: [id], onDelete: SetNull)
+  lockId      String?
+  lock        Lock?      @relation(fields: [lockId], references: [id], onDelete: SetNull)
+
+  // ref
+  alias String?
+
+  // fields
+  name        String @default("")
+  description String @default(dbgenerated("(_utf8mb4\\'\\')")) @db.Text
+
+  kind SecretKind @default(shared)
+
+  type SecretType @default(plain)
+
+  value String? @db.Text /// @encrypted
+
+  config Json? /// [SecretConfig] @encrypted @see prisma/post-generate-zod.js
+
+  visibility SecretVisibility @default(private)
+
+  meta Json? /// [Meta]
+
+  // timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // connections: resources
+  abilities Ability[]
+
+  // connections: secret values
+  secretValues SecretValue[]
+
+  // indexes: unique
+  @@unique([userId, alias]) // for alias lookup by user
+  // indexes: other
+  @@index(fields: [userId])
+}
+
+model SecretValue {
+  id String @id @default(cuid())
+
+  // owner
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // relationships
+  secretId  String?
+  secret    Secret?  @relation(fields: [secretId], references: [id], onDelete: Cascade)
+  contactId String?
+  contact   Contact? @relation(fields: [contactId], references: [id], onDelete: Cascade)
+
+  // fields
+  name        String @default("")
+  description String @default(dbgenerated("(_utf8mb4\\'\\')")) @db.Text
+
+  value String @db.Text /// @encrypted
+
+  expiresAt DateTime?
+
+  meta Json? /// [Meta]
+
+  // timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // indexes: unique
+  @@unique([userId, secretId, contactId])
+  // indexes: other
+  @@index(fields: [userId])
+}
+
+// ---
+// ---
+// ---
+
+model Portal {
+  id String @id @default(cuid())
+
+  // owner
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // relationships
+  blueprintId String?
+  blueprint   Blueprint? @relation(fields: [blueprintId], references: [id], onDelete: SetNull)
+  lockId      String?
+  lock        Lock?      @relation(fields: [lockId], references: [id], onDelete: SetNull)
+
+  // ref
+  alias String?
+
+  // fields
+  name        String @default("")
+  description String @default(dbgenerated("(_utf8mb4\\'\\')")) @db.Text
+
+  slug String @unique
+
+  config Json? /// [PortalConfig] @see prisma/post-generate-zod.js
+
+  meta Json? /// [Meta]
+
+  // timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // indexes: unique
+  @@unique([userId, alias]) // for alias lookup by user
+  // indexes: other
+  @@index(fields: [userId])
+}
+
+// ---
+// ---
+// ---
+
+enum Trigger {
+  never
+
+  automatic
+}
+
+// ---
+
+enum Schedule {
+  never
+
+  quarterhourly
+  halfhourly
+  hourly
+
+  twicedaily
+  daily
+
+  twiceweekly
+  weekly
+
+  twicemonthly
+  monthly
+}
+
+// ---
+
+enum SyncStatus {
+  pending
+  synced
+  error
+}
+
+// ---
+// ---
+// ---
+
+model TriggerIntegration {
+  id String @id @default(cuid())
+
+  // owner
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // relationships
+  blueprintId String?
+  blueprint   Blueprint? @relation(fields: [blueprintId], references: [id], onDelete: SetNull)
+  botId       String?
+  bot         Bot?       @relation(fields: [botId], references: [id], onDelete: SetNull)
+  lockId      String?
+  lock        Lock?      @relation(fields: [lockId], references: [id], onDelete: SetNull)
+
+  // ref
+  alias String?
+
+  // fields
+  name        String @default("")
+  description String @default(dbgenerated("(_utf8mb4\\'\\')")) @db.Text
+
+  secret String @db.Text /// @encrypted
+
+  authenticate Boolean @default(true)
+
+  sessionDuration Float?
+
+  schedule String?
+  timezone String?
+
+  lastTriggerAt DateTime?
+  nextTriggerAt DateTime?
+
+  meta Json? /// [Meta]
+
+  // timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // indexes: unique
+  @@unique([userId, alias]) // for alias lookup by user
+  // indexes: other
+  @@index(fields: [schedule, lastTriggerAt])
+  @@index(fields: [nextTriggerAt])
+  @@index(fields: [userId, createdAt(sort: Desc)])
+}
+
+// ---
+// ---
+// ---
+
+model WidgetIntegration {
+  id String @id @default(cuid())
+
+  // owner
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // relationships
+  blueprintId String?
+  blueprint   Blueprint? @relation(fields: [blueprintId], references: [id], onDelete: SetNull)
+  botId       String?
+  bot         Bot?       @relation(fields: [botId], references: [id], onDelete: SetNull)
+  lockId      String?
+  lock        Lock?      @relation(fields: [lockId], references: [id], onDelete: SetNull)
+
+  // ref
+  alias String?
+
+  // fields
+  name        String @default("")
+  description String @default(dbgenerated("(_utf8mb4\\'\\')")) @db.Text
+
+  theme String? @db.Text
+
+  layout String? @db.Text
+
+  title String?
+
+  intro String? @db.Text
+
+  initial String? @db.Text
+
+  placeholder String?
+
+  origin String? @db.Text
+
+  sessionDuration Float?
+
+  language String?
+
+  plugins String? @db.Text
+
+  stream Boolean @default(true)
+
+  verbose Boolean @default(true)
+
+  tools Boolean @default(false)
+
+  unfurl Boolean @default(true)
+
+  math Boolean @default(false)
+
+  carousel Boolean @default(false)
+
+  form Boolean @default(false)
+
+  attachments Boolean @default(false)
+
+  autoScroll Boolean @default(true)
+
+  startFirst Boolean @default(false)
+
+  contactCollection Boolean @default(false)
+
+  exportConversation  Boolean @default(true)
+  restartConversation Boolean @default(true)
+
+  maximize Boolean @default(true)
+
+  messagePeek Boolean @default(true)
+
+  voiceIn  Boolean @default(false)
+  voiceOut Boolean @default(false)
+
+  poweredBy Boolean @default(true)
+
+  meta Json? /// [Meta]
+
+  // timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // connections: resources
+  files WidgetIntegrationFileAttachment[]
+
+  // connections: hub
+  hubWidgetPage HubWidgetPage?
+
+  // indexes: unique
+  @@unique([userId, alias]) // for alias lookup by user
+  // indexes: other
+  @@index(fields: [userId, createdAt(sort: Desc)])
+}
+
+// ---
+// ---
+// ---
+
+model SlackIntegration {
+  id String @id @default(cuid())
+
+  // owner
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // relationships
+  blueprintId String?
+  blueprint   Blueprint? @relation(fields: [blueprintId], references: [id], onDelete: SetNull)
+  botId       String?
+  bot         Bot?       @relation(fields: [botId], references: [id], onDelete: SetNull)
+  lockId      String?
+  lock        Lock?      @relation(fields: [lockId], references: [id], onDelete: SetNull)
+
+  // ref
+  alias String?
+
+  // fields
+  name        String @default("")
+  description String @default(dbgenerated("(_utf8mb4\\'\\')")) @db.Text
+
+  signingSecret String? @db.Text /// @encrypted
+
+  botToken  String? @db.Text /// @encrypted
+  userToken String? @db.Text /// @encrypted
+
+  contactCollection Boolean @default(false)
+
+  sessionDuration Float?
+
+  attachments Boolean @default(false)
+
+  references Boolean @default(false)
+
+  ratings Boolean @default(false)
+
+  visibleMessages Int?
+
+  autoRespond String? @db.Text
+
+  allowFrom String? @default(dbgenerated("(_utf8mb4\\'*\\')")) @db.Text
+
+  meta Json? /// [Meta]
+
+  // timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // indexes: unique
+  @@unique([userId, alias]) // for alias lookup by user
+  // indexes: other
+  @@index(fields: [userId, createdAt(sort: Desc)])
+}
+
+// ---
+// ---
+// ---
+
+model DiscordIntegration {
+  id String @id @default(cuid())
+
+  // owner
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // relationships
+  blueprintId String?
+  blueprint   Blueprint? @relation(fields: [blueprintId], references: [id], onDelete: SetNull)
+  botId       String?
+  bot         Bot?       @relation(fields: [botId], references: [id], onDelete: SetNull)
+  lockId      String?
+  lock        Lock?      @relation(fields: [lockId], references: [id], onDelete: SetNull)
+
+  // ref
+  alias String?
+
+  // fields
+  name        String @default("")
+  description String @default(dbgenerated("(_utf8mb4\\'\\')")) @db.Text
+
+  appId     String?
+  botToken  String? @db.Text /// @encrypted
+  publicKey String?
+
+  handle String?
+
+  ephemeral Boolean?
+
+  contactCollection Boolean @default(false)
+
+  sessionDuration Float?
+
+  attachments Boolean @default(false)
+
+  allowFrom String? @default(dbgenerated("(_utf8mb4\\'*\\')")) @db.Text
+
+  meta Json? /// [Meta]
+
+  // timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // indexes: unique
+  @@unique([userId, alias]) // for alias lookup by user
+  // indexes: other
+  @@index(fields: [userId, createdAt(sort: Desc)])
+}
+
+// ---
+// ---
+// ---
+
+model MicrosoftteamsIntegration {
+  id String @id @default(cuid())
+
+  // owner
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // relationships
+  blueprintId String?
+  blueprint   Blueprint? @relation(fields: [blueprintId], references: [id], onDelete: SetNull)
+  botId       String?
+  bot         Bot?       @relation(fields: [botId], references: [id], onDelete: SetNull)
+  lockId      String?
+  lock        Lock?      @relation(fields: [lockId], references: [id], onDelete: SetNull)
+
+  // ref
+  alias String?
+
+  // fields
+  name        String @default("")
+  description String @default(dbgenerated("(_utf8mb4\\'\\')")) @db.Text
+
+  botFrameworkAppId     String?
+  botFrameworkAppSecret String? @db.Text /// @encrypted
+  tenantId              String?
+
+  contactCollection Boolean @default(false)
+
+  sessionDuration Float?
+
+  attachments Boolean @default(false)
+
+  allowFrom String? @default(dbgenerated("(_utf8mb4\\'*\\')")) @db.Text
+
+  meta Json? /// [Meta]
+
+  // timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // indexes: unique
+  @@unique([userId, alias]) // for alias lookup by user
+  // indexes: other
+  @@index(fields: [userId, createdAt(sort: Desc)])
+}
+
+// ---
+// ---
+// ---
+
+model GooglechatIntegration {
+  id String @id @default(cuid())
+
+  // owner
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // relationships
+  blueprintId String?
+  blueprint   Blueprint? @relation(fields: [blueprintId], references: [id], onDelete: SetNull)
+  botId       String?
+  bot         Bot?       @relation(fields: [botId], references: [id], onDelete: SetNull)
+  lockId      String?
+  lock        Lock?      @relation(fields: [lockId], references: [id], onDelete: SetNull)
+
+  // ref
+  alias String?
+
+  // fields
+  name        String @default("")
+  description String @default(dbgenerated("(_utf8mb4\\'\\')")) @db.Text
+
+  serviceAccountKey String? @db.Text /// @encrypted
+
+  projectNumber String? // @note Google Cloud project number used to verify the JWT audience on incoming events
+
+  contactCollection Boolean @default(false)
+
+  sessionDuration Float?
+
+  attachments Boolean @default(false)
+
+  autoRespond String? @db.Text
+
+  allowFrom String? @default(dbgenerated("(_utf8mb4\\'*\\')")) @db.Text
+
+  meta Json? /// [Meta]
+
+  // timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // indexes: unique
+  @@unique([userId, alias]) // for alias lookup by user
+  // indexes: other
+  @@index(fields: [userId, createdAt(sort: Desc)])
+}
+
+// ---
+// ---
+// ---
+
+model WhatsappIntegration {
+  id String @id @default(cuid())
+
+  // owner
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // relationships
+  blueprintId String?
+  blueprint   Blueprint? @relation(fields: [blueprintId], references: [id], onDelete: SetNull)
+  botId       String?
+  bot         Bot?       @relation(fields: [botId], references: [id], onDelete: SetNull)
+  lockId      String?
+  lock        Lock?      @relation(fields: [lockId], references: [id], onDelete: SetNull)
+
+  // ref
+  alias String?
+
+  // fields
+  name        String @default("")
+  description String @default(dbgenerated("(_utf8mb4\\'\\')")) @db.Text
+
+  verifyToken String @db.Text /// @encrypted
+
+  appSecret String? @db.Text /// @encrypted
+
+  phoneNumberId String?
+
+  accessToken String? @db.Text /// @encrypted
+
+  contactCollection Boolean @default(false)
+
+  sessionDuration Float?
+
+  attachments Boolean @default(false)
+
+  allowFrom String? @default(dbgenerated("(_utf8mb4\\'*\\')")) @db.Text
+
+  meta Json? /// [Meta]
+
+  // timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // indexes: unique
+  @@unique([userId, alias]) // for alias lookup by user
+  // indexes: other
+  @@index(fields: [userId, createdAt(sort: Desc)])
+}
+
+// ---
+// ---
+// ---
+
+model MessengerIntegration {
+  id String @id @default(cuid())
+
+  // owner
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // relationships
+  blueprintId String?
+  blueprint   Blueprint? @relation(fields: [blueprintId], references: [id], onDelete: SetNull)
+  botId       String?
+  bot         Bot?       @relation(fields: [botId], references: [id], onDelete: SetNull)
+  lockId      String?
+  lock        Lock?      @relation(fields: [lockId], references: [id], onDelete: SetNull)
+
+  // ref
+  alias String?
+
+  // fields
+  name        String @default("")
+  description String @default(dbgenerated("(_utf8mb4\\'\\')")) @db.Text
+
+  verifyToken String @db.Text /// @encrypted
+
+  accessToken String? @db.Text /// @encrypted
+
+  // @note the customer's own Meta APP secret - the key X-Hub-Signature-256
+  // callbacks are signed with. Optional: without it callbacks are accepted
+  // unverified, with a logged bypass.
+  appSecret String? @db.Text /// @encrypted
+
+  contactCollection Boolean @default(false)
+
+  sessionDuration Float?
+
+  attachments Boolean @default(false)
+
+  meta Json? /// [Meta]
+
+  // timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // indexes: unique
+  @@unique([userId, alias]) // for alias lookup by user
+  // indexes: other
+  @@index(fields: [userId, createdAt(sort: Desc)])
+}
+
+// ---
+// ---
+// ---
+
+model InstagramIntegration {
+  id String @id @default(cuid())
+
+  // owner
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // relationships
+  blueprintId String?
+  blueprint   Blueprint? @relation(fields: [blueprintId], references: [id], onDelete: SetNull)
+  botId       String?
+  bot         Bot?       @relation(fields: [botId], references: [id], onDelete: SetNull)
+  lockId      String?
+  lock        Lock?      @relation(fields: [lockId], references: [id], onDelete: SetNull)
+
+  // ref
+  alias String?
+
+  // fields
+  name        String @default("")
+  description String @default(dbgenerated("(_utf8mb4\\'\\')")) @db.Text
+
+  verifyToken String @db.Text /// @encrypted
+
+  accessToken String? @db.Text /// @encrypted
+
+  // @note the customer's own Meta APP secret - the key X-Hub-Signature-256
+  // callbacks are signed with. Optional: without it callbacks are accepted
+  // unverified, with a logged bypass.
+  appSecret String? @db.Text /// @encrypted
+
+  contactCollection Boolean @default(false)
+
+  sessionDuration Float?
+
+  attachments Boolean @default(false)
+
+  meta Json? /// [Meta]
+
+  // timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // indexes: unique
+  @@unique([userId, alias]) // for alias lookup by user
+  // indexes: other
+  @@index(fields: [userId, createdAt(sort: Desc)])
+}
+
+// ---
+// ---
+// ---
+
+model TelegramIntegration {
+  id String @id @default(cuid())
+
+  // owner
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // relationships
+  blueprintId String?
+  blueprint   Blueprint? @relation(fields: [blueprintId], references: [id], onDelete: SetNull)
+  botId       String?
+  bot         Bot?       @relation(fields: [botId], references: [id], onDelete: SetNull)
+  lockId      String?
+  lock        Lock?      @relation(fields: [lockId], references: [id], onDelete: SetNull)
+
+  // ref
+  alias String?
+
+  // fields
+  name        String @default("")
+  description String @default(dbgenerated("(_utf8mb4\\'\\')")) @db.Text
+
+  botToken String? @db.Text /// @encrypted
+
+  contactCollection Boolean @default(false)
+
+  sessionDuration Float?
+
+  attachments Boolean @default(false)
+
+  allowFrom String? @default(dbgenerated("(_utf8mb4\\'*\\')")) @db.Text
+
+  meta Json? /// [Meta]
+
+  // timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // indexes: unique
+  @@unique([userId, alias]) // for alias lookup by user
+  // indexes: other
+  @@index(fields: [userId, createdAt(sort: Desc)])
+}
+
+// ---
+// ---
+// ---
+
+model TwilioIntegration {
+  id String @id @default(cuid())
+
+  // owner
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // relationships
+  blueprintId String?
+  blueprint   Blueprint? @relation(fields: [blueprintId], references: [id], onDelete: SetNull)
+  botId       String?
+  bot         Bot?       @relation(fields: [botId], references: [id], onDelete: SetNull)
+  lockId      String?
+  lock        Lock?      @relation(fields: [lockId], references: [id], onDelete: SetNull)
+
+  // ref
+  alias String?
+
+  // fields
+  name        String @default("")
+  description String @default(dbgenerated("(_utf8mb4\\'\\')")) @db.Text
+
+  accountSid String? @db.Text
+  authToken  String? @db.Text /// @encrypted
+
+  voice String? @db.Text
+
+  contactCollection Boolean @default(false)
+
+  sessionDuration Float?
+
+  allowFrom String? @default(dbgenerated("(_utf8mb4\\'*\\')")) @db.Text
+
+  meta Json? /// [Meta]
+
+  // timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // indexes: unique
+  @@unique([userId, alias]) // for alias lookup by user
+  // indexes: other
+  @@index(fields: [userId, createdAt(sort: Desc)])
+}
+
+// ---
+// ---
+// ---
+
+model AnamIntegration {
+  id String @id @default(cuid())
+
+  // owner
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // relationships
+  blueprintId String?
+  blueprint   Blueprint? @relation(fields: [blueprintId], references: [id], onDelete: SetNull)
+  botId       String?
+  bot         Bot?       @relation(fields: [botId], references: [id], onDelete: SetNull)
+
+  // ref
+  alias String?
+
+  // fields
+  name        String @default("")
+  description String @default(dbgenerated("(_utf8mb4\\'\\')")) @db.Text
+
+  apiKey String? @db.Text /// @encrypted
+
+  personaId String?
+
+  visibility Visibility @default(private)
+
+  meta Json? /// [Meta]
+
+  // timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // indexes: unique
+  @@unique([userId, alias]) // for alias lookup by user
+  // indexes: other
+  @@index(fields: [userId, createdAt(sort: Desc)])
+  @@index(fields: [blueprintId])
+  @@index(fields: [botId])
+}
+
+// ---
+// ---
+// ---
+
+model AvatarIntegration {
+  id String @id @default(cuid())
+
+  // owner
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // relationships
+  blueprintId String?
+  blueprint   Blueprint? @relation(fields: [blueprintId], references: [id], onDelete: SetNull)
+  botId       String?
+  bot         Bot?       @relation(fields: [botId], references: [id], onDelete: SetNull)
+
+  // ref
+  alias String?
+
+  // fields
+  name        String @default("")
+  description String @default(dbgenerated("(_utf8mb4\\'\\')")) @db.Text
+
+  visibility Visibility @default(private)
+
+  meta Json? /// [Meta]
+
+  // timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // indexes: unique
+  @@unique([userId, alias]) // for alias lookup by user
+  // indexes: other
+  @@index(fields: [userId, createdAt(sort: Desc)])
+  @@index(fields: [blueprintId])
+  @@index(fields: [botId])
+}
+
+// ---
+// ---
+// ---
+
+model RecallIntegration {
+  id String @id @default(cuid())
+
+  // owner
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // relationships
+  blueprintId String?
+  blueprint   Blueprint? @relation(fields: [blueprintId], references: [id], onDelete: SetNull)
+  botId       String?
+  bot         Bot?       @relation(fields: [botId], references: [id], onDelete: SetNull)
+
+  // ref
+  alias String?
+
+  // fields
+  name        String @default("")
+  description String @default(dbgenerated("(_utf8mb4\\'\\')")) @db.Text
+
+  apiKey String? @db.Text /// @encrypted
+
+  // @note the signing secret of the Recall webhook endpoint (Svix, `whsec_...`).
+  // Optional: without it status callbacks are accepted unverified, with a logged
+  // bypass.
+  webhookSecret String? @db.Text /// @encrypted
+
+  region String?
+
+  meta Json? /// [Meta]
+
+  // timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // indexes: unique
+  @@unique([userId, alias]) // for alias lookup by user
+  // indexes: other
+  @@index(fields: [userId, createdAt(sort: Desc)])
+  @@index(fields: [blueprintId])
+  @@index(fields: [botId])
+}
+
+// ---
+// ---
+// ---
+
+model GithubIntegration {
+  id String @id @default(cuid())
+
+  // owner
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // relationships
+  blueprintId String?
+  blueprint   Blueprint? @relation(fields: [blueprintId], references: [id], onDelete: SetNull)
+  botId       String?
+  bot         Bot?       @relation(fields: [botId], references: [id], onDelete: SetNull)
+  lockId      String?
+  lock        Lock?      @relation(fields: [lockId], references: [id], onDelete: SetNull)
+
+  // ref
+  alias String?
+
+  // fields
+  name        String @default("")
+  description String @default(dbgenerated("(_utf8mb4\\'\\')")) @db.Text
+
+  // this integration's GitHub App identity + credentials. Each integration is
+  // its own GitHub App. The installation id is NOT stored: it rides in every
+  // event payload and is combined with the App key to mint a token to reply.
+  appId         String? // the GitHub App id (public-ish; signs the App JWT as `iss`)
+  privateKey    String? @db.Text /// @encrypted - the App's RSA private key (PEM)
+  webhookSecret String? @db.Text /// @encrypted - validates x-hub-signature-256 HMAC-SHA256
+
+  contactCollection Boolean @default(false)
+
+  sessionDuration Float?
+
+  // @note unlike the other integrations this defaults to `@collaborators` and
+  // not `*`: an installed App hears from everyone who can comment, which on a
+  // public repository is every GitHub account. Rows predating this field were
+  // backfilled to `*` to preserve their behaviour, so the column default only
+  // governs new integrations. See lib/github.validation.ts
+  allowFrom String? @default(dbgenerated("(_utf8mb4\\'@collaborators\\')")) @db.Text
+
+  meta Json? /// [Meta]
+
+  // timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // indexes: unique
+  @@unique([userId, alias]) // for alias lookup by user
+  // indexes: other
+  @@index(fields: [userId, createdAt(sort: Desc)])
+  @@index(fields: [botId])
+}
+
+// ---
+// ---
+// ---
+
+model EmailIntegration {
+  id String @id @default(cuid())
+
+  // owner
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // relationships
+  blueprintId String?
+  blueprint   Blueprint? @relation(fields: [blueprintId], references: [id], onDelete: SetNull)
+  botId       String?
+  bot         Bot?       @relation(fields: [botId], references: [id], onDelete: SetNull)
+  lockId      String?
+  lock        Lock?      @relation(fields: [lockId], references: [id], onDelete: SetNull)
+
+  // ref
+  alias String?
+
+  // fields
+  name        String @default("")
+  description String @default(dbgenerated("(_utf8mb4\\'\\')")) @db.Text
+
+  contactCollection Boolean @default(false)
+
+  sessionDuration Float?
+
+  attachments Boolean @default(false)
+
+  allowFrom String? @default(dbgenerated("(_utf8mb4\\'*\\')")) @db.Text
+
+  meta Json? /// [Meta]
+
+  // timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // indexes: unique
+  @@unique([userId, alias]) // for alias lookup by user
+  // indexes: other
+  @@index(fields: [userId, createdAt(sort: Desc)])
+}
+
+// ---
+// ---
+// ---
+
+model SitemapIntegration {
+  id String @id @default(cuid())
+
+  // owner
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // relationships
+  blueprintId String?
+  blueprint   Blueprint? @relation(fields: [blueprintId], references: [id], onDelete: SetNull)
+  datasetId   String?
+  dataset     Dataset?   @relation(fields: [datasetId], references: [id], onDelete: SetNull)
+  lockId      String?
+  lock        Lock?      @relation(fields: [lockId], references: [id], onDelete: SetNull)
+
+  // ref
+  alias String?
+
+  // fields
+  name        String @default("")
+  description String @default(dbgenerated("(_utf8mb4\\'\\')")) @db.Text
+
+  url String?
+
+  glob String?
+
+  selectors String?
+
+  javascript Boolean?
+
+  expiresIn Float?
+
+  syncStatus   SyncStatus @default(pending)
+  syncSchedule Schedule   @default(never)
+
+  lastSyncedAt DateTime @default(now())
+
+  meta Json? /// [Meta]
+
+  // timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // indexes: unique
+  @@unique([userId, alias]) // for alias lookup by user
+  // indexes: other
+  @@index(fields: [userId, createdAt(sort: Desc)])
+  @@index(fields: [syncSchedule, lastSyncedAt]) // used to find sitemap integrations to sync
+}
+
+// ---
+// ---
+// ---
+
+model NotionIntegration {
+  id String @id @default(cuid())
+
+  // owner
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // relationships
+  blueprintId String?
+  blueprint   Blueprint? @relation(fields: [blueprintId], references: [id], onDelete: SetNull)
+  datasetId   String?
+  dataset     Dataset?   @relation(fields: [datasetId], references: [id], onDelete: SetNull)
+  lockId      String?
+  lock        Lock?      @relation(fields: [lockId], references: [id], onDelete: SetNull)
+
+  // ref
+  alias String?
+
+  // fields
+  name        String @default("")
+  description String @default(dbgenerated("(_utf8mb4\\'\\')")) @db.Text
+
+  token String @db.Text /// @encrypted
+
+  expiresIn Float?
+
+  syncStatus   SyncStatus @default(pending)
+  syncSchedule Schedule   @default(never)
+
+  lastSyncedAt DateTime @default(now())
+
+  meta Json? /// [Meta]
+
+  // timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // indexes: unique
+  @@unique([userId, alias]) // for alias lookup by user
+  // indexes: other
+  @@index(fields: [userId, createdAt(sort: Desc)])
+  @@index(fields: [syncSchedule, lastSyncedAt]) // used to find notion integrations to sync
+}
+
+// ---
+// ---
+// ---
+
+model SupportIntegration {
+  id String @id @default(cuid())
+
+  // owner
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // relationships
+  blueprintId String?
+  blueprint   Blueprint? @relation(fields: [blueprintId], references: [id], onDelete: SetNull)
+  botId       String?
+  bot         Bot?       @relation(fields: [botId], references: [id], onDelete: SetNull)
+  lockId      String?
+  lock        Lock?      @relation(fields: [lockId], references: [id], onDelete: SetNull)
+
+  // ref
+  alias String?
+
+  // fields
+  name        String @default("")
+  description String @default(dbgenerated("(_utf8mb4\\'\\')")) @db.Text
+
+  email String?
+
+  trigger Trigger? @default(automatic)
+
+  meta Json? /// [Meta]
+
+  // timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // indexes: unique
+  @@unique([userId, alias]) // for alias lookup by user
+  // indexes: other
+  @@index(fields: [userId, createdAt(sort: Desc)])
+  @@index(fields: [botId])
+  @@index(fields: [userId, botId])
+}
+
+// ---
+// ---
+// ---
+
+model ExtractIntegrationItem {
+  id String @id @default(cuid())
+
+  // relationships
+  extractIntegrationId String
+  extractIntegration   ExtractIntegration @relation(fields: [extractIntegrationId], references: [id], onDelete: Cascade)
+  conversationId       String
+  conversation         Conversation       @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  // fields
+  data Json? /// [JsonRecord]
+
+  // timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // indexes: unique
+  @@unique([extractIntegrationId, conversationId])
+  // indexes: delete
+  @@index(fields: [createdAt]) // used for purging old records
+  // indexes: other
+  @@index(fields: [extractIntegrationId, createdAt(sort: Desc)]) // used for listing
+}
+
+model ExtractIntegration {
+  id String @id @default(cuid())
+
+  // owner
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // relationships
+  blueprintId String?
+  blueprint   Blueprint? @relation(fields: [blueprintId], references: [id], onDelete: SetNull)
+  botId       String?
+  bot         Bot?       @relation(fields: [botId], references: [id], onDelete: SetNull)
+  lockId      String?
+  lock        Lock?      @relation(fields: [lockId], references: [id], onDelete: SetNull)
+
+  // ref
+  alias String?
+
+  // fields
+  name        String @default("")
+  description String @default(dbgenerated("(_utf8mb4\\'\\')")) @db.Text
+
+  schema Json? /// [JsonRecord]
+
+  request String? @default(dbgenerated("(_utf8mb4\\'\\')")) @db.Text
+
+  model String? @db.VarChar(512)
+
+  trigger Trigger? @default(automatic)
+
+  meta Json? /// [Meta]
+
+  // timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // connections: items
+  items ExtractIntegrationItem[]
+
+  // indexes: unique
+  @@unique([userId, alias]) // for alias lookup by user
+  // indexes: other
+  @@index(fields: [userId, createdAt(sort: Desc)])
+  @@index(fields: [botId])
+}
+
+// ---
+// ---
+// ---
+
+model McpserverIntegration {
+  id String @id @default(cuid())
+
+  // owner
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // relationships
+  blueprintId       String?
+  blueprint         Blueprint?       @relation(fields: [blueprintId], references: [id], onDelete: SetNull)
+  skillsetId        String?
+  skillset          Skillset?        @relation(fields: [skillsetId], references: [id], onDelete: SetNull)
+  lockId            String?
+  lock              Lock?            @relation(fields: [lockId], references: [id], onDelete: SetNull)
+  oAuthConnectionId String?
+  oAuthConnection   OAuthConnection? @relation(fields: [oAuthConnectionId], references: [id], onDelete: SetNull)
+
+  // ref
+  alias String?
+
+  // fields
+  name        String @default("")
+  description String @default(dbgenerated("(_utf8mb4\\'\\')")) @db.Text
+
+  accessToken String @db.Text /// @encrypted
+
+  meta Json? /// [Meta]
+
+  // timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // indexes: unique
+  @@unique([userId, alias]) // for alias lookup by user
+  // indexes: other
+  @@index(fields: [userId, createdAt(sort: Desc)])
+}
+
+// ---
+// ---
+// ---
+
+model SkillserverIntegration {
+  id String @id @default(cuid())
+
+  // owner
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // relationships
+  blueprintId String?
+  blueprint   Blueprint? @relation(fields: [blueprintId], references: [id], onDelete: SetNull)
+  skillsetId  String?
+  skillset    Skillset?  @relation(fields: [skillsetId], references: [id], onDelete: SetNull)
+  lockId      String?
+  lock        Lock?      @relation(fields: [lockId], references: [id], onDelete: SetNull)
+
+  // ref
+  alias String?
+
+  // fields
+  name        String @default("")
+  description String @default(dbgenerated("(_utf8mb4\\'\\')")) @db.Text
+
+  accessToken String @db.Text /// @encrypted
+
+  meta Json? /// [Meta]
+
+  // timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // indexes: unique
+  @@unique([userId, alias]) // for alias lookup by user
+  // indexes: other
+  @@index(fields: [userId, createdAt(sort: Desc)])
+}
+
+// ---
+// ---
+// ---
+
+enum PolicyType {
+  // @note the order is important because of the default value is the first one
+
+  retention
+  usage
+}
+
+model Policy {
+  id String @id @default(cuid())
+
+  // owner
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // relationships
+  blueprintId String?
+  blueprint   Blueprint? @relation(fields: [blueprintId], references: [id], onDelete: SetNull)
+  lockId      String?
+  lock        Lock?      @relation(fields: [lockId], references: [id], onDelete: SetNull)
+  botId       String?
+  bot         Bot?       @relation(fields: [botId], references: [id], onDelete: Cascade)
+
+  // ref
+  alias String?
+
+  // fields
+  name        String @default("")
+  description String @default(dbgenerated("(_utf8mb4\\'\\')")) @db.Text
+
+  type PolicyType @default(retention)
+
+  // lifecycle state - toggle the policy on/off without deleting it
+  state ResourceState @default(enabled)
+
+  config Json? /// [PolicyConfig] @see prisma/post-generate-zod.js
+
+  meta Json? /// [Meta]
+
+  // timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // indexes: unique
+  @@unique([userId, alias]) // for alias lookup by user
+  // indexes: other
+  @@index(fields: [userId])
+  @@index(fields: [userId, type])
+  @@index(fields: [userId, createdAt(sort: Desc)])
+  @@index(fields: [botId, type])
+}
+
+// ---
+// ---
+// ---
+
+model HubBotPage {
+  id String @id @default(cuid())
+
+  // owner
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // relationships
+  botId String @unique
+  bot   Bot    @relation(fields: [botId], references: [id], onDelete: Cascade)
+
+  // fields
+  name        String @default("")
+  description String @default(dbgenerated("(_utf8mb4\\'\\')")) @db.Text
+
+  slug String? @unique
+  icon String?
+  rank Int?
+
+  meta Json? /// [Meta]
+
+  // timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model HubDatasetPage {
+  id String @id @default(cuid())
+
+  // owner
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // relationships
+  datasetId String  @unique
+  dataset   Dataset @relation(fields: [datasetId], references: [id], onDelete: Cascade)
+
+  // fields
+  name        String @default("")
+  description String @default(dbgenerated("(_utf8mb4\\'\\')")) @db.Text
+
+  slug String? @unique
+  icon String?
+  rank Int?
+
+  meta Json? /// [Meta]
+
+  // timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model HubSkillsetPage {
+  id String @id @default(cuid())
+
+  // owner
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // relationships
+  skillsetId String   @unique
+  skillset   Skillset @relation(fields: [skillsetId], references: [id], onDelete: Cascade)
+
+  // fields
+  name        String @default("")
+  description String @default(dbgenerated("(_utf8mb4\\'\\')")) @db.Text
+
+  slug String? @unique
+  icon String?
+  rank Int?
+
+  meta Json? /// [Meta]
+
+  // timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model HubBlueprintPage {
+  id String @id @default(cuid())
+
+  // owner
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // relationships
+  blueprintId String    @unique
+  blueprint   Blueprint @relation(fields: [blueprintId], references: [id], onDelete: Cascade)
+
+  // fields
+  name        String @default("")
+  description String @default(dbgenerated("(_utf8mb4\\'\\')")) @db.Text
+
+  slug String? @unique
+  icon String?
+  rank Int?
+
+  shareLog Boolean @default(false)
+
+  meta Json? /// [Meta]
+
+  // timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model HubWidgetPage {
+  id String @id @default(cuid())
+
+  // owner
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // relationships
+  widgetId String            @unique
+  widget   WidgetIntegration @relation(fields: [widgetId], references: [id], onDelete: Cascade)
+
+  // fields
+  name        String @default("")
+  description String @default(dbgenerated("(_utf8mb4\\'\\')")) @db.Text
+
+  slug String? @unique
+  icon String?
+  rank Int?
+
+  meta Json? /// [Meta]
+
+  // timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// @note UseType was migrated from an enum to a plain String to avoid requiring
+// database migrations every time a new model is added. Valid use type values
+// are now derived from the model config at runtime. See lib/usage.types.js.
+
+model Usage {
+  id String @id @default(cuid())
+
+  // owner
+  // @note usage records must survive user deletion with userId intact
+  userId String
+  user   User   @relation("UserUsage", fields: [userId], references: [id], onDelete: NoAction)
+
+  // parent
+  // @note parent usage records must survive user deletion with parentUserId intact
+  parentUserId String?
+  parentUser   User?   @relation("ParentUserUsage", fields: [parentUserId], references: [id], onDelete: NoAction)
+
+  // relationships: shallow
+  conversationId String?
+  messageId      String?
+  taskId         String?
+  contactId      String?
+  blueprintId    String?
+  botId          String?
+  datasetId      String?
+  skillsetId     String?
+  abilityId      String?
+
+  // fields
+  type String @db.VarChar(191)
+
+  count Int
+
+  meta Json? /// [Meta]
+
+  // timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // indexes: delete
+  @@index(fields: [createdAt]) // used for purging old records
+  // indexes: other
+  @@index(fields: [type, createdAt(sort: Desc)]) // used for listing
+  @@index(fields: [userId, type, createdAt(sort: Desc)])
+  @@index(fields: [userId, botId, createdAt(sort: Desc)]) // used by bot usage stats query
+  @@index(fields: [parentUserId, type, createdAt(sort: Desc)]) // used for parent account usage aggregation
+}
+
+// ---
+// ---
+// ---
+
+model EventLog {
+  id String @id @default(cuid())
+
+  // owner
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // relationships: shallow
+  conversationId              String?
+  taskId                      String?
+  contactId                   String?
+  spaceId                     String?
+  blueprintId                 String?
+  botId                       String?
+  datasetId                   String?
+  recordId                    String?
+  skillsetId                  String?
+  abilityId                   String?
+  fileId                      String?
+  secretId                    String?
+  portalId                    String?
+  policyId                    String?
+  widgetIntegrationId         String?
+  slackIntegrationId          String?
+  discordIntegrationId        String?
+  microsoftteamsIntegrationId String? @map("teamsIntegrationId")
+  googlechatIntegrationId     String?
+  whatsappIntegrationId       String?
+  messengerIntegrationId      String?
+  instagramIntegrationId      String?
+  telegramIntegrationId       String?
+  twilioIntegrationId         String?
+  githubIntegrationId         String?
+  emailIntegrationId          String?
+  sitemapIntegrationId        String?
+  notionIntegrationId         String?
+  triggerIntegrationId        String?
+  supportIntegrationId        String?
+  extractIntegrationId        String?
+  mcpserverIntegrationId      String?
+  skillserverIntegrationId    String?
+  // @note the event log tracks conversational integrations only; anam,
+  // avatar and recall are excluded by design (they emit no events). If that
+  // ever changes, add the three `*IntegrationId` columns here, the matching
+  // entries in the event log/metric list+export whitelists and the
+  // EventLogItem type, then regenerate the client.
+  webhookId                   String?
+  taskExecutionId             String?
+  triggerExecutionId          String?
+
+  // fields
+  name        String @default("")
+  description String @default(dbgenerated("(_utf8mb4\\'\\')")) @db.Text
+
+  type String
+
+  meta Json? /// [Meta]
+
+  // timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // indexes: delete
+  @@index(fields: [createdAt]) // used for purging old records
+  // indexes: other
+  @@index(fields: [userId, createdAt(sort: Desc)])
+  @@index(fields: [userId, type, createdAt(sort: Desc)])
+}
+
+model EventMetric {
+  id String @id @default(cuid())
+
+  // owner
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // relationships: shallow
+  conversationId              String?
+  taskId                      String?
+  contactId                   String?
+  spaceId                     String?
+  blueprintId                 String?
+  botId                       String?
+  datasetId                   String?
+  recordId                    String?
+  skillsetId                  String?
+  abilityId                   String?
+  fileId                      String?
+  secretId                    String?
+  portalId                    String?
+  policyId                    String?
+  widgetIntegrationId         String?
+  slackIntegrationId          String?
+  discordIntegrationId        String?
+  microsoftteamsIntegrationId String? @map("teamsIntegrationId")
+  googlechatIntegrationId     String?
+  whatsappIntegrationId       String?
+  messengerIntegrationId      String?
+  instagramIntegrationId      String?
+  telegramIntegrationId       String?
+  twilioIntegrationId         String?
+  githubIntegrationId         String?
+  emailIntegrationId          String?
+  sitemapIntegrationId        String?
+  notionIntegrationId         String?
+  triggerIntegrationId        String?
+  supportIntegrationId        String?
+  extractIntegrationId        String?
+  mcpserverIntegrationId      String?
+  skillserverIntegrationId    String?
+  // @note the event log tracks conversational integrations only; anam,
+  // avatar and recall are excluded by design (they emit no events). If that
+  // ever changes, add the three `*IntegrationId` columns here, the matching
+  // entries in the event log/metric list+export whitelists and the
+  // EventLogItem type, then regenerate the client.
+  webhookId                   String?
+
+  // fields
+  name        String @default("")
+  description String @default(dbgenerated("(_utf8mb4\\'\\')")) @db.Text
+
+  type String
+
+  value Float?
+
+  meta Json? /// [Meta]
+
+  // timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // indexes: delete
+  @@index(fields: [createdAt]) // used for purging old records
+  // indexes: other
+  @@index(fields: [userId, createdAt(sort: Desc)])
+  @@index(fields: [userId, type, createdAt(sort: Desc)])
+}
+
+// ---
+
+model AuditLog {
+  id String @id @default(cuid())
+
+  // owner
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // relationships
+  conversationId String?
+  taskId         String?
+  contactId      String?
+  spaceId        String?
+  blueprintId    String?
+  botId          String?
+  datasetId      String?
+  recordId       String?
+  skillsetId     String?
+  abilityId      String?
+  fileId         String?
+  secretId       String?
+  portalId       String?
+  policyId       String?
+  webhookId      String?
+  sessionId      String?
+
+  // fields
+  name        String @default("")
+  description String @default(dbgenerated("(_utf8mb4\\'\\')")) @db.Text
+
+  action String
+
+  oldValues Json? /// [JsonRecord] 
+  newValues Json? /// [JsonRecord] 
+
+  ipAddress String?
+  userAgent String?
+
+  meta Json? /// [Meta]
+
+  // timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // indexes: delete
+  @@index(fields: [createdAt]) // used for purging old records
+  // indexes: other
+  @@index(fields: [userId, createdAt(sort: Desc)])
+  @@index(fields: [userId, action, createdAt(sort: Desc)])
+}
+
+// ---
+// ---
+// ---
+
+model Contact {
+  id String @id @default(cuid())
+
+  // owner
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // fields
+  name        String @default("")
+  description String @default(dbgenerated("(_utf8mb4\\'\\')")) @db.Text
+
+  preferences String? @db.Text
+
+  fingerprint String @default(cuid())
+
+  email String?
+  phone String?
+  nick  String?
+
+  verifiedAt DateTime?
+
+  meta Json? /// [Meta]
+
+  // timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // connections: objects
+  conversations Conversation[]
+  tasks         Task[]
+  ratings       Rating[]
+  memories      Memory[]
+  spaces        Space[]
+  contexts      Context[]
+
+  // connections: secret values
+  secretValues SecretValue[]
+
+  // indexes: unique
+  @@unique([userId, fingerprint])
+  // indexes: other
+  @@index(fields: [userId, createdAt(sort: Desc)])
+  @@index(fields: [userId, email])
+}
+
+// ---
+
+model Conversation {
+  id String @id @default(cuid())
+
+  // owner
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // relationships
+  contactId String?
+  contact   Contact? @relation(fields: [contactId], references: [id], onDelete: SetNull)
+  spaceId   String?
+  space     Space?   @relation(fields: [spaceId], references: [id], onDelete: SetNull)
+  botId     String?
+  bot       Bot?     @relation(fields: [botId], references: [id], onDelete: SetNull)
+  taskId    String?
+  task      Task?    @relation(fields: [taskId], references: [id], onDelete: SetNull)
+  datasetId String?
+  dataset   Dataset? @relation(fields: [datasetId], references: [id], onDelete: SetNull)
+
+  skillsetId String?
+  skillset   Skillset? @relation(fields: [skillsetId], references: [id], onDelete: SetNull)
+
+  // fields
+  name        String @default("")
+  description String @default(dbgenerated("(_utf8mb4\\'\\')")) @db.Text
+
+  backstory String? @default(dbgenerated("(_utf8mb4\\'\\')")) @db.MediumText
+
+  model String? @default("") @db.VarChar(512)
+
+  privacy    Boolean? @default(false)
+  moderation Boolean? @default(false)
+
+  expiresAt DateTime?
+
+  meta Json? /// [Meta]
+
+  // timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // connections: objects
+  messages Message[]
+  ratings  Rating[]
+
+  // connections: tasks
+  taskExecutions TaskExecution[]
+
+  // connections: extractIntegrationItems
+  extractIntegrationItems ExtractIntegrationItem[]
+
+  // indexes: listing
+  @@index(fields: [userId, createdAt(sort: Desc), id(sort: Desc)]) // used for cursor pagination in list endpoint
+  // indexes: other
+  @@index(fields: [userId, createdAt(sort: Desc)]) // used for listing
+  @@index(fields: [userId, contactId, createdAt(sort: Desc)]) // used for listing
+  @@index(fields: [id, botId])
+  @@index(fields: [id, datasetId])
+  @@index(fields: [id, skillsetId])
+  @@index(fields: [expiresAt]) // used for cleaning up expired conversations
+  @@index(fields: [createdAt]) // used for cleaning up empty conversations
+  @@index(fields: [datasetId])
+  @@index(fields: [skillsetId])
+  @@index(fields: [botId])
+  @@index(fields: [contactId, createdAt(sort: Desc)]) // used by conversation fetch in actions
+  @@index(fields: [spaceId, createdAt(sort: Desc)]) // used by conversation fetch in actions
+  @@index(fields: [taskId, createdAt(sort: Desc)]) // used by task fetch in actions
+  @@index(fields: [contactId, taskId, createdAt(sort: Desc)]) // used by task fetch in actions
+}
+
+// ---
+
+enum MessageType {
+  // stable types
+
+  user // a message from the user
+  bot // a message from the bot
+  reasoning // a message that carries reasoning such as a thought process
+  context // a message that carries some context such as additional information
+  instruction // a message that carries some instruction such as a command
+  backstory // a message that describes the backstory of the bot
+  activity // a message that describes an activity
+  checkpoint // a message that describes a compact summary of the conversation
+  // notification // a message that describes a notification
+}
+
+model Message {
+  id String @id @default(cuid())
+
+  // relationships
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  // fields
+  name        String @default("")
+  description String @default(dbgenerated("(_utf8mb4\\'\\')")) @db.Text
+
+  type MessageType
+
+  text String @db.Text
+
+  nps Int?
+
+  expiresAt DateTime?
+
+  meta Json? /// [Meta]
+
+  // timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // connections: objects
+  ratings Rating[]
+
+  // connections: tasks
+  taskExecutionsAsStart TaskExecution[] @relation("TaskExecutionStart")
+  taskExecutionsAsEnd   TaskExecution[] @relation("TaskExecutionEnd")
+
+  // indexes: other
+  @@index(fields: [conversationId, type, createdAt(sort: Desc), id(sort: Desc)]) // supports reverse-chronological engine reads within one conversation and message type; id breaks timestamp ties
+  @@index(fields: [conversationId, type, createdAt(sort: Desc)]) // specifically used in /api/v1/conversation/[conversationId]/send to get messages fast
+  @@index(fields: [conversationId, createdAt(sort: Desc)]) // @note all messages are almost always pulled in reverse order
+}
+
+// ---
+
+model Rating {
+  id String @id @default(cuid())
+
+  // owner
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // relationships
+  botId          String?
+  bot            Bot?          @relation(fields: [botId], references: [id], onDelete: SetNull)
+  contactId      String?
+  contact        Contact?      @relation(fields: [contactId], references: [id], onDelete: SetNull)
+  conversationId String?
+  conversation   Conversation? @relation(fields: [conversationId], references: [id], onDelete: SetNull)
+  messageId      String?
+  message        Message?      @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  // fields
+  name        String @default("")
+  description String @default(dbgenerated("(_utf8mb4\\'\\')")) @db.Text
+
+  value Int
+
+  reason String? @db.Text
+
+  meta Json? /// [Meta]
+
+  // timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // indexes: listing
+  @@index(fields: [userId, createdAt(sort: Desc), id(sort: Desc)]) // used for cursor pagination in list endpoint
+  // indexes: other
+  @@index(fields: [userId])
+  @@index(fields: [botId])
+  @@index(fields: [conversationId])
+  @@index(fields: [messageId])
+}
+
+// ---
+
+enum TaskStatus {
+  idle // not currently running
+  running // actively executing
+  canceled // execution was canceled before completion
+}
+
+enum TaskOutcome {
+  pending // never run yet
+  success // last run completed successfully
+  failure // last run failed or was incomplete
+}
+
+model TaskExecution {
+  id String @id @default(cuid())
+
+  // owner
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // relationships
+  taskId         String
+  task           Task          @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  conversationId String?
+  conversation   Conversation? @relation(fields: [conversationId], references: [id], onDelete: SetNull)
+  startMessageId String?
+  startMessage   Message?      @relation("TaskExecutionStart", fields: [startMessageId], references: [id], onDelete: SetNull)
+  endMessageId   String?
+  endMessage     Message?      @relation("TaskExecutionEnd", fields: [endMessageId], references: [id], onDelete: SetNull)
+
+  // fields
+  name        String @default("")
+  description String @default(dbgenerated("(_utf8mb4\\'\\')")) @db.Text
+
+  status  TaskStatus  @default(idle)
+  outcome TaskOutcome @default(pending)
+
+  completedAt DateTime?
+
+  resumeAt DateTime?
+
+  keepAliveUntil DateTime?
+
+  summary String? @db.Text
+
+  meta Json? /// [Meta]
+
+  // timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // indexes: listing
+  @@index(fields: [userId, createdAt(sort: Desc)])
+  @@index(fields: [taskId, createdAt(sort: Desc)])
+  // indexes: reaper (stalled sweep over running executions)
+  @@index(fields: [status, keepAliveUntil])
+  // indexes: foreign keys
+  @@index(fields: [userId])
+  @@index(fields: [taskId])
+  @@index(fields: [conversationId])
+  @@index(fields: [startMessageId])
+  @@index(fields: [endMessageId])
+}
+
+// ---
+
+model Task {
+  id String @id @default(cuid())
+
+  // owner
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // relationships
+  blueprintId String?
+  blueprint   Blueprint? @relation(fields: [blueprintId], references: [id], onDelete: SetNull)
+  botId       String?
+  bot         Bot?       @relation(fields: [botId], references: [id], onDelete: SetNull)
+  contactId   String?
+  contact     Contact?   @relation(fields: [contactId], references: [id], onDelete: Cascade)
+
+  // fields
+  name        String @default("")
+  description String @default(dbgenerated("(_utf8mb4\\'\\')")) @db.Text
+
+  status  TaskStatus  @default(idle)
+  outcome TaskOutcome @default(pending)
+
+  sessionDuration Float?
+
+  maxIterations Int?
+  maxTime       Float?
+  maxCalls      Int?
+
+  schedule String?
+  timezone String?
+
+  nextRunAt DateTime?
+  lastRunAt DateTime?
+
+  expiresAt DateTime?
+
+  meta Json? /// [Meta]
+
+  // timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // connections: tasks
+  taskExecutions TaskExecution[]
+
+  // connections: objects
+  conversations Conversation[]
+
+  // indexes: listing
+  @@index(fields: [userId, createdAt(sort: Desc), id(sort: Desc)]) // used for cursor pagination in list endpoint
+  // indexes: other
+  @@index(fields: [userId])
+  @@index(fields: [blueprintId])
+  @@index(fields: [schedule, lastRunAt])
+  @@index(fields: [nextRunAt])
+}
+
+// ---
+
+model Memory {
+  id String @id @default(cuid())
+
+  // owner
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // relationships
+  contactId String?
+  contact   Contact? @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  botId     String?
+  bot       Bot?     @relation(fields: [botId], references: [id], onDelete: Cascade)
+
+  // fields
+  name        String @default("")
+  description String @default(dbgenerated("(_utf8mb4\\'\\')")) @db.Text
+
+  text String @db.Text
+
+  expiresAt DateTime?
+
+  meta Json? /// [Meta]
+
+  // timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // indexes: other
+  @@index(fields: [userId])
+  @@index(fields: [botId])
+}
+
+// ---
+
+model Space {
+  id String @id @default(cuid())
+
+  // owner
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // relationships
+  contactId String?
+  contact   Contact? @relation(fields: [contactId], references: [id], onDelete: SetNull)
+
+  blueprintId String?
+  blueprint   Blueprint? @relation(fields: [blueprintId], references: [id], onDelete: SetNull)
+
+  // ref
+  alias String?
+
+  // fields
+  name        String @default("")
+  description String @default(dbgenerated("(_utf8mb4\\'\\')")) @db.Text
+
+  meta Json? /// [Meta]
+
+  // timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // connections: conversation
+  conversations Conversation[]
+
+  // connections: resources
+  abilities Ability[]
+
+  // connections: publishing
+  sites SpaceSite[]
+
+  // indexes: unique
+  @@unique([userId, alias]) // for alias lookup by user
+  // indexes: other
+  @@index(fields: [userId, createdAt(sort: Desc)])
+  @@index(fields: [blueprintId])
+}
+
+// ---
+
+model SpaceSite {
+  id String @id @default(cuid())
+
+  // owner
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // attachment (many sites per space)
+  spaceId String
+  space   Space  @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+
+  // ref
+  alias String?
+
+  // basic information
+  name        String @default("")
+  description String @default(dbgenerated("(_utf8mb4\\'\\')")) @db.Text
+
+  // host binding
+  slug String @unique
+
+  // serving config
+  prefix   String?
+  index    String  @default("index.html")
+  notFound String  @default("404.html")
+
+  // meta and others
+  meta Json? /// [Meta]
+
+  // timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // indexes: unique
+  @@unique([userId, alias]) // for alias lookup by user
+  // indexes: other
+  @@index(fields: [userId])
+  @@index(fields: [spaceId])
+}
+
+// ---
+// ---
+// ---
+
+// @note `Token` is the API token (auth credential); LLM token counting is
+// `usage` and `limits` vocabulary. Both keep the word by decision - the two
+// never share a type or a table, and prose distinguishes "API token" from
+// "usage tokens".
+
+model Token {
+  id String @id @default(cuid())
+
+  // owner
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // fields
+  name        String @default("")
+  description String @default(dbgenerated("(_utf8mb4\\'\\')")) @db.Text
+
+  token String @unique /// @digest
+
+  config Json? /// [TokenConfig] @see prisma/post-generate-zod.js
+
+  meta Json? /// [Meta]
+
+  // timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // indexes: other
+  @@index(fields: [createdAt(sort: Desc)]) // used for listing
+  @@index(fields: [userId])
+}
+
+// ---
+// ---
+// ---
+
+model Webhook {
+  id String @id @default(cuid())
+
+  // owner
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // fields
+  name        String @default("")
+  description String @default(dbgenerated("(_utf8mb4\\'\\')")) @db.Text
+
+  request String @default(dbgenerated("(_utf8mb4\\'\\')")) @db.Text
+
+  events String @default(dbgenerated("(_utf8mb4\\'\\')")) @db.Text
+
+  secret String @unique /// @encrypted
+
+  meta Json? /// [Meta]
+
+  // timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // indexes: other
+  @@index(fields: [userId])
+  @@index(fields: [createdAt(sort: Desc)])
+}
+
+// ---
+// ---
+// ---
+
+enum DatasetFileAttachmentType {
+  source
+}
+
+model DatasetFileAttachment {
+  // relationships
+  datasetId String
+  dataset   Dataset @relation(fields: [datasetId], references: [id], onDelete: Cascade)
+  fileId    String
+  file      File    @relation(fields: [fileId], references: [id], onDelete: Cascade)
+
+  // fields
+  type DatasetFileAttachmentType
+
+  meta Json? /// [Meta]
+
+  // timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // indexes: other
+  @@id([datasetId, fileId])
+  @@index(fields: [fileId]) // because of @relation
+  @@index(fields: [datasetId, createdAt(sort: Desc)]) // used for listing
+  @@index(fields: [datasetId, type])
+}
+
+// ---
+
+enum WidgetIntegrationFileAttachmentType {
+  bar
+  user
+  bot
+  button
+}
+
+model WidgetIntegrationFileAttachment {
+  // relationships
+  widgetIntegrationId String
+  widgetIntegration   WidgetIntegration @relation(fields: [widgetIntegrationId], references: [id], onDelete: Cascade)
+  fileId              String
+  file                File              @relation(fields: [fileId], references: [id], onDelete: Cascade)
+
+  // fields
+  type WidgetIntegrationFileAttachmentType
+
+  // timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // indexes: other
+  @@id([widgetIntegrationId, type])
+  @@index(fields: [fileId]) // because of @relation
+}

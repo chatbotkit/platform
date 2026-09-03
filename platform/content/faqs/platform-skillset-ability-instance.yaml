@@ -1,0 +1,12 @@
+- question: What is a Skillset Ability?
+  answer: An ability is an entry in your Skillset. Abilities are instructions that are defined in natural language and allow the chatbot to understand user intent and propose a suitable action based on the conversation.
+- question: How big a skillset ability can be?
+  answer: Skillset Abilities must be small, precise, and relevant. This increases the chance for the chatbot to be able to interpret the user intent and produce the desired result.
+- question: How do I create a new ability?
+  answer: To create a new skillset ability, simply enter the desired instruction and click "Create".
+- question: How do I update an existing skillset ability?
+  answer: To update an existing skillset ability, make the desired changes in the fields on the page. When you are finished making changes, click the "Save" button to apply the updates to the ability.
+- question: Can I delete a skillset ability?
+  answer: Yes, you can delete a skillset ability by clicking the "Delete" button. It can be found in this screen as well next to the ability in the list on the Skillset Abilities page. Please note that this action cannot be undone, so make sure you really want to delete the ability before confirming the action.
+- question: Where can I learn more about Skillset Abilities?
+  answer: For more information about Skillset Abilities please refer to the [documentation](https://chatbotkit.com/docs/skillsets).

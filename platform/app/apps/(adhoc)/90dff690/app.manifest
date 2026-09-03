@@ -1,0 +1,9 @@
+{
+  "start": "/apps/90dff690",
+  "name": "Tokens",
+  "description": "Create, list, and manage access tokens for secure API interactions.",
+  "icon": "@lucide/code",
+  "order": 10,
+  "category": "admin",
+  "config": {}
+}

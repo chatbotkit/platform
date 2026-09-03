@@ -1,0 +1,14 @@
+- question: What is the Discord integration?
+  answer: The Discord integration allows users to deploy chatbots on Discord, enabling them to interact with their chatbot directly from within the Discord platform.
+- question: What is the name field?
+  answer: The name field is where you give your chatbot a name that will be displayed to users. This helps users identify your chatbot and distinguish it from other bots in the chat.
+- question: What is the description field?
+  answer: The description field is where you provide a brief description of what your chatbot does and how it can help users. This helps users understand the purpose of your chatbot and how it can assist them.
+- question: What are the advanced options?
+  answer: Advanced Options allow you to define the dataset, skillset, and model for your chatbot. The dataset defines the training data that your chatbot will use to learn how to respond to user inputs. The skillset defines the specific skills that your chatbot will possess, such as the ability to handle customer service inquiries or provide product recommendations. The model is the algorithm that your chatbot will use to process user input and generate responses. By customizing these options, you can create a chatbot that is tailored to your specific needs and goals.
+- question: Can I create my own custom discord command?
+  answer: Yes, you can create your own custom discord command using the handle feature in ChatBotKit. The handle is a slash command that can be used to trigger your chatbot. When setting up your Discord bot integration, you can provide a handle value and your bot will respond to that command when it is entered in the chat window.
+- question: Can I make discord conversations hidden?
+  answer: Yes. Make sure you turn on the Ephemeral option under Advanced Options.
+- question: What is the session duration?
+  answer: The session duration for chatbot interactions varies based on the session length you specify in your integration settings. By default, ChatBotKit assigns a session that lasts one day, but you can adjust the session length to be longer or shorter depending on your needs.
