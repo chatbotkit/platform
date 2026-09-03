@@ -8,7 +8,7 @@ import { useConfirmDelete } from '@/components/Confirm'
 import List from '@/components/List'
 
 import useFetch from '@/hooks/useFetch'
-import { useSpaceApex } from '@/hooks/useHostname'
+import { useApexHostURL, useSpaceApex } from '@/hooks/useHostname'
 import usePopup from '@/hooks/usePopup'
 
 /**
@@ -167,7 +167,10 @@ export default function SpaceSiteList({
   readOnly = false,
 }) {
   const [sites, setSites] = useState(defaultItems)
+
   const spaceApex = useSpaceApex()
+
+  const toApexHostURL = useApexHostURL()
 
   const { fetch: load } = useFetch({
     loadingMessage: false,
@@ -197,12 +200,12 @@ export default function SpaceSiteList({
   const handleOpen = useCallback(
     (site) => {
       window.open(
-        `https://${site.slug}.${spaceApex}`,
+        toApexHostURL(site.slug, spaceApex),
         '_blank',
         'noopener,noreferrer'
       )
     },
-    [spaceApex]
+    [spaceApex, toApexHostURL]
   )
 
   const handleSave = useCallback(

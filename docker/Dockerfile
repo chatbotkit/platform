@@ -91,6 +91,21 @@ ENV NODE_OPTIONS="--max-old-space-size=$NODE_HEAP_MB --require /app/platform/scr
 ARG SITE_URL=http://localhost:3000
 ENV SITE_URL=$SITE_URL
 
+# @note apex host rewrites are generated at build time, so the image bakes a
+# `.localhost` pair browsers resolve to loopback without DNS: space sites at
+# `<slug>.space.localhost`, portals at `<slug>.portal.localhost`. The runtime
+# environment must name the same apexes (the compose files do).
+# @todo move the apex host rewrites out of next.config.d into a runtime proxy
+# so one image digest serves any domain without a rebuild
+ARG SPACE_APEX=space.localhost
+ENV SPACE_APEX=$SPACE_APEX
+ARG PORTAL_APEX=portal.localhost
+ENV PORTAL_APEX=$PORTAL_APEX
+ARG APP_APEX=
+ENV APP_APEX=$APP_APEX
+ARG PARTNERS_APEX=
+ENV PARTNERS_APEX=$PARTNERS_APEX
+
 # @note source maps ship without source content by default; pass 'full'
 # explicitly to embed the source for debuggable self-hosted images
 ARG BUILD_SOURCEMAPS=nosources

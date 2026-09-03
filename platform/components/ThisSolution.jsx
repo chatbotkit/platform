@@ -17,7 +17,7 @@ import FOC from '@/components/FOC'
 import Portal from '@/components/Portal'
 
 import useDashboardWidgetSend from '@/hooks/useDashboardWidgetSend'
-import { usePortalApex } from '@/hooks/useHostname'
+import { useApexHostURL, usePortalApex } from '@/hooks/useHostname'
 import useTeamSwitch from '@/hooks/useTeamSwitch'
 import useUserSwitch from '@/hooks/useUserSwitch'
 
@@ -343,6 +343,8 @@ export default function ThisSolution({
 }) {
   const portalApex = usePortalApex()
 
+  const toApexHostURL = useApexHostURL()
+
   const singleton = useThisSolutionSingleton()
 
   const href = function (href, search = {}) {
@@ -602,7 +604,7 @@ export default function ThisSolution({
             {
               icon: 'heroicons/link',
               title: 'Open Portal',
-              link: `https://${instance.slug}.${portalApex}`,
+              link: toApexHostURL(instance.slug, portalApex),
               target: '_blank',
             },
           ]
@@ -730,7 +732,7 @@ export default function ThisSolution({
           ]
         : []),
     ]
-  }, [updateKey, type, instance, level, toName, portalApex])
+  }, [updateKey, type, instance, level, toName, portalApex, toApexHostURL])
 
   const wrapper = useMemo(() => {
     return portal

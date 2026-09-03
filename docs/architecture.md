@@ -56,8 +56,9 @@ ignored.
 [Module defaults](./module-defaults.md) lists the rest.
 
 The public defaults differ in what "default" means, and the difference is
-deliberate. `@chatbotkit-dev/email` logs messages to the console - a working,
-if noisy, delivery path. The plan catalogue (`@/config/limits`, read from the
+deliberate. `@chatbotkit-dev/email` delivers through Resend, SendGrid or SES
+when it finds a credential, and otherwise logs messages to the console - a
+working, if noisy, delivery path. The plan catalogue (`@/config/limits`, read from the
 LIMITS_CONFIG environment variable) defaults to empty, which the platform
 reads as "this deployment has no plan concept": every entitlement resolves
 without limits and no interface renders a plan name. Defaults describe a

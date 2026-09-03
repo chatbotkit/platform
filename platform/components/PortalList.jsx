@@ -5,7 +5,7 @@ import { useMemo } from 'react'
 import ResourceList from '@/components/ResourceList'
 
 import useGraphQLConnectionListRoute from '@/hooks/useGraphQLConnectionListRoute'
-import { usePortalApex } from '@/hooks/useHostname'
+import { useApexHostURL, usePortalApex } from '@/hooks/useHostname'
 import useProjectScope, { scopeListRoute } from '@/hooks/useProjectScope'
 
 const DEFAULT_LIST_ROUTE = '/api/v1/portal/list'
@@ -72,16 +72,18 @@ export default function PortalList({
 }) {
   const portalApex = usePortalApex()
 
+  const toApexHostURL = useApexHostURL()
+
   const { hydrated, scope } = useProjectScope()
 
   const resolvedExtraLinks = useMemo(
     () =>
       extraLinks === undefined
         ? {
-            Open: ({ slug }) => `https://${slug}.${portalApex}`,
+            Open: ({ slug }) => toApexHostURL(slug, portalApex),
           }
         : extraLinks,
-    [extraLinks, portalApex]
+    [extraLinks, portalApex, toApexHostURL]
   )
 
   const variables = useMemo(

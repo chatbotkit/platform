@@ -143,6 +143,24 @@ REDIS_URL=redis://localhost:6379
 QDRANT_URL=http://localhost:6333
 ```
 
+## Configure email delivery
+
+Without an email vendor, sign-in codes and invitations are printed to the
+server log. To deliver real mail, set one vendor's credential and a verified
+sender; the module detects the vendor from the credential:
+
+```bash
+EMAIL_FROM="Login <noreply@example.com>"
+
+RESEND_API_KEY=re_...
+# or SENDGRID_API_KEY=SG....
+# or SES_AWS_REGION=eu-west-1 SES_AWS_ACCESS_KEY_ID=... SES_AWS_SECRET_ACCESS_KEY=...
+```
+
+`EMAIL_PROVIDER` pins a vendor when more than one credential is present, and
+`EMAIL_REPLY_TO` and `EMAIL_ACTIONS_FROM` are optional. The email module's
+README has the full reference.
+
 ## Protect stored credentials
 
 Before storing real credentials, configure `PRISMA_FIELD_ENCRYPTION_KEY`. An

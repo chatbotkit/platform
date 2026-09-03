@@ -5,6 +5,7 @@ import useCookie from './useCookie'
 import useHostname, {
   getDocumentHostname,
   useAPIHostname,
+  useApexHostURL,
   useAppSlugToHostnameMap,
   useAudienceHostname,
   useCookieHostname,
@@ -406,6 +407,53 @@ describe('configured apexes', () => {
     const { result } = renderHook(() => useSpaceApex())
 
     expect(result.current).toBe('space.example.com')
+  })
+})
+
+describe('useApexHostURL', () => {
+  afterEach(() => {
+    siteUrlValue = 'https://default.example.com'
+  })
+
+  it('should follow the document location scheme and port once hydrated', () => {
+    // @note jsdom serves the test document from http://localhost/
+    const { result } = renderHook(() => useApexHostURL())
+
+    expect(result.current('acme', 'space.localhost')).toBe(
+      'http://acme.space.localhost'
+    )
+  })
+
+  it('should seed the scheme and port from the site url on the server', () => {
+    siteUrlValue = 'http://localhost:3000'
+
+    let href = ''
+
+    function Probe() {
+      href = useApexHostURL()('acme', 'space.localhost')
+
+      return null
+    }
+
+    renderToString(<Probe />)
+
+    expect(href).toBe('http://acme.space.localhost:3000')
+  })
+
+  it('should omit the port when the site url has none', () => {
+    siteUrlValue = 'https://app.example.com'
+
+    let href = ''
+
+    function Probe() {
+      href = useApexHostURL()('acme', 'space.example.com')
+
+      return null
+    }
+
+    renderToString(<Probe />)
+
+    expect(href).toBe('https://acme.space.example.com')
   })
 })
 

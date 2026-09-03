@@ -1,8 +1,6 @@
 import { useEffect, useState } from 'react'
 
-import { rgbToHex } from '@/lib/color'
-
-import ColorThief from 'colorthief'
+import { getColor, getPalette } from 'colorthief'
 
 interface UseImageColorPaletteResult {
   error: Error | Event | null
@@ -20,32 +18,43 @@ export default function useImageColorPalette(
   const [colorPalette, setColorPalette] = useState<string[] | null>(null)
 
   useEffect(() => {
-    const colorThief = new ColorThief()
+    let cancelled = false
 
     const img = new Image()
 
     img.src = url || ''
     img.crossOrigin = 'Anonymous'
 
-    img.onload = () => {
+    img.onload = async () => {
       try {
         setError(null)
 
-        const color = rgbToHex(colorThief.getColor(img))
+        const [dominant, swatches] = await Promise.all([
+          getColor(img),
+          getPalette(img, { colorCount: 8 }),
+        ])
+
+        if (cancelled) {
+          return
+        }
+
+        const color = dominant ? dominant.hex() : null
 
         setColor(color)
 
-        const palette = colorThief
-          .getPalette(img, 8)
-          .map((color) => rgbToHex(color))
+        const palette = (swatches || []).map((swatch) => swatch.hex())
 
         setPalette(palette)
 
-        const colorPalette = Array.from(new Set([color, ...palette]))
+        const colorPalette = Array.from(
+          new Set([...(color ? [color] : []), ...palette])
+        )
 
         setColorPalette(colorPalette)
       } catch (e) {
-        setError(e as Error)
+        if (!cancelled) {
+          setError(e as Error)
+        }
       }
     }
 
@@ -54,6 +63,8 @@ export default function useImageColorPalette(
     }
 
     return () => {
+      cancelled = true
+
       img.onload = null
     }
   }, [url])

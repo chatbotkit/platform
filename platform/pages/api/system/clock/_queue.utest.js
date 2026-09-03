@@ -7,6 +7,7 @@ import {
   handleClock10Event,
   handleEmptyConversations,
   handleExpiredConversations,
+  sendEvent,
 } from './queue'
 
 jest.mock('@/lib/debug', () => () => ({
@@ -132,5 +133,18 @@ describe('/api/system/clock/queue', () => {
     expect(sendConversationEvent).toHaveBeenCalledWith(
       expect.objectContaining({ type: 'empty' })
     )
+  })
+
+  // @note the clock has its own route, and a tick queued anywhere else is a
+  // delivery to a path with no handler
+  it('should queue clock events to the clock route', async () => {
+    const queue = require('@/lib/queue')
+
+    await sendEvent({ type: 'clock10', payload: {} })
+
+    expect(queue).toHaveBeenCalledWith('/api/system/clock/queue', {
+      type: 'clock10',
+      payload: {},
+    })
   })
 })

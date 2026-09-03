@@ -6,65 +6,166 @@ import type {
   NotificationEmail,
 } from '@chatbotkit-dev/email-spec'
 
+import type { OutboundMessage } from './identity'
+import {
+  actionFrom,
+  defaultReplyTo,
+  formatAddress,
+  notificationFrom,
+  parseAddress,
+} from './identity'
+import * as print from './print'
+import * as resend from './resend'
+import * as sendgrid from './sendgrid'
+import * as ses from './ses'
+
 export type * from '@chatbotkit-dev/email-spec'
 
-// @note the community implementation does not deliver mail. It writes what it
-// would have sent to the console, text body included, so a deployment runs and
-// stays usable without an email vendor configured - the console IS delivery
-// here: sign-in codes and invitations reach the operator nowhere else. Replace
-// this package to deliver for real (and to keep bodies out of logs).
+// @note the community email provider picks its delivery vendor from whichever
+// credentials are present, and with none present it writes what it would have
+// sent to the console so a deployment runs without an email vendor at all.
+//
+// Detection is by credential, in the order below, and EMAIL_PROVIDER pins one
+// when that is not what an operator wants. Everything is resolved at send
+// time: nothing that merely imports this package needs any of it configured.
 
-// @note the body is framed with an open left rail rather than a closed box:
-// every line stands alone, so long URLs never break the frame and per-line
-// log timestamps do not mangle it
-function describe(
+export type EmailVendor = 'print' | 'resend' | 'sendgrid' | 'ses'
+
+interface Vendor {
+  isConfigured(): boolean
+  assertEnv(): void
+  send(message: OutboundMessage): Promise<void>
+}
+
+const VENDORS: Record<Exclude<EmailVendor, 'print'>, Vendor> = {
+  resend,
+  sendgrid,
+  ses,
+}
+
+/**
+ * The vendor mail is currently delivered through.
+ *
+ * @throws {Error} when `EMAIL_PROVIDER` names something that is not one.
+ */
+export function detectVendor(): EmailVendor {
+  const pinned = process.env.EMAIL_PROVIDER
+
+  if (pinned) {
+    if (pinned === 'print' || pinned in VENDORS) {
+      return pinned as EmailVendor
+    }
+
+    throw new Error(
+      `EMAIL_PROVIDER=${JSON.stringify(pinned)} is not one of print, ${Object.keys(VENDORS).join(', ')}`
+    )
+  }
+
+  for (const [name, vendor] of Object.entries(VENDORS)) {
+    if (vendor.isConfigured()) {
+      return name as EmailVendor
+    }
+  }
+
+  return 'print'
+}
+
+// @note the message is built only once a vendor is chosen: resolving the
+// sending identity throws without one, and printing needs none
+async function deliver(
   kind: string,
-  email: { to: string; subject: string },
-  text: string
-): void {
-  const rule = '─'.repeat(50)
+  preview: { to: string; subject: string; text: string },
+  message: () => OutboundMessage
+): Promise<void> {
+  const vendor = detectVendor()
 
-  const body = text
-    .trim()
-    .split('\n')
-    .map((line) => `│ ${line}`)
-    .join('\n')
+  if (vendor === 'print') {
+    print.describe(kind, preview, preview.text)
 
-  // eslint-disable-next-line no-console
-  console.log(
-    `[email:${kind}] to=${email.to} subject=${JSON.stringify(email.subject)} (not delivered: no email provider configured)\n┌${rule}\n${body}\n└${rule}`
-  )
+    return
+  }
+
+  await VENDORS[vendor].send(message())
 }
 
 export async function sendEmailNotification(
   email: NotificationEmail
 ): Promise<void> {
-  describe('notification', email, email.content.text)
+  const { to, subject, content, replyTo, essential = false } = email
+
+  await deliver('notification', { to, subject, text: content.text }, () => ({
+    from: notificationFrom(),
+    to,
+    subject,
+    text: content.text,
+    html: content.html,
+
+    replyTo: replyTo ?? defaultReplyTo(),
+
+    essential,
+  }))
 }
 
 export async function sendEmailAction(email: ActionEmail): Promise<void> {
-  describe('action', email, email.content.text)
+  const { to, subject, content, from, name, replyTo, messageId } = email
+
+  await deliver('action', { to, subject, text: content.text }, () => {
+    const base = parseAddress(actionFrom())
+
+    return {
+      from: formatAddress({
+        name: name || base.name,
+        email: from || base.email,
+      }),
+      to,
+      subject,
+      text: content.text,
+      html: content.html,
+
+      replyTo,
+      messageId,
+
+      // @note the recipient never subscribed to anything and must not land on
+      // a suppression list by replying
+      essential: true,
+    }
+  })
 }
 
 /**
- * @note the community implementation delivers nothing, so a transport is the
- * same console line as anything else - with the identity it would have sent as,
- * because that is the whole point of asking for one.
+ * @note the vendor is resolved on send, not here. A configuration catalogue
+ * constructs transports at import, and nothing that merely imports one should
+ * need this deployment's credentials present.
  */
 export function createEmailTransport(source: string): EmailTransport {
   return {
-    async send({ to, subject, text }) {
-      describe(`transport from=${source}`, { to, subject }, text)
+    async send({ to, subject, text, html }) {
+      await deliver(`transport from=${source}`, { to, subject, text }, () => ({
+        from: source,
+        to,
+        subject,
+        text,
+        html,
+      }))
     },
   }
 }
 
 /**
- * @note the community provider needs no configuration, so there is nothing that
- * can be misconfigured.
+ * @throws {Error} when a vendor is selected but its credentials or the sending
+ * identity are incomplete. With no vendor configured there is nothing to
+ * check: printing needs nothing.
  */
 export async function assertConfigured(): Promise<void> {
-  // pass
+  const vendor = detectVendor()
+
+  if (vendor === 'print') {
+    return
+  }
+
+  VENDORS[vendor].assertEnv()
+
+  notificationFrom()
 }
 
 // @note the community implementation hosts no sending domain, so integration
@@ -86,14 +187,14 @@ export function formatIntegrationMessageId(_integrationId: string): string {
   return `<${crypto.randomUUID()}@integration.${integrationHostname()}>`
 }
 
-// @note no inbound vendor means no inbound mail - describe and decline, the
-// same posture as outbound delivery above
+// @note none of the outbound vendors above receives mail for us, so inbound
+// mail is described and declined regardless of which one is delivering
 export async function parseInboundEmail(
   _form: FormData
 ): Promise<InboundEmail | null> {
   // eslint-disable-next-line no-console
   console.log(
-    '[email:inbound] inbound message ignored (not parsed: no email provider configured)'
+    '[email:inbound] inbound message ignored (not parsed: this email provider has no inbound vendor)'
   )
 
   return null

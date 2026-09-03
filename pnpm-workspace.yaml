@@ -390,7 +390,6 @@ overrides:
   # sharp dependency is dead weight that drags libvips advisories in
   'colorthief>sharp': '-'
   'ndarray-pixels>sharp': '-'
-  'colorthief>file-type': '-'
   # @note swagger-jsdoc pins deprecated glob 11 although its glob usage remains
   # compatible with the maintained release
   'swagger-jsdoc>glob': ^13.0.6

@@ -61,6 +61,11 @@ services:
       PORT: 3000
       SITE_URL: ${SITE_URL:-http://localhost:3000}
       NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3000}
+      # @note deployment-issued subdomains; must match the apexes baked into
+      # the image (docker/Dockerfile). Browsers resolve `*.localhost` to
+      # loopback, so `acme.space.localhost:3000` works with no DNS setup
+      SPACE_APEX: ${SPACE_APEX:-space.localhost}
+      PORTAL_APEX: ${PORTAL_APEX:-portal.localhost}
       # @note left empty, the image generates these secrets on first boot and
       # persists them in the platform-data volume; set explicitly to override
       NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:-}

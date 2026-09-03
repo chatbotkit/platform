@@ -57,7 +57,7 @@ import { isOpaqueColor, legibleTextColor } from '@/lib/color2'
 import { accessVar } from '@/lib/css.var'
 import { looksLikeEmail } from '@/lib/email.validation'
 import { isDevelopment } from '@/lib/env'
-import { captureError } from '@/lib/error'
+import { SystemError, captureError } from '@/lib/error'
 import fetch from '@/lib/fetch'
 import { formToData } from '@/lib/form'
 import { getHighlighter, highlight } from '@/lib/highlighter'
@@ -70,6 +70,7 @@ import { getAccept } from '@/lib/mime'
 import { equal, merge, pick } from '@/lib/object'
 import { sleep } from '@/lib/promise'
 import { isComponent } from '@/lib/react'
+import { captureUnknownError, isUnknownError } from '@/lib/response'
 import { textToEmojiSpans, wordsToSpans } from '@/lib/rehype.plugins'
 import { saveBlob, saveUrl } from '@/lib/save'
 import { buildOriginRestrictedCsp } from '@/lib/security.headers'
@@ -340,7 +341,7 @@ function useFunctionHandler(handler, deps, name) {
               // @note prevent unhandled rejection from propagating to global
               // handler
 
-              await captureError(e)
+              await captureUnknownError(e)
             }
 
             if ('id' in event.data && event.data.id) {
@@ -5594,9 +5595,9 @@ export function Conversation({
           return { conversationId, token, expiresAt }
         }
       } catch (e) {
-        await captureError(e)
+        await captureUnknownError(e)
 
-        return { error: e.message || 'Token method failed' }
+        return { error: e.message || 'Token method failed', code: e.code }
       }
     }
 
@@ -5614,9 +5615,12 @@ export function Conversation({
     })
 
     if (error) {
-      await captureError(error)
+      await captureUnknownError(error)
 
-      return { error: error.message || error || 'Fetch failed' }
+      return {
+        error: error.message || error || 'Fetch failed',
+        code: error.code,
+      }
     }
 
     const { conversationId, token, expiresAt } = data
@@ -5649,6 +5653,7 @@ export function Conversation({
       return conversationId
     } else {
       let lastError = null
+      let lastCode = null
 
       for (let attempt = 0; attempt < 3; attempt++) {
         const {
@@ -5656,6 +5661,7 @@ export function Conversation({
           token,
           expiresAt,
           error,
+          code,
         } = await getToken()
 
         if (newConversationId && token) {
@@ -5669,12 +5675,25 @@ export function Conversation({
           return newConversationId
         } else {
           lastError = error || 'Empty response'
+          lastCode = code
+
+          // @note an expected refusal (account limits, auth) will not clear
+          // on retry
+
+          if (code && !isUnknownError({ code })) {
+            break
+          }
 
           await sleep(500 * (attempt + 1))
         }
       }
 
-      throw new Error(`Failed to get a fresh token: ${lastError}`)
+      // @note carry the code so expected refusals stay out of Sentry upstream
+
+      throw new SystemError(
+        `Failed to get a fresh token: ${lastError}`,
+        lastCode
+      )
     }
   }, [conversationId, setConversationId, setToken, token, getToken])
 

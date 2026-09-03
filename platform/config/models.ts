@@ -1868,6 +1868,94 @@ export const openrouterLanguageModels: Record<
         addedDate: '2025-04-18',
       },
 
+      // meta
+
+      'muse-spark-1.3': {
+        description: `Muse Spark 1.3 is Meta's multimodal reasoning model for long-horizon agentic and coding workflows. It improves first-attempt accuracy, tool calling, and context tracking across extended tasks, with native understanding of images and documents and a 1M-token context window.`,
+
+        provider: 'openrouter',
+
+        providerModel: 'meta/muse-spark-1.3',
+
+        family: 'muse',
+
+        features: ['chat', 'functions', 'image', 'file', 'reasoning'],
+
+        region: 'us',
+        availableRegions: ['us'],
+
+        maxTokens: 1_048_576,
+        maxInputTokens: Math.floor(1_048_576 * MAX_INPUT_TOKENS_RATIO),
+        maxOutputTokens: Math.ceil(1_048_576 * MAX_OUTPUT_TOKENS_RATIO),
+
+        pricing: {
+          tokenRatio: 0.2361,
+          inputTokenRatio: 0.0893,
+          outputTokenRatio: 0.2361,
+          inputPrice: 1.25,
+          outputPrice: 4.25,
+        },
+
+        interactionMaxMessages: DEFAULT_INTERACTION_MAX_MESSAGES,
+
+        thresholdStrategy: 'truncate',
+
+        visible: true,
+        deprecated: false,
+
+        temperature: DEFAULT_TEMPERATURE,
+
+        frequencyPenalty: 0,
+        presencePenalty: 0,
+
+        tags: [],
+
+        addedDate: '2026-09-02',
+      },
+
+      'muse-spark-1.3-contributor': {
+        description: `Muse Spark 1.3 Contributor is Meta's cost-efficient tier for experimentation and early-stage agentic, multi-agent, and coding workflows. It offers dependable tool calling, multimodal perception, and a 1M-token context window. Prompts and outputs may be used to improve Meta's products.`,
+
+        provider: 'openrouter',
+
+        providerModel: 'meta/muse-spark-1.3-contributor',
+
+        family: 'muse',
+
+        features: ['chat', 'functions', 'image', 'file', 'reasoning'],
+
+        region: 'us',
+        availableRegions: ['us'],
+
+        maxTokens: 1_048_576,
+        maxInputTokens: Math.floor(1_048_576 * MAX_INPUT_TOKENS_RATIO),
+        maxOutputTokens: Math.ceil(1_048_576 * MAX_OUTPUT_TOKENS_RATIO),
+
+        pricing: {
+          tokenRatio: 0.0111,
+          inputTokenRatio: 0.0071,
+          outputTokenRatio: 0.0111,
+          inputPrice: 0.1,
+          outputPrice: 0.2,
+        },
+
+        interactionMaxMessages: DEFAULT_INTERACTION_MAX_MESSAGES,
+
+        thresholdStrategy: 'truncate',
+
+        visible: true,
+        deprecated: false,
+
+        temperature: DEFAULT_TEMPERATURE,
+
+        frequencyPenalty: 0,
+        presencePenalty: 0,
+
+        tags: ['training use'],
+
+        addedDate: '2026-09-02',
+      },
+
       // moonshotai
 
       'kimi-k3': {
@@ -2764,7 +2852,111 @@ export const vercelLanguageModels: Record<
         addedDate: '2025-04-10',
       },
 
-      // facebook
+      // meta
+
+      'muse-spark-1.3': {
+        description: `Muse Spark 1.3 is Meta's multimodal reasoning model for long-horizon agentic and coding workflows. It improves first-attempt accuracy, tool calling, and context tracking across extended tasks, with native understanding of images and documents and a 1M-token context window.`,
+
+        provider: 'vercel',
+
+        providerModel: 'meta/muse-spark-1.3',
+
+        providerOptions: {
+          gateway: {
+            // @note meta is the only provider serving this model and is not
+            // ZDR-compliant on the Vercel AI Gateway, so forced ZDR leaves the
+            // gateway nowhere to route and the request fails
+            zeroDataRetention: false,
+          },
+        },
+
+        family: 'muse',
+
+        features: ['chat', 'functions', 'image', 'file', 'reasoning'],
+
+        region: 'us',
+        availableRegions: ['us'],
+
+        maxTokens: 1_048_576,
+        maxInputTokens: Math.floor(1_048_576 * MAX_INPUT_TOKENS_RATIO),
+        maxOutputTokens: Math.ceil(1_048_576 * MAX_OUTPUT_TOKENS_RATIO),
+
+        pricing: {
+          tokenRatio: 0.2361,
+          inputTokenRatio: 0.0893,
+          outputTokenRatio: 0.2361,
+          inputPrice: 1.25,
+          outputPrice: 4.25,
+        },
+
+        interactionMaxMessages: DEFAULT_INTERACTION_MAX_MESSAGES,
+
+        thresholdStrategy: 'truncate',
+
+        visible: true,
+        deprecated: false,
+
+        temperature: DEFAULT_TEMPERATURE,
+
+        frequencyPenalty: 0,
+        presencePenalty: 0,
+
+        tags: [],
+
+        addedDate: '2026-09-02',
+      },
+
+      'muse-spark-1.3-contributor': {
+        description: `Muse Spark 1.3 Contributor is Meta's cost-efficient tier for experimentation and early-stage agentic, multi-agent, and coding workflows. It offers dependable tool calling, multimodal perception, and a 1M-token context window. Prompts and outputs may be used to improve Meta's products.`,
+
+        provider: 'vercel',
+
+        providerModel: 'meta/muse-spark-1.3-contributor',
+
+        providerOptions: {
+          gateway: {
+            // @note meta is the only provider serving this model and is not
+            // ZDR-compliant on the Vercel AI Gateway, so forced ZDR leaves the
+            // gateway nowhere to route and the request fails
+            zeroDataRetention: false,
+          },
+        },
+
+        family: 'muse',
+
+        features: ['chat', 'functions', 'image', 'file', 'reasoning'],
+
+        region: 'us',
+        availableRegions: ['us'],
+
+        maxTokens: 1_048_576,
+        maxInputTokens: Math.floor(1_048_576 * MAX_INPUT_TOKENS_RATIO),
+        maxOutputTokens: Math.ceil(1_048_576 * MAX_OUTPUT_TOKENS_RATIO),
+
+        pricing: {
+          tokenRatio: 0.0111,
+          inputTokenRatio: 0.0071,
+          outputTokenRatio: 0.0111,
+          inputPrice: 0.1,
+          outputPrice: 0.2,
+        },
+
+        interactionMaxMessages: DEFAULT_INTERACTION_MAX_MESSAGES,
+
+        thresholdStrategy: 'truncate',
+
+        visible: true,
+        deprecated: false,
+
+        temperature: DEFAULT_TEMPERATURE,
+
+        frequencyPenalty: 0,
+        presencePenalty: 0,
+
+        tags: ['training use'],
+
+        addedDate: '2026-09-02',
+      },
 
       'muse-spark-1.2': {
         description: `Muse Spark 1.2 is a coding-optimized model purpose-built for agentic workflows. It improves on code generation, debugging, and codebase understanding, with a 1M-token context window that handles an entire project in one session.`,
