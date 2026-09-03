@@ -1,0 +1,10 @@
+{
+  "start": "/apps/c0de9a7f",
+  "name": "Code Factory",
+  "description": "Spin up dark factories - fully self-provisioning coding agents that run your GitHub organisation lights-out, working recurring and one-off tasks unattended.",
+  "icon": "@lucide/factory",
+  "banner": "/apps/c0de9a7f/banner.png",
+  "order": 1002,
+  "category": "lab",
+  "config": {}
+}

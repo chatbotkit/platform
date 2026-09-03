@@ -1,0 +1,75 @@
+freshdesk/ticket/list:
+  provider: 'freshdesk'
+  icon: '@logo/freshdesk.com'
+  name: List Freshdesk Tickets
+  description: List all support tickets in Freshdesk
+  tags:
+    - freshdesk
+    - ticket
+    - list
+  instruction: |
+    ```fetch
+    GET https://((domain!)).freshdesk.com/api/v2/tickets HTTP/1.1
+    Authorization: ${SECRET_DEFAULT}
+    ```
+
+freshdesk/ticket/create:
+  provider: 'freshdesk'
+  icon: '@logo/freshdesk.com'
+  name: Create Freshdesk Ticket
+  description: Create a new support ticket in Freshdesk
+  tags:
+    - freshdesk
+    - ticket
+    - create
+  instruction: |
+    ```fetch
+    POST https://((domain!)).freshdesk.com/api/v2/tickets HTTP/1.1
+    Authorization: ${SECRET_DEFAULT}
+    Content-Type: application/json
+
+    {
+      "email": "$[email|Customer email]",
+      "subject": "$[subject|Ticket subject]",
+      "description": "$[description|Ticket description]",
+      "status": "$[status|Ticket status]",
+      "priority": "$[      "priority|Ticket priority]"
+    }
+    ```
+
+freshdesk/ticket/update:
+  provider: 'freshdesk'
+  icon: '@logo/freshdesk.com'
+  name: Update Freshdesk Ticket
+  description: Update a specific support ticket in Freshdesk
+  tags:
+    - freshdesk
+    - ticket
+    - update
+  instruction: |
+    ```fetch
+    PUT https://((domain!)).freshdesk.com/api/v2/tickets/$[ticket_id!|ticket ID] HTTP/1.1
+    Authorization: ${SECRET_DEFAULT}
+    Content-Type: application/json
+
+    {
+      "status": "$[status|Ticket status]",
+      "priority": "$[priority|Ticket priority]",
+      "description": "$[description|Ticket description]"
+    }
+    ```
+
+freshdesk/customer/details:
+  provider: 'freshdesk'
+  icon: '@logo/freshdesk.com'
+  name: Retrieve Freshdesk Customer Details
+  description: Retrieve details of a specific customer in Freshdesk
+  tags:
+    - freshdesk
+    - customer
+    - details
+  instruction: |
+    ```fetch
+    GET https://((domain!)).freshdesk.com/api/v2/customers/$[customer_id|Customer ID] HTTP/1.1
+    Authorization: ${SECRET_DEFAULT}
+    ```

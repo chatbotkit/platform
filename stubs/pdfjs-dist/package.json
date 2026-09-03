@@ -1,0 +1,19 @@
+{
+  "name": "pdfjs-dist",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Stub package to prevent officeparser from loading pdfjs-dist",
+  "license": "ISC",
+  "author": "",
+  "main": "index.js",
+  "exports": {
+    ".": "./index.js",
+    "./legacy/build/pdf.mjs": "./index.js",
+    "./build/pdf.mjs": "./index.js",
+    "./legacy/build/pdf.worker.mjs": "./index.js",
+    "./build/pdf.worker.mjs": "./index.js"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+}

@@ -1,0 +1,439 @@
+# @see https://developers.openai.com/ads/api-overview
+# @note this is a barebone OpenAPI spec for the OpenAI Ads (Advertiser) API
+# used to drive MSW mocks in the unit tests. Replace with the official spec
+# when one is published.
+# @todo replace with official spec when available
+openapi: 3.0.3
+info:
+  title: OpenAI Ads API
+  version: '1.0'
+  description: Programmatic ad creation, management and reporting for OpenAI Ads.
+servers:
+  - url: https://api.ads.openai.com/v1
+paths:
+  /ad_account:
+    get:
+      operationId: getAdAccount
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdAccount'
+  /ad_account/insights:
+    get:
+      operationId: getAdAccountInsights
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InsightsResponse'
+  /campaigns:
+    get:
+      operationId: listCampaigns
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CampaignList'
+    post:
+      operationId: createCampaign
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Campaign'
+  /campaigns/{campaign_id}:
+    get:
+      operationId: getCampaign
+      parameters:
+        - $ref: '#/components/parameters/CampaignId'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Campaign'
+    post:
+      operationId: updateCampaign
+      parameters:
+        - $ref: '#/components/parameters/CampaignId'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Campaign'
+  /campaigns/{campaign_id}/activate:
+    post:
+      operationId: activateCampaign
+      parameters:
+        - $ref: '#/components/parameters/CampaignId'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Campaign'
+  /campaigns/{campaign_id}/pause:
+    post:
+      operationId: pauseCampaign
+      parameters:
+        - $ref: '#/components/parameters/CampaignId'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Campaign'
+  /campaigns/{campaign_id}/archive:
+    post:
+      operationId: archiveCampaign
+      parameters:
+        - $ref: '#/components/parameters/CampaignId'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Campaign'
+  /campaigns/{campaign_id}/insights:
+    get:
+      operationId: getCampaignInsights
+      parameters:
+        - $ref: '#/components/parameters/CampaignId'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InsightsResponse'
+  /ad_groups:
+    get:
+      operationId: listAdGroups
+      parameters:
+        - name: campaign_id
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdGroupList'
+    post:
+      operationId: createAdGroup
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdGroup'
+  /ad_groups/{ad_group_id}:
+    get:
+      operationId: getAdGroup
+      parameters:
+        - $ref: '#/components/parameters/AdGroupId'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdGroup'
+    post:
+      operationId: updateAdGroup
+      parameters:
+        - $ref: '#/components/parameters/AdGroupId'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdGroup'
+  /ad_groups/{ad_group_id}/activate:
+    post:
+      operationId: activateAdGroup
+      parameters:
+        - $ref: '#/components/parameters/AdGroupId'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdGroup'
+  /ad_groups/{ad_group_id}/pause:
+    post:
+      operationId: pauseAdGroup
+      parameters:
+        - $ref: '#/components/parameters/AdGroupId'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdGroup'
+  /ad_groups/{ad_group_id}/archive:
+    post:
+      operationId: archiveAdGroup
+      parameters:
+        - $ref: '#/components/parameters/AdGroupId'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdGroup'
+  /ad_groups/{ad_group_id}/insights:
+    get:
+      operationId: getAdGroupInsights
+      parameters:
+        - $ref: '#/components/parameters/AdGroupId'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InsightsResponse'
+  /ads:
+    get:
+      operationId: listAds
+      parameters:
+        - name: ad_group_id
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdList'
+    post:
+      operationId: createAd
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ad'
+  /ads/{ad_id}:
+    get:
+      operationId: getAd
+      parameters:
+        - $ref: '#/components/parameters/AdId'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ad'
+    post:
+      operationId: updateAd
+      parameters:
+        - $ref: '#/components/parameters/AdId'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ad'
+  /ads/{ad_id}/activate:
+    post:
+      operationId: activateAd
+      parameters:
+        - $ref: '#/components/parameters/AdId'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ad'
+  /ads/{ad_id}/pause:
+    post:
+      operationId: pauseAd
+      parameters:
+        - $ref: '#/components/parameters/AdId'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ad'
+  /ads/{ad_id}/archive:
+    post:
+      operationId: archiveAd
+      parameters:
+        - $ref: '#/components/parameters/AdId'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ad'
+  /ads/{ad_id}/insights:
+    get:
+      operationId: getAdInsights
+      parameters:
+        - $ref: '#/components/parameters/AdId'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InsightsResponse'
+components:
+  parameters:
+    CampaignId:
+      name: campaign_id
+      in: path
+      required: true
+      schema:
+        type: string
+    AdGroupId:
+      name: ad_group_id
+      in: path
+      required: true
+      schema:
+        type: string
+    AdId:
+      name: ad_id
+      in: path
+      required: true
+      schema:
+        type: string
+  schemas:
+    Campaign:
+      type: object
+      properties:
+        id:
+          type: string
+        object:
+          type: string
+        name:
+          type: string
+        status:
+          type: string
+        description:
+          type: string
+    CampaignList:
+      type: object
+      properties:
+        object:
+          type: string
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Campaign'
+    AdGroup:
+      type: object
+      properties:
+        id:
+          type: string
+        object:
+          type: string
+        campaign_id:
+          type: string
+        name:
+          type: string
+        status:
+          type: string
+    AdGroupList:
+      type: object
+      properties:
+        object:
+          type: string
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/AdGroup'
+    Ad:
+      type: object
+      properties:
+        id:
+          type: string
+        object:
+          type: string
+        ad_group_id:
+          type: string
+        name:
+          type: string
+        status:
+          type: string
+        review_status:
+          type: string
+    AdList:
+      type: object
+      properties:
+        object:
+          type: string
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Ad'
+    AdAccount:
+      type: object
+      properties:
+        id:
+          type: string
+        object:
+          type: string
+        name:
+          type: string
+        timezone:
+          type: string
+        currency_code:
+          type: string
+    InsightsResponse:
+      type: object
+      properties:
+        object:
+          type: string
+        data:
+          type: array
+          items:
+            type: object
+            properties:
+              impressions:
+                type: number
+              clicks:
+                type: number
+              spend:
+                type: number
+              ctr:
+                type: number
+              cpc:
+                type: number
+              cpm:
+                type: number

@@ -1,0 +1,8 @@
+- question: What are ChatBotKit Audit Logs?
+  answer: ChatBotKit Audit Logs are detailed records of all actions performed within your ChatBotKit account. These logs track changes made to bots, conversations, datasets, files, integrations, and other resources, providing a complete audit trail for security, compliance, and debugging purposes.
+- question: How can I access ChatBotKit Audit Logs?
+  answer: You can access ChatBotKit Audit Logs through the Audit section in your ChatBotKit dashboard. These logs provide detailed information about what actions were performed, when they occurred, who performed them, and what changes were made.
+- question: What information is included in Audit Logs?
+  answer: Audit Logs include the action performed (create, update, delete), the resource affected (bot, conversation, dataset, etc.), timestamps, user information, and detailed before/after values showing exactly what changed. This provides complete transparency and accountability for all system modifications.
+- question: How long are Audit Logs retained?
+  answer: Audit Logs are stored in your ChatBotKit database with unlimited retention, providing long-term audit trails for compliance and historical analysis. This is a significant improvement over previous external logging solutions that had limited retention periods.

@@ -1,0 +1,25 @@
+attachment/read:
+  provider: 'cbk'
+  icon: '@logo/chatbotkit.com'
+  name: Read Attachment
+  description: |
+    Read and extract content from uploaded file attachments. For text-based
+    files, extracts and returns the text content. For image files (png, jpg,
+    jpeg, gif, webp, bmp, tiff, svg), analyzes the image using vision
+    capabilities. For audio files (mp3, m4a, wav, ogg, oga, opus, flac, aac),
+    including voice notes, transcribes the audio to text. Locate the
+    corresponding tool call for the attachment information. Does not support
+    video files.
+  tags:
+    - attachment
+    - read
+    - image
+    - audio
+  instruction: |
+    ```attachment/read
+    name: $[name! ys|the attachment name to read]
+    ```
+  commentary: |
+    **NOTE:** This ability is automatically added to environments where 
+    attachments are supported. You do not need to explicitly enable it. However,
+    adding ability with the same name will override the default configuration.

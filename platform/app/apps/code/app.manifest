@@ -1,0 +1,9 @@
+{
+  "start": "/apps/code",
+  "name": "Code",
+  "description": "A coding agent powered by ChatBotKit. Turn plain instructions into working software autonomously.",
+  "icon": "@lucide/code",
+  "order": 10,
+  "category": "developer",
+  "config": {}
+}

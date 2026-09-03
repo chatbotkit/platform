@@ -1,0 +1,20 @@
+example/make/webhook:
+  provider: 'make'
+  icon: '@logo/make.com'
+  name: Trigger Make Webhook
+  description: Trigger a Make webhook with data
+  tags:
+    - make
+    - integromat
+    - webhook
+  instruction: |
+    ```fetch
+    method: POST
+    url: ((url! ys|make.com webhook url))
+    headers:
+      Content-Type: application/json
+    body:
+      callback: ${CONVERSATION_CALLBACK}
+      param1: $[param1 ys|param description]
+      param2: $[param2 ys|param description]
+    ```

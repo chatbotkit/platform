@@ -1,0 +1,36 @@
+# Binary assets - routed through Git LFS, with no text diffs and no eol
+# normalization. The tree carries ~75MB of binaries across ~80 files (app
+# banners, example imagery, fonts, media, and the generated embeddings
+# archives; the largest single file is ~14MB), and that grows every time a
+# screenshot or an asset lands. LFS keeps those bytes out of every clone's
+# pack and out of PR diffs.
+#
+# This mirrors the monorepo root .gitattributes, which already LFS-tracks the
+# same extensions, so a file's storage does not change depending on which
+# repository it is checked out from.
+#
+# @note SVG is deliberately absent: it is XML, it diffs usefully, and the
+# files here are small.
+*.png filter=lfs diff=lfs merge=lfs -text
+*.jpg filter=lfs diff=lfs merge=lfs -text
+*.jpeg filter=lfs diff=lfs merge=lfs -text
+*.gif filter=lfs diff=lfs merge=lfs -text
+*.webp filter=lfs diff=lfs merge=lfs -text
+*.ico filter=lfs diff=lfs merge=lfs -text
+*.mp4 filter=lfs diff=lfs merge=lfs -text
+*.ogg filter=lfs diff=lfs merge=lfs -text
+*.ttf filter=lfs diff=lfs merge=lfs -text
+*.eot filter=lfs diff=lfs merge=lfs -text
+*.woff filter=lfs diff=lfs merge=lfs -text
+*.woff2 filter=lfs diff=lfs merge=lfs -text
+*.pdf filter=lfs diff=lfs merge=lfs -text
+*.doc filter=lfs diff=lfs merge=lfs -text
+*.docx filter=lfs diff=lfs merge=lfs -text
+*.ppt filter=lfs diff=lfs merge=lfs -text
+*.pptx filter=lfs diff=lfs merge=lfs -text
+*.xls filter=lfs diff=lfs merge=lfs -text
+*.xlsx filter=lfs diff=lfs merge=lfs -text
+*.gz filter=lfs diff=lfs merge=lfs -text
+
+# Generated archives - keep them out of PR diff stats
+*.embeddings.json.gz linguist-generated

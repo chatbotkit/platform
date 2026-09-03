@@ -1,0 +1,47 @@
+usefind/person/search:
+  provider: 'usefind'
+  icon: 'https://usefind.ai/icon.png'
+  name: Search Person
+  description: Search for a person LinkedIn profile.
+  instruction: |
+    ```fetch
+    method: POST
+    url: /api/auxiliary/skillset/ability/usefind/proxy
+    headers:
+      X-Access-Token: ${SECRET_DEFAULT}
+      Content-Type: application/json
+    body:
+      method: POST
+      url: /found/v1/searches
+      data:
+        query: $[query! ys|the search query]
+        scope: person
+        result_mode: best
+    options:
+      auth: internal
+    ```
+  secret: '@usefind'
+
+usefind/company/search:
+  provider: 'usefind'
+  icon: 'https://usefind.ai/icon.png'
+  name: Search Company
+  description: Search for a company LinkedIn profile.
+  instruction: |
+    ```fetch
+    method: POST
+    url: /api/auxiliary/skillset/ability/usefind/proxy
+    headers:
+      X-Access-Token: ${SECRET_DEFAULT}
+      Content-Type: application/json
+    body:
+      method: POST
+      url: /found/v1/searches
+      data:
+        query: $[query! ys|the search query]
+        scope: company
+        result_mode: best
+    options:
+      auth: internal
+    ```
+  secret: '@usefind'

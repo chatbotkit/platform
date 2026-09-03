@@ -1,0 +1,57 @@
+query availableSources {
+  datasets {
+    edges {
+      node {
+        id
+        name
+        description
+
+        blueprint {
+          id
+        }
+      }
+    }
+  }
+
+  skillsets {
+    edges {
+      node {
+        id
+        name
+        description
+
+        blueprint {
+          id
+        }
+
+        abilities {
+          edges {
+            node {
+              id
+              name
+              description
+              instruction
+              linkedSecret {
+                id
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  spaces {
+    edges {
+      node {
+        id
+        name
+        description
+
+        blueprint {
+          id
+        }
+      }
+    }
+  }
+}

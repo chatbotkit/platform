@@ -1,0 +1,37 @@
+# @note X (formerly Twitter) does not publish a small, easily mockable OpenAPI
+# spec, so we hand-roll a minimal one that covers exactly the endpoints the typed
+# write helpers in twitter.ts call. The read surface goes through the SQL ability
+# (tested separately in the sql route's _sql.utest.js), and twitter/api/call is a
+# free-form escape hatch, so neither appears here. Responses are omitted - the
+# ability test harness (addMissingResponses) injects a default 200 per operation.
+openapi: 3.0.0
+info:
+  title: X API v2 (minimal - typed write helpers)
+  version: 2.0.0
+servers:
+  - url: https://api.x.com
+paths:
+  # twitter/post/create and twitter/post/reply
+  /2/tweets:
+    post:
+      summary: Create a post
+
+  # twitter/post/like
+  /2/users/{id}/likes:
+    post:
+      summary: Like a post
+
+  # twitter/post/repost
+  /2/users/{id}/retweets:
+    post:
+      summary: Repost a post
+
+  # twitter/user/follow
+  /2/users/{id}/following:
+    post:
+      summary: Follow a user
+
+  # twitter/dm/send
+  /2/dm_conversations/with/{participant_id}/messages:
+    post:
+      summary: Send a direct message to a user

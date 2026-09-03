@@ -1,0 +1,536 @@
+# @see https://hunter.io/api-documentation
+# @note this is a barebone OpenAPI spec for Hunter.io API
+# @todo replace with official spec when available
+openapi: 3.0.3
+info:
+  title: Hunter.io API
+  description: Hunter.io API for email finding and verification
+  version: '2.0'
+servers:
+  - url: https://api.hunter.io
+paths:
+  /v2/email-finder:
+    get:
+      operationId: findEmail
+      summary: Find Email Address
+      description: Find the most likely email address from a domain name, first name, and last name
+      parameters:
+        - name: domain
+          in: query
+          description: Domain name to search (e.g., stripe.com)
+          schema:
+            type: string
+        - name: company
+          in: query
+          description: Company name to search (e.g., stripe)
+          schema:
+            type: string
+        - name: first_name
+          in: query
+          description: First name of the person
+          required: true
+          schema:
+            type: string
+        - name: last_name
+          in: query
+          description: Last name of the person
+          required: true
+          schema:
+            type: string
+        - name: api_key
+          in: query
+          description: API key for authentication
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmailFinderResponse'
+
+  /v2/email-verifier:
+    get:
+      operationId: verifyEmail
+      summary: Verify Email Address
+      description: Check the deliverability of an email address
+      parameters:
+        - name: email
+          in: query
+          description: Email address to verify
+          required: true
+          schema:
+            type: string
+        - name: api_key
+          in: query
+          description: API key for authentication
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmailVerifierResponse'
+
+  /v2/domain-search:
+    get:
+      operationId: searchDomain
+      summary: Search Domain Emails
+      description: Search all email addresses corresponding to a website or company
+      parameters:
+        - name: domain
+          in: query
+          description: Domain name to search (e.g., stripe.com)
+          schema:
+            type: string
+        - name: company
+          in: query
+          description: Company name to search (e.g., stripe)
+          schema:
+            type: string
+        - name: limit
+          in: query
+          description: Maximum number of email addresses to return
+          schema:
+            type: integer
+            default: 10
+        - name: type
+          in: query
+          description: Filter by email type
+          schema:
+            type: string
+            enum:
+              - personal
+              - generic
+        - name: api_key
+          in: query
+          description: API key for authentication
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DomainSearchResponse'
+
+  /v2/email-count:
+    get:
+      operationId: getEmailCount
+      summary: Get Email Count
+      description: Get the number of email addresses Hunter has for a domain
+      parameters:
+        - name: domain
+          in: query
+          description: Domain name to count emails for
+          required: true
+          schema:
+            type: string
+        - name: api_key
+          in: query
+          description: API key for authentication
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmailCountResponse'
+
+  /v2/account:
+    get:
+      operationId: getAccountInfo
+      summary: Get Account Information
+      description: Get information about the Hunter.io account including remaining API calls
+      parameters:
+        - name: api_key
+          in: query
+          description: API key for authentication
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountInfoResponse'
+
+components:
+  securitySchemes:
+    apiKeyHeader:
+      type: apiKey
+      in: header
+      name: X-API-KEY
+    apiKeyQuery:
+      type: apiKey
+      in: query
+      name: api_key
+  schemas:
+    EmailFinderResponse:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            first_name:
+              type: string
+              example: Alexis
+            last_name:
+              type: string
+              example: Ohanian
+            email:
+              type: string
+              example: alexis@reddit.com
+            score:
+              type: integer
+              example: 97
+            domain:
+              type: string
+              example: reddit.com
+            accept_all:
+              type: boolean
+              example: false
+            position:
+              type: string
+              example: Cofounder
+            twitter:
+              type: string
+              nullable: true
+            linkedin_url:
+              type: string
+              nullable: true
+            phone_number:
+              type: string
+              nullable: true
+            company:
+              type: string
+              example: Reddit
+            sources:
+              type: array
+              items:
+                $ref: '#/components/schemas/Source'
+            verification:
+              $ref: '#/components/schemas/Verification'
+        meta:
+          type: object
+          properties:
+            params:
+              type: object
+
+    EmailVerifierResponse:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            status:
+              type: string
+              enum:
+                - valid
+                - invalid
+                - accept_all
+                - webmail
+                - disposable
+                - unknown
+              example: valid
+            score:
+              type: integer
+              example: 100
+            email:
+              type: string
+              example: patrick@stripe.com
+            regexp:
+              type: boolean
+              example: true
+            gibberish:
+              type: boolean
+              example: false
+            disposable:
+              type: boolean
+              example: false
+            webmail:
+              type: boolean
+              example: false
+            mx_records:
+              type: boolean
+              example: true
+            smtp_server:
+              type: boolean
+              example: true
+            smtp_check:
+              type: boolean
+              example: true
+            accept_all:
+              type: boolean
+              example: false
+            block:
+              type: boolean
+              example: false
+            sources:
+              type: array
+              items:
+                $ref: '#/components/schemas/Source'
+        meta:
+          type: object
+          properties:
+            params:
+              type: object
+
+    DomainSearchResponse:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            domain:
+              type: string
+              example: intercom.com
+            disposable:
+              type: boolean
+              example: false
+            webmail:
+              type: boolean
+              example: false
+            accept_all:
+              type: boolean
+              example: true
+            pattern:
+              type: string
+              example: '{first}'
+            organization:
+              type: string
+              example: Intercom
+            linked_domains:
+              type: array
+              items:
+                type: string
+            emails:
+              type: array
+              items:
+                $ref: '#/components/schemas/DomainEmail'
+        meta:
+          type: object
+          properties:
+            results:
+              type: integer
+              example: 35
+            limit:
+              type: integer
+              example: 10
+            offset:
+              type: integer
+              example: 0
+            params:
+              type: object
+
+    EmailCountResponse:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            total:
+              type: integer
+              example: 81
+            personal_emails:
+              type: integer
+              example: 65
+            generic_emails:
+              type: integer
+              example: 16
+            department:
+              type: object
+              properties:
+                executive:
+                  type: integer
+                it:
+                  type: integer
+                finance:
+                  type: integer
+                management:
+                  type: integer
+                sales:
+                  type: integer
+                legal:
+                  type: integer
+                support:
+                  type: integer
+                hr:
+                  type: integer
+                marketing:
+                  type: integer
+                communication:
+                  type: integer
+                education:
+                  type: integer
+                design:
+                  type: integer
+                health:
+                  type: integer
+                operations:
+                  type: integer
+            seniority:
+              type: object
+              properties:
+                junior:
+                  type: integer
+                senior:
+                  type: integer
+                executive:
+                  type: integer
+        meta:
+          type: object
+          properties:
+            params:
+              type: object
+
+    AccountInfoResponse:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            first_name:
+              type: string
+              example: Antoine
+            last_name:
+              type: string
+              example: Finkelstein
+            email:
+              type: string
+              example: antoine@hunter.io
+            plan_name:
+              type: string
+              example: Growth
+            plan_level:
+              type: integer
+              example: 2
+            reset_date:
+              type: string
+              example: '2025-12-11'
+            team_id:
+              type: integer
+              example: 1
+            requests:
+              type: object
+              properties:
+                credits:
+                  type: object
+                  properties:
+                    used:
+                      type: number
+                    available:
+                      type: number
+                searches:
+                  type: object
+                  properties:
+                    used:
+                      type: integer
+                    available:
+                      type: integer
+                verifications:
+                  type: object
+                  properties:
+                    used:
+                      type: integer
+                    available:
+                      type: integer
+            calls:
+              type: object
+              properties:
+                used:
+                  type: integer
+                available:
+                  type: integer
+
+    Source:
+      type: object
+      properties:
+        domain:
+          type: string
+          example: github.com
+        uri:
+          type: string
+          example: http://github.com/example
+        extracted_on:
+          type: string
+          example: '2020-06-17'
+        last_seen_on:
+          type: string
+          example: '2020-06-17'
+        still_on_page:
+          type: boolean
+          example: true
+
+    Verification:
+      type: object
+      properties:
+        date:
+          type: string
+          example: '2021-06-14'
+        status:
+          type: string
+          enum:
+            - valid
+            - accept_all
+            - unknown
+          example: valid
+
+    DomainEmail:
+      type: object
+      properties:
+        value:
+          type: string
+          example: ciaran@intercom.com
+        type:
+          type: string
+          enum:
+            - personal
+            - generic
+          example: personal
+        confidence:
+          type: integer
+          example: 92
+        sources:
+          type: array
+          items:
+            $ref: '#/components/schemas/Source'
+        first_name:
+          type: string
+          example: Ciaran
+        last_name:
+          type: string
+          example: Lee
+        position:
+          type: string
+          example: Support Engineer
+        position_raw:
+          type: string
+        seniority:
+          type: string
+          example: senior
+        department:
+          type: string
+          example: it
+        linkedin:
+          type: string
+          nullable: true
+        twitter:
+          type: string
+          nullable: true
+        phone_number:
+          type: string
+          nullable: true
+        verification:
+          $ref: '#/components/schemas/Verification'
+
+security:
+  - apiKeyHeader: []
+  - apiKeyQuery: []

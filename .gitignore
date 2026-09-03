@@ -1,0 +1,69 @@
+# @note this is the ignore policy for the published repository, where this
+# directory is the root. Inside the monorepo the root .gitignore covers most
+# of what follows, which is exactly why it has to be repeated here: a
+# standalone checkout has no such parent, and without this file a contributor
+# running the documented setup sees build output and dependencies reported as
+# untracked changes.
+
+# Dependencies
+node_modules/
+
+# pnpm store fallback location (dev container)
+.pnpm-store/
+
+# Local development state (dev-profile database and the like)
+.dev/
+
+# Environment files - .env.example is the tracked template, real ones never are
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Build output
+.next
+out
+dist
+build
+*.tsbuildinfo
+next-env.d.ts
+
+# Task and compiler caches
+.turbo
+.swc
+.eslintcache
+.cache
+
+# Test output
+coverage
+*.lcov
+.nyc_output
+
+# Logs and diagnostics
+logs
+*.log
+.pnpm-debug.log*
+report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+
+# Generated at build time rather than tracked
+**/public/integrations/widget/*
+**/public/api/*/spec.json
+**/public/robots.txt
+**/public/sitemap*
+
+# Storybook build output
+storybook-static
+
+# react-email preview build
+.react-email
+
+# Deployment tooling
+.vercel
+
+# Editor and OS noise
+.DS_Store
+
+# Scratch files
+**/*.todo
+**/*.bak

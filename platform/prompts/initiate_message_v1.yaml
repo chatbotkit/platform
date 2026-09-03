@@ -1,0 +1,39 @@
+description: |
+  Initiate message
+prompt: |
+  Create an instruction for the bot message to use in order to initiate a
+  conversation with the user.
+
+  RULES:
+  - The message must be engaging and encourage the
+  user to respond.
+  - The message should be in the same language as the input.
+  - The message should capture as much information from the input as possible
+
+  Failure to follow the rules will result in a poor quality performance and 
+  decrease the overall quality.
+
+  Example Input 1:
+  ###
+  The user is called John and is a 25-year-old student.
+  ###
+
+  Example Instruction 1:
+  Say hi to John and ask him how his day is going.
+
+  Example Input 2:
+  ###
+  The user viewed two products in the category "smartphones".
+  ###
+
+  Example Instruction 2:
+  Ask the user if they are looking for a new smartphone and if they need help
+  choosing one.
+
+  Input:
+  ###
+  {input}
+  ###
+
+  Instruction:
+model: gpt-4o/temperature=0.7

@@ -1,0 +1,188 @@
+# @see https://docs.uplead.com/
+# @note this is a barebone OpenAPI spec for Uplead API
+openapi: 3.0.3
+info:
+  title: Uplead API
+  description: Uplead API for B2B lead enrichment
+  version: '2.0'
+servers:
+  - url: https://api.uplead.com
+paths:
+  /v2/company-search:
+    get:
+      operationId: enrichCompany
+      summary: Enrich Company
+      description: Lookup company data via a domain name or company name
+      parameters:
+        - name: domain
+          in: query
+          description: Domain name to search (e.g., amazon.com)
+          schema:
+            type: string
+        - name: company
+          in: query
+          description: Company name to search (e.g., Amazon)
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompanyResponse'
+
+  /v2/person-search:
+    get:
+      operationId: enrichPerson
+      summary: Enrich Person
+      description: Lookup person data based on email or domain + name
+      parameters:
+        - name: email
+          in: query
+          description: Email address to look up
+          schema:
+            type: string
+        - name: first_name
+          in: query
+          description: First name of the person
+          schema:
+            type: string
+        - name: last_name
+          in: query
+          description: Last name of the person
+          schema:
+            type: string
+        - name: domain
+          in: query
+          description: Domain name of the company
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PersonResponse'
+
+components:
+  securitySchemes:
+    apiKeyHeader:
+      type: apiKey
+      in: header
+      name: Authorization
+  schemas:
+    CompanyResponse:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            id:
+              type: string
+              example: '12345'
+            name:
+              type: string
+              example: Amazon
+            domain:
+              type: string
+              example: amazon.com
+            industry:
+              type: string
+              example: E-commerce
+            employee_count:
+              type: integer
+              example: 1500000
+            annual_revenue:
+              type: string
+              example: '$500B+'
+            founded:
+              type: integer
+              example: 1994
+            description:
+              type: string
+              example: Amazon.com, Inc. is an American multinational technology company.
+            phone:
+              type: string
+              example: '+1 206-266-1000'
+            address:
+              type: string
+              example: '410 Terry Ave N, Seattle, WA 98109'
+            city:
+              type: string
+              example: Seattle
+            state:
+              type: string
+              example: WA
+            country:
+              type: string
+              example: United States
+            linkedin_url:
+              type: string
+              example: https://www.linkedin.com/company/amazon
+            facebook_url:
+              type: string
+              nullable: true
+            twitter_url:
+              type: string
+              nullable: true
+            technologies:
+              type: array
+              items:
+                type: string
+              example:
+                - AWS
+                - React
+
+    PersonResponse:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            id:
+              type: string
+              example: '67890'
+            first_name:
+              type: string
+              example: Marc
+            last_name:
+              type: string
+              example: Benioff
+            email:
+              type: string
+              example: mbenioff@salesforce.com
+            title:
+              type: string
+              example: CEO
+            phone:
+              type: string
+              example: '+1 415-901-7000'
+            company_name:
+              type: string
+              example: Salesforce
+            company_domain:
+              type: string
+              example: salesforce.com
+            industry:
+              type: string
+              example: Software
+            city:
+              type: string
+              example: San Francisco
+            state:
+              type: string
+              example: CA
+            country:
+              type: string
+              example: United States
+            linkedin_url:
+              type: string
+              example: https://www.linkedin.com/in/marcbenioff
+            twitter_url:
+              type: string
+              nullable: true
+
+security:
+  - apiKeyHeader: []

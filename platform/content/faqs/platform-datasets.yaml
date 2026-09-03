@@ -1,0 +1,10 @@
+- question: What is a dataset?
+  answer: A dataset is a structured collection of data that can be used to provide additional context and information to a chatbot. It is a way for chatbots to access relevant data and use it to generate responses based on user input. A dataset can include information on a variety of topics, such as product information, customer service queries, or general knowledge.
+- question: How do datasets work?
+  answer: Chatbots access datasets as needed during a conversation. The chatbot can retrieve specific data points or use the data to generate responses based on user input and the data. For example, if a user asks a chatbot about the price of a product, the chatbot can use data from a dataset to provide the correct price.
+- question: Can I create my own datasets?
+  answer: Yes, you can create and customize your own datasets to suit the needs of your chatbot and your users. This can be useful if you want to provide specific information or context to your chatbot that is relevant to your business or industry.
+- question: How do I access the datasets?
+  answer: You can access your datasets when you start a conversation with a chatbot. For more information see the [Datasets](https://chatbotkit.com/docs/datasets) documentation pages.
+- question: Are datasets included in the monthly membership?
+  answer: Yes, our monthly "Basic" membership includes access to 10 datasets. This means that you can use up to 10 datasets in your chatbot conversations as part of your membership every month. Additional datasets are available through a different subscription plan.

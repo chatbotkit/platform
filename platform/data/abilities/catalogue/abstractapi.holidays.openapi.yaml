@@ -1,0 +1,76 @@
+# @see https://www.abstractapi.com/api/holidays-api#docs
+# @note this is a barebone OpenAPI spec for Abstract API Holidays
+# @todo replace with official spec when available
+openapi: 3.0.3
+info:
+  title: Abstract API Holidays
+  version: '1.0'
+  description: Holidays API for getting holiday information by country and year
+servers:
+  - url: https://holidays.abstractapi.com
+paths:
+  /v1:
+    get:
+      operationId: listHolidays
+      parameters:
+        - name: api_key
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: country
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: year
+          in: query
+          required: true
+          schema:
+            type: integer
+        - name: month
+          in: query
+          schema:
+            type: integer
+        - name: day
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Holiday'
+components:
+  schemas:
+    Holiday:
+      type: object
+      properties:
+        name:
+          type: string
+        name_local:
+          type: string
+        language:
+          type: string
+        description:
+          type: string
+        country:
+          type: string
+        location:
+          type: string
+        type:
+          type: string
+        date:
+          type: string
+        date_year:
+          type: string
+        date_month:
+          type: string
+        date_day:
+          type: string
+        week_day:
+          type: string

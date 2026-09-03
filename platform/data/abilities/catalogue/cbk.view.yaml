@@ -1,0 +1,14 @@
+view/describe:
+  provider: 'cbk'
+  icon: '@logo/chatbotkit.com'
+  name: Describe Image
+  description: Describe the content of an image URL
+  tags:
+    - beta
+    - image
+    - description
+  instruction: |
+    ```view
+    $[image_url|The URL of the image]
+    ((directions|directions how to describe an image))
+    ```

@@ -1,0 +1,9 @@
+{
+  "start": "/apps/usagelog",
+  "name": "Usage Logs",
+  "description": "Detailed usage record analysis and viewing tool.",
+  "icon": "@lucide/chart-no-axes-column-increasing",
+  "order": 1003,
+  "category": "developer",
+  "config": {}
+}

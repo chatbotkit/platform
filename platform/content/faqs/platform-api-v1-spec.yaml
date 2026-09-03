@@ -1,0 +1,6 @@
+- question: Does the API support streaming?
+  answer: Absolutely! Our API is designed with streaming capabilities from the get-go. Most of our endpoints are equipped to stream results, enhancing not only the speed of conversational AI interactions but also simplifying pagination. For an in-depth understanding, please refer to the [streaming section](https://chatbotkit.com/docs/api#streaming) in our documentation.
+- question: Do you offer SDKs?
+  answer: Indeed we do! For a comprehensive list of SDKs available, visit our [GitHub profile](https://github.com/chatbotkit). To get up and running swiftly, you can start with our Node and React SDKs, available [here](https://github.com/chatbotkit/node-sdk).
+- question: Can I build my own SaaS solution using ChatBotKit?
+  answer: Absolutely! ChatBotKit provides a fully-fledged platform conducive to crafting your own conversational AI solutions. We handle everything from user creation to usage limits and analytics aggregation. Explore our User API for more information.

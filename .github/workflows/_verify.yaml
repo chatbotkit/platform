@@ -1,0 +1,142 @@
+# The repository's quality gate as a reusable workflow: install from the
+# committed lockfile and type-check cleanly with the public module defaults
+# - the exact environment every fresh checkout gets.
+#
+# Called from two places:
+#   - pull-request.yaml, where it gates every pull request (including forks;
+#     see the security notes there - this workflow uses no secrets and only
+#     ever needs `contents: read`)
+#   - publish-ghcr-platform.yaml, where it gates image builds on `next`
+#     pushes, which land directly without a pull request
+
+name: Verify
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+env:
+  # pinned to the devcontainer versions
+  REQUIRED_PNPM_VERSION: 11.24.0
+  REQUIRED_NODE_VERSION: 24.20.0
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest-8-cores-amd64
+
+    # @note a healthy sequential run takes low double-digit minutes; anything
+    # longer is wedged - cut it off and free the hosted runner
+    timeout-minutes: 45
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          lfs: true
+
+      - uses: pnpm/setup@v2
+        with:
+          version: ${{ env.REQUIRED_PNPM_VERSION }}
+          runtime: node@${{ env.REQUIRED_NODE_VERSION }}
+          cache: true
+          install: false
+
+      - name: Report runner resources
+        # @note exit 137 anywhere below is the runner kernel OOM-killing the
+        # workload: read this step's output for the VM this run actually
+        # landed on before blaming the workload
+        run: nproc && grep MemTotal /proc/meminfo && df -h . | tail -1
+
+      - name: Install from the lockfile
+        # @note --frozen-lockfile is the point: it fails when pnpm-lock.yaml
+        # has drifted from the manifests, which is the most common way a
+        # fresh checkout silently breaks
+        run: pnpm install --frozen-lockfile
+
+      - name: Audit production dependencies
+        # @note the published baseline is no known production vulnerabilities,
+        # so every advisory fails this gate. A temporary exception must name
+        # the advisory, rationale, owner, compensating controls and expiry in
+        # the public change that adds the exception before it is ignored here.
+        run: pnpm audit --prod --audit-level low
+
+      - name: Configure the application from the example environment
+        # @note the example file is the documented minimum a fresh checkout
+        # runs on; nothing here is a secret
+        working-directory: platform
+        run: cp .env.example .env
+
+      - name: Create the database and generate its client
+        # @note runs before the package steps: any package that imports the
+        # database module needs the generated client to build or type-check.
+        # The client generator reads the typed SQL against a live database, so
+        # an empty SQLite file is pushed first. The absolute path is
+        # deliberate - the push runs from the database module's directory,
+        # the application from its own
+        working-directory: platform
+        run: |
+          mkdir -p .dev
+          touch .dev/platform.db
+          export PRISMA_DATABASE_URL="file:$PWD/.dev/platform.db"
+          pnpm --filter @chatbotkit-dev/db db:push
+          pnpm db:gen
+
+      - name: Build every package
+        # @note the application is excluded from this step and the three
+        # below: its own steps further down provision the environment its
+        # config asserts at load. Its lint, type-check and tests run below;
+        # the trusted image-publication workflow builds and smoke-tests it.
+        run: pnpm turbo run build --continue --filter='!@chatbotkit/platform'
+
+      - name: Lint every package
+        # @note the lint debt that kept this step out was paid down on
+        # August 24 2026 (13 packages); the gate is born green
+        run: pnpm turbo run lint --continue --filter='!@chatbotkit/platform'
+
+      - name: Check every package
+        run: pnpm turbo run check --continue --filter='!@chatbotkit/platform'
+
+      - name: Test every package
+        run: pnpm turbo run test --continue --filter='!@chatbotkit/platform'
+
+      - name: Cache TypeScript build info
+        # @note persists only tsc's non-sensitive incremental project state.
+        # The SHA suffix lets each successful run advance the baseline, while
+        # the restore prefix selects the newest state built with the same
+        # lockfile and application compiler configuration. tsc validates file
+        # signatures, so a stale restore falls back to checking changed files.
+        # Fork pull requests can read the base cache but cannot write into its
+        # scope; never add generated environment or credential files here.
+        uses: actions/cache@v6
+        with:
+          path: platform/tsconfig.tsbuildinfo
+          key: ${{ runner.os }}-${{ runner.arch }}-tsbuildinfo-application-${{ hashFiles('pnpm-lock.yaml', 'platform/tsconfig.json') }}-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-${{ runner.arch }}-tsbuildinfo-application-${{ hashFiles('pnpm-lock.yaml', 'platform/tsconfig.json') }}-
+
+      - name: Cache Jest transform cache
+        # @note persists only Jest's transform/haste cache - hashed transpiled
+        # module output, nothing sensitive. Jest validates entries by content
+        # hash, so a stale restore degrades to re-transforming changed files.
+        # Same key discipline as the tsbuildinfo cache above: the SHA suffix
+        # advances the baseline, the restore prefix picks the newest state for
+        # the same lockfile.
+        uses: actions/cache@v6
+        with:
+          path: platform/.jest-cache
+          key: ${{ runner.os }}-${{ runner.arch }}-jest-application-${{ hashFiles('pnpm-lock.yaml') }}-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-${{ runner.arch }}-jest-application-${{ hashFiles('pnpm-lock.yaml') }}-
+
+      - name: Lint application
+        working-directory: platform
+        run: pnpm lint
+
+      - name: Check application types
+        working-directory: platform
+        run: pnpm check
+
+      - name: Test application with coverage
+        working-directory: platform
+        run: pnpm test

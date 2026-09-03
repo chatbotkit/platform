@@ -1,0 +1,268 @@
+# @note this file should not be changed to typescript because we use old-style
+# fields for dynamic field injection
+
+mock/sql:
+  provider: 'cbk'
+  icon: '@logo/chatbotkit.com'
+  name: Query Database
+  description: Query a database using SQL
+  tags:
+    - mock
+    - sql
+  commentary: |
+    **NOTE:** This ability is useful for prototyping and testing purposes only.
+
+    Use this ability to fetch synthetic data from a database using the provided
+    SQL query.
+  setup: |
+    Simply connect to skillset and provide an optional instructions how the data
+    should be structured.
+  instruction: |
+    ```agent/spawn
+    backstory: |
+      Your task is to return synthetic data based on the provided SQL query. You
+      must ensure the synthetic data is realistic and meaningful, and that it is
+      suitable for testing purposes.
+
+      Reframe from using known test conventions like "foo", "bar", "Joe Doe",
+      "Acme", "123", etc.
+
+      The response must be in JSON format, and it should be a valid JSON object
+      that can be parsed by a JSON parser.
+
+      The query is: $[query!|a made up sql query to execute that matches the method name and description]
+    model: gpt-4.1
+    instructions: ((@instructions ys|additional mock instructions))
+    ```
+
+mock/dataset:
+  provider: 'cbk'
+  icon: '@logo/chatbotkit.com'
+  name: Query Dataset
+  description: Query a dataset using specific terms
+  tags:
+    - mock
+    - sql
+  commentary: |
+    **NOTE:** This ability is useful for prototyping and testing purposes only.
+
+    Use this ability to fetch synthetic data from a dataset using the provided
+    search query.
+  setup: |
+    Simply connect to skillset and provide an optional instructions how the data
+    should be structured.
+  instruction: |
+    ```agent/spawn
+    backstory: |
+      Your task is to return synthetic data based on the provided query. You
+      must ensure the synthetic data is realistic and meaningful, and that it is
+      suitable for testing purposes.
+
+      Reframe from using known test conventions like "foo", "bar", "Joe Doe",
+      "Acme", "123", etc.
+
+      The response must be in JSON format, and it should be a valid JSON object
+      that can be parsed by a JSON parser.
+
+      The search query is: $[query!|a made up search query that matches the method name and description]
+    model: gpt-4.1
+    instructions: ((@instructions ys|additional mock instructions))
+    ```
+
+mock/api[list]:
+  provider: 'cbk'
+  icon: '@logo/chatbotkit.com'
+  name: API List
+  description: List resources from an API endpoint
+  tags:
+    - mock
+    - api
+  commentary: |
+    **NOTE:** This ability is useful for prototyping and testing purposes only.
+
+    Use this ability to fetch synthetic data from a web API endpoint based on
+    the provided request details.
+  setup: |
+    Simply connect to skillset and provide an optional instructions how the data
+    should be structured.
+  instruction: |
+    ```agent/spawn
+    backstory: |
+      Your task is to return synthetic data based on the provided API request
+      details. You must ensure the synthetic data is realistic and meaningful,
+      and that it is suitable for testing purposes.
+
+      Reframe from using known test conventions like "foo", "bar", "Joe Doe",
+      "Acme", "123", etc.
+
+      The API request details are as follows:
+
+      Method: GET
+      URL: /api/list
+
+      Response:
+      The response should be a JSON array of objects representing the listed 
+      resources. Each object should include relevant fields that would typically 
+      be returned in a list operation.
+    model: gpt-4.1
+    instructions: ((@instructions ys|additional mock instructions))
+    ```
+
+mock/api/[search]:
+  provider: 'cbk'
+  icon: '@logo/chatbotkit.com'
+  name: API Search
+  description: Search resources from an API endpoint
+  tags:
+    - mock
+    - api
+  commentary: |
+    **NOTE:** This ability is useful for prototyping and testing purposes only.
+
+    Use this ability to fetch synthetic data from a web API endpoint based on
+    the provided request details.
+  setup: |
+    Simply connect to skillset and provide an optional instructions how the data
+    should be structured.
+  instruction: |
+    ```agent/spawn
+    backstory: |
+      Your task is to return synthetic data based on the provided API request
+      details. You must ensure the synthetic data is realistic and meaningful,
+      and that it is suitable for testing purposes.
+
+      Reframe from using known test conventions like "foo", "bar", "Joe Doe",
+      "Acme", "123", etc.
+
+      The API request details are as follows:
+
+      Method: GET
+      URL: /api/search
+      query: $[query!|a made up search query that matches the method name and description]
+
+      Response:
+      The response should be a JSON array of objects representing the search 
+      results. Each object should include relevant fields that would typically 
+      be returned in a search operation.
+    model: gpt-4.1
+    instructions: ((@instructions ys|additional mock instructions))
+    ```
+
+mock/api[create]:
+  provider: 'cbk'
+  icon: '@logo/chatbotkit.com'
+  name: API Create
+  description: Create a new resource
+  tags:
+    - mock
+    - api
+  commentary: |
+    **NOTE:** This ability is useful for prototyping and testing purposes only.
+
+    Use this ability to fetch synthetic data from a web API endpoint based on
+    the provided request details.
+  setup: |
+    Simply connect to skillset and provide an optional instructions how the data
+    should be structured.
+  instruction: |
+    ```agent/spawn
+    backstory: |
+      Your task is to return synthetic data based on the provided API request
+      details. You must ensure the synthetic data is realistic and meaningful,
+      and that it is suitable for testing purposes.
+
+      Reframe from using known test conventions like "foo", "bar", "Joe Doe",
+      "Acme", "123", etc.
+
+      The API request details are as follows:
+
+      Method: POST
+      URL: /api/create
+      body: $[body|a made up request body in json format that matches the method name and description]
+
+      Response:
+      The response should be a JSON object representing the newly created 
+      resource. Include all relevant fields that would typically a unique 
+      identifier, timestamps, and any other pertinent information.
+    model: gpt-4.1
+    instructions: ((@instructions ys|additional mock instructions))
+    ```
+
+mock/api[update]:
+  provider: 'cbk'
+  icon: '@logo/chatbotkit.com'
+  name: API Update
+  description: Update an existing resource
+  tags:
+    - mock
+    - api
+  commentary: |
+    **NOTE:** This ability is useful for prototyping and testing purposes only.
+
+    Use this ability to fetch synthetic data from a web API endpoint based on
+    the provided request details.
+  setup: |
+    Simply connect to skillset and provide an optional instructions how the data
+    should be structured.
+  instruction: |
+    ```agent/spawn
+    backstory: |
+      Your task is to return synthetic data based on the provided API request
+      details. You must ensure the synthetic data is realistic and meaningful,
+      and that it is suitable for testing purposes.
+
+      Reframe from using known test conventions like "foo", "bar", "Joe Doe",
+      "Acme", "123", etc.
+
+      The API request details are as follows:
+
+      Method: PUT
+      URL: /api/$[id|the ID of the resource to update]
+      body: $[body|a made up request body in json format that matches the method name and description]
+
+      Response:
+      The response should be a JSON object representing the updated resource.
+      Include all relevant fields that would typically be returned after an 
+      update operation, such as the resource ID, updated fields, and timestamps.
+    model: gpt-4.1
+    instructions: ((@instructions ys|additional mock instructions))
+    ```
+
+mock/api[delete]:
+  provider: 'cbk'
+  icon: '@logo/chatbotkit.com'
+  name: API Delete
+  description: Delete an existing resource
+  tags:
+    - mock
+    - api
+  commentary: |
+    **NOTE:** This ability is useful for prototyping and testing purposes only.
+
+    Use this ability to fetch synthetic data from a web API endpoint based on
+    the provided request details.
+  setup: |
+    Simply connect to skillset and provide an optional instructions how the data
+    should be structured.
+  instruction: |
+    ```agent/spawn
+    backstory: |
+      Your task is to return synthetic data based on the provided API request
+      details. You must ensure the synthetic data is realistic and meaningful,
+      and that it is suitable for testing purposes.
+
+      Reframe from using known test conventions like "foo", "bar", "Joe Doe",
+      "Acme", "123", etc.
+
+      The API request details are as follows:
+
+      Method: DELETE
+      URL: /api/$[id|the ID of the resource to delete]
+
+      Response:
+      The response should be a JSON object confirming the deletion of the
+      resource. Include a message indicating success and the ID of the deleted
+      resource.
+    model: gpt-4.1
+    instructions: ((@instructions ys|additional mock instructions))
+    ```

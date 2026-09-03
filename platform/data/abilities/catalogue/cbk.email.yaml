@@ -1,0 +1,16 @@
+email/send:
+  provider: 'cbk'
+  icon: '@logo/chatbotkit.com'
+  name: Send Email
+  description: |
+    Compose and send an email using the provided content in markdown format
+  tags:
+    - email
+    - smtp
+  # @todo change to yaml input once supported
+  instruction: |
+    ```email
+    to: ((to! ys|recipient's email address))
+    subject: ((subject ys|the email subject))
+    content: $[content! ys|the content of the email in markdown format]
+    ```

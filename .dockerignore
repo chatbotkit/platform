@@ -1,0 +1,47 @@
+# Dependencies (installed fresh in the container)
+node_modules
+**/node_modules
+
+# Build outputs and caches
+**/.next
+**/dist
+**/.turbo
+**/.swc
+**/*.tsbuildinfo
+**/coverage
+**/storybook-static
+platform/sites
+
+# @note content trees stay IN the context deliberately - they are read
+# during static generation. Tests do not (the image build skips them via
+# SKIP_BUILD_TESTS), and underscore-prefixed files under pages/ are private
+# partials and page tests that must not compile into routes - the same set
+# the deploy workflow's "Remove private files" step strips, minus the Next.js
+# specials at the pages root which are re-included below.
+**/*.utest.*
+**/*.itest.*
+platform/pages/**/_*
+!platform/pages/_*
+
+# Environment files (passed at runtime, never baked in)
+**/.env
+**/.env.*
+!**/.env.example
+
+# Git metadata and CI definitions - nothing in the build reads them
+.git
+**/.github
+
+# Editor and CI
+.devcontainer
+.vscode
+**/.storybook
+# @note the storybook stories folder only - platform/content/stories is real
+# site content the build imports
+platform/stories
+
+# Logs and scratch
+**/*.log
+
+# pnpm store fallback location (dev container)
+**/.pnpm-store

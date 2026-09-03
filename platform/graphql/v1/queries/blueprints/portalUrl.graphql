@@ -1,0 +1,14 @@
+# This query resolves where a portal is served on this deployment. The URL
+# is derived server-side from the portal slug and the deployment's portal
+# topology (apex or custom domain), which clients must not guess.
+
+query portalUrl($portalIds: [ID!]) {
+  portals(first: 1, portalIds: $portalIds) {
+    edges {
+      node {
+        id
+        url
+      }
+    }
+  }
+}

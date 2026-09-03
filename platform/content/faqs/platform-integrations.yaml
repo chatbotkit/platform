@@ -1,0 +1,6 @@
+- question: What types of integrations does ChatBotKit support?
+  answer: ChatBotKit supports website widget, Slack, Discord, WhatsApp, Notion, Sitemap and many more integrations. However, we will add support for additional platforms in the future.
+- question: How many integrations can I create?
+  answer: How many integrations you can create depends on the limits that apply to your account.
+- question: Can I request custom integrations for ChatBotKit?
+  answer: Yes, we are open to adding custom integrations to ChatBotKit. Please contact our support team to discuss your requirements further.

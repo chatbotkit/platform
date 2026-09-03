@@ -1,0 +1,9 @@
+{
+  "start": "/apps/trace",
+  "name": "Trace",
+  "description": "A traceability tool for ChatbotKit.",
+  "icon": "@lucide/bug",
+  "order": 1000,
+  "category": "developer",
+  "config": {}
+}

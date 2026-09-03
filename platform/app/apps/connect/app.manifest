@@ -1,0 +1,9 @@
+{
+  "start": "/apps/connect",
+  "name": "Connect",
+  "description": "Connect to your favorite apps and services",
+  "icon": "@lucide/grid-2x2-plus",
+  "order": 30,
+  "category": "main",
+  "config": {}
+}

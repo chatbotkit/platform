@@ -1,0 +1,256 @@
+instantly/sql:
+  provider: 'instantly'
+  icon: '@logo/instantly.ai'
+  name: SQL Query
+  description: Execute a SQL query on the Instantly platform.
+  instruction: |
+    ```fetch
+    method: POST
+    url: /api/auxiliary/skillset/ability/instantly/sql
+    headers:
+      X-Access-Token: ${SECRET_DEFAULT}
+      Content-Type: application/json
+    body:
+      sql: $[sql! ys|the SQL query to execute - supported tables include instantly.campaigns, instantly.leads, and instantly.emails]
+    options:
+      auth: internal
+    ```
+  secret: '@instantly'
+
+# ---
+
+instantly/campaign/list:
+  provider: 'instantly'
+  icon: '@logo/instantly.ai'
+  name: List Campaigns
+  description: List all campaigns.
+  instruction: |
+    ```fetch
+    method: POST
+    url: /api/auxiliary/skillset/ability/instantly/proxy
+    headers:
+      X-Access-Token: ${SECRET_DEFAULT}
+      Content-Type: application/json
+    body:
+      method: GET
+      url: /api/v1/campaign/list
+    options:
+      auth: internal
+    ```
+  secret: '@instantly'
+
+instantly/campaign/status/fetch:
+  provider: 'instantly'
+  icon: '@logo/instantly.ai'
+  name: Fetch Campaign Status
+  description: Fetch the status of a campaign.
+  instruction: |
+    ```fetch
+    method: POST
+    url: /api/auxiliary/skillset/ability/instantly/proxy
+    headers:
+      X-Access-Token: ${SECRET_DEFAULT}
+      Content-Type: application/json
+    body:
+      method: GET
+      url: /api/v1/campaign/gte/status
+      query:
+        campaign_id: $[campaign_id! ys|the campaign ID to fetch the status for]
+    options:
+      auth: internal
+    ```
+  secret: '@instantly'
+
+instantly/campaign/launch:
+  provider: 'instantly'
+  icon: '@logo/instantly.ai'
+  name: Launch Campaign
+  description: Launch a campaign.
+  instruction: |
+    ```fetch
+    method: POST
+    url: /api/auxiliary/skillset/ability/instantly/proxy
+    headers:
+      X-Access-Token: ${SECRET_DEFAULT}
+      Content-Type: application/json
+    body:
+      method: POST
+      url: /api/v1/campaign/launch
+      data:
+        campaign_id: $[campaign_id! ys|the campaign ID to launch]
+    options:
+      auth: internal
+    ```
+  secret: '@instantly'
+
+instantly/campaign/pause:
+  provider: 'instantly'
+  icon: '@logo/instantly.ai'
+  name: Pause Campaign
+  description: Pause a campaign.
+  instruction: |
+    ```fetch
+    method: POST
+    url: /api/auxiliary/skillset/ability/instantly/proxy
+    headers:
+      X-Access-Token: ${SECRET_DEFAULT}
+      Content-Type: application/json
+    body:
+      method: POST
+      url: /api/v1/campaign/pause
+      data:
+        campaign_id: $[campaign_id! ys|the campaign ID to pause]
+    options:
+      auth: internal
+    ```
+  secret: '@instantly'
+
+instantly/campaign/summary/fetch:
+  provider: 'instantly'
+  icon: '@logo/instantly.ai'
+  name: Fetch Campaign Summary
+  description: Fetch the summary of a campaign.
+  instruction: |
+    ```fetch
+    method: POST
+    url: /api/auxiliary/skillset/ability/instantly/proxy
+    headers:
+      X-Access-Token: ${SECRET_DEFAULT}
+      Content-Type: application/json
+    body:
+      method: GET
+      url: /api/v1/analytics/campaign/summary
+      query:
+        campaign_id: $[campaign_id! ys|the campaign ID to fetch the summary for]
+    options:
+      auth: internal
+    ```
+  secret: '@instantly'
+
+instantly/campaign/lead/add:
+  provider: 'instantly'
+  icon: '@logo/instantly.ai'
+  name: Add Lead to Campaign
+  description: Add a lead to a campaign.
+  instruction: |
+    ```fetch
+    method: POST
+    url: /api/auxiliary/skillset/ability/instantly/proxy
+    headers:
+      X-Access-Token: ${SECRET_DEFAULT}
+      Content-Type: application/json
+    body:
+      method: POST
+      url: /api/v1/lead/add
+      data:
+        campaign_id: $[campaign_id! ys|the campaign ID to add the lead to]
+        leads:
+          - email: $[email! ys|the email of the lead to add]
+            first_name?: $[first_name ys?|the first name of the lead to add]
+            last_name?: $[last_name ys?|the last name of the lead to add]
+            company_name?: $[company_name ys?|the company name of the lead to add]
+            phone?: $[phone ys?|the phone number of the lead to add]
+            website?: $[website ys?|the website of the lead to add]
+    options:
+      auth: internal
+    ```
+  secret: '@instantly'
+
+instantly/campaign/lead/delete:
+  provider: 'instantly'
+  icon: '@logo/instantly.ai'
+  name: Delete Lead from Campaign
+  description: Delete a lead from a campaign.
+  instruction: |
+    ```fetch
+    method: POST
+    url: /api/auxiliary/skillset/ability/instantly/proxy
+    headers:
+      X-Access-Token: ${SECRET_DEFAULT}
+      Content-Type: application/json
+    body:
+      method: POST
+      url: /api/v1/lead/delete
+      data:
+        campaign_id: $[campaign_id! ys|the campaign ID to delete the lead from]
+        delete_all_from_company: false
+        delete_list:
+          - $[email! ys|the email of the lead to delete]
+    options:
+      auth: internal
+    ```
+  secret: '@instantly'
+
+instantly/campaign/lead/fetch:
+  provider: 'instantly'
+  icon: '@logo/instantly.ai'
+  name: Fetch Campaign Leads
+  description: Fetch the leads of a campaign.
+  instruction: |
+    ```fetch
+    method: POST
+    url: /api/auxiliary/skillset/ability/instantly/proxy
+    headers:
+      X-Access-Token: ${SECRET_DEFAULT}
+      Content-Type: application/json
+    body:
+      method: GET
+      url: /api/v1/lead/get
+      query:
+        campaign_id: $[campaign_id! euc|The campaign ID to fetch the leads for]
+        email: $[email! euc|The email of the lead to fetch]
+    options:
+      auth: internal
+    ```
+  secret: '@instantly'
+
+instantly/campaign/thread/latest/list:
+  provider: 'instantly'
+  icon: '@logo/instantly.ai'
+  name: List Latest Campaign Unibox Threads
+  description: List the latest campaign threads in Unibox/Inbox.
+  instruction: |
+    ```fetch
+    method: POST
+    url: /api/auxiliary/skillset/ability/instantly/proxy
+    headers:
+      X-Access-Token: ${SECRET_DEFAULT}
+      Content-Type: application/json
+    body:
+      method: GET
+      url: /api/v1/unibox/emails
+      query:
+        campaign_id: $[campaign_id! ys|the campaign ID to fetch the latest threads for]
+        email_type: received
+        latest_of_thread: true
+        preview_only: false
+    options:
+      auth: internal
+    ```
+  secret: '@instantly'
+
+# ---
+
+instantly/unibox/thread/latest/list:
+  provider: 'instantly'
+  icon: '@logo/instantly.ai'
+  name: List Latest Unibox Threads
+  description: List the latest threads in Unibox/Inbox.
+  instruction: |
+    ```fetch
+    method: POST
+    url: /api/auxiliary/skillset/ability/instantly/proxy
+    headers:
+      X-Access-Token: ${SECRET_DEFAULT}
+      Content-Type: application/json
+    body:
+      method: GET
+      url: /api/v1/unibox/emails
+      query:
+        email_type: received
+        latest_of_thread: true
+        preview_only: false
+    options:
+      auth: internal
+    ```
+  secret: '@instantly'

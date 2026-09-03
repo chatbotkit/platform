@@ -1,0 +1,10 @@
+- question: What is a skillset?
+  answer: A skillset is a set of instructions defined in natural language that allows a chatbot to understand user intent and propose a suitable action based on a conversation.
+- question: How do skillsets work?
+  answer: Skillsets work by allowing a chatbot to extract information from a conversation and use it to perform a specific action. For example, if a user asks a chatbot to fetch the weather forecast for a specific location, the skillset instruction will tell the chatbot how to extract the location from the conversation and use it to search for the weather forecast.
+- question: Can I create my own skillsets?
+  answer: Yes, you can create and customize your own skillsets to suit the needs of your chatbot and your users. This can be useful if you want to allow for your chatbot to have special abilities, act on a piece of information, etc.
+- question: How do I access the skillsets?
+  answer: You can access your skillsets when you start a conversation with a chatbot. For more information, see the [Skillsets](https://chatbotkit.com/docs/skillsets) documentation pages.
+- question: Are skillsets included in the monthly membership?
+  answer: Yes, our "Basic" monthly membership includes access to **10** skillsets. This means that you can use up to **10** skillsets in your chatbot conversations as part of your membership. Additional skillsets are available through a different subscription plan.

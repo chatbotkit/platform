@@ -1,0 +1,14 @@
+description: |
+  Generates an FAQ from a record.
+prompt: |
+  Construct questions and answers from the following snippet. The questions and
+  answers must be in the same language as the input. The FAQ items must not be
+  numbered and instead use Q: and A: to indicate questions and answers.
+
+  Input:
+  ###
+  {input}
+  ###
+
+  FAQ:
+model: gpt-4o/temperature=0.2

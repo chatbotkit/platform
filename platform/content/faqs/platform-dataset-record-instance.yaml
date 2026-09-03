@@ -1,0 +1,16 @@
+- question: What is a Dataset Record?
+  answer: The Record is an entry in your Dataset. This record is useful when you want to customize your chatbot's responses based on factual data.
+- question: How big Dataset Records can be?
+  answer: We recommend keeping dataset records small and relevant. This increases the chances of finding the right information when a user interacts with your chatbot.
+- question: How do I create a new dataset record?
+  answer: To create a new dataset record, simply enter the desired text and click "Create". You can also create multiple records. This option is available if your input contains separate paragraphs. Alternatively, you can import entire websites and documents with the "Import" button.
+- question: How do I update an existing dataset record?
+  answer: To update an existing dataset record, make the desired changes in the fields on the page. When you are finished making changes, click the "Save" button to apply the updates to the record.
+- question: Can I delete a dataset record?
+  answer: Yes, you can delete a dataset record by clicking the "Delete" button. It can be found in this screen as well next to the record in the list on the Dataset Record page. Please note that this action cannot be undone, so make sure you really want to delete the record before confirming the action.
+- question: Can I import a web page as a Dataset Record?
+  answer: Yes, you can! Click the "Import" button when you are creating a new Dataset Record. Type the web page URL you want to import. Once imported, make sure to edit the record to fit your specific use-case.
+- question: Can I import a document as a Dataset Record?
+  answer: Yes, you can! Click the "Import" button when you are creating a new Dataset Record. Select the file you want to import. Once imported, make sure to edit the record to fit your specific use-case.
+- question: Where can I learn more about Dataset Records?
+  answer: For more information about Dataset Records please refer to the [documentation](https://chatbotkit.com/docs/datasets).

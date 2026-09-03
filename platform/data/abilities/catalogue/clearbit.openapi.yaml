@@ -1,0 +1,488 @@
+# @see https://dashboard.clearbit.com/docs
+# @note this is a barebone OpenAPI spec for Clearbit
+# @todo replace with official spec when available
+openapi: 3.0.3
+info:
+  title: Clearbit API
+  version: '1.0'
+  description: Clearbit provides enrichment APIs for person and company data
+servers:
+  - url: https://person.clearbit.com
+  - url: https://company.clearbit.com
+  - url: https://discovery.clearbit.com
+  - url: https://prospector.clearbit.com
+paths:
+  /v1/domains/find:
+    get:
+      operationId: findDomain
+      parameters:
+        - name: name
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Domain'
+      security:
+        - bearerAuth: []
+  /v2/people/find:
+    get:
+      operationId: findPerson
+      parameters:
+        - name: email
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Person'
+      security:
+        - bearerAuth: []
+  /v2/companies/find:
+    get:
+      operationId: findCompany
+      parameters:
+        - name: domain
+          in: query
+          schema:
+            type: string
+        - name: name
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Company'
+      security:
+        - bearerAuth: []
+  /v1/companies/search:
+    get:
+      operationId: searchCompanies
+      parameters:
+        - name: query
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: page_size
+          in: query
+          schema:
+            type: integer
+        - name: sort
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompanySearchResults'
+      security:
+        - bearerAuth: []
+  /v1/people/search:
+    get:
+      operationId: searchPeople
+      parameters:
+        - name: query
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: page_size
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PersonSearchResults'
+      security:
+        - bearerAuth: []
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+  schemas:
+    Domain:
+      type: object
+      properties:
+        name:
+          type: string
+          example: clearbit.com
+        domain:
+          type: string
+          example: clearbit.com
+        logo:
+          type: string
+    CompanySearchResults:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Company'
+        total:
+          type: integer
+        page:
+          type: integer
+    PersonSearchResults:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Person'
+        total:
+          type: integer
+        page:
+          type: integer
+    Person:
+      type: object
+      properties:
+        id:
+          type: string
+          example: d54c54ad-40be-4305-8a34-0ab44710b90d
+        name:
+          type: object
+          properties:
+            fullName:
+              type: string
+              example: John Doe
+            givenName:
+              type: string
+              example: John
+            familyName:
+              type: string
+              example: Doe
+        email:
+          type: string
+          example: john@example.com
+        location:
+          type: string
+          example: San Francisco, CA, US
+        timeZone:
+          type: string
+          example: America/Los_Angeles
+        utcOffset:
+          type: integer
+          example: -8
+        geo:
+          type: object
+          properties:
+            city:
+              type: string
+            state:
+              type: string
+            country:
+              type: string
+            lat:
+              type: number
+            lng:
+              type: number
+        bio:
+          type: string
+        site:
+          type: string
+        avatar:
+          type: string
+        employment:
+          type: object
+          properties:
+            domain:
+              type: string
+            name:
+              type: string
+            title:
+              type: string
+            role:
+              type: string
+            seniority:
+              type: string
+        facebook:
+          type: object
+          properties:
+            handle:
+              type: string
+        github:
+          type: object
+          properties:
+            handle:
+              type: string
+            avatar:
+              type: string
+            company:
+              type: string
+            blog:
+              type: string
+            followers:
+              type: integer
+            following:
+              type: integer
+        twitter:
+          type: object
+          properties:
+            handle:
+              type: string
+            id:
+              type: string
+            bio:
+              type: string
+            followers:
+              type: integer
+            following:
+              type: integer
+            location:
+              type: string
+            site:
+              type: string
+            avatar:
+              type: string
+        linkedin:
+          type: object
+          properties:
+            handle:
+              type: string
+        googleplus:
+          type: object
+          properties:
+            handle:
+              type: string
+        gravatar:
+          type: object
+          properties:
+            handle:
+              type: string
+            urls:
+              type: array
+              items:
+                type: object
+            avatar:
+              type: string
+            avatars:
+              type: array
+              items:
+                type: object
+        fuzzy:
+          type: boolean
+        emailProvider:
+          type: boolean
+        indexedAt:
+          type: string
+          format: date-time
+    Company:
+      type: object
+      properties:
+        id:
+          type: string
+          example: c5a6829e-3ce3-4f88-87d2-ce06e4a9d3f8
+        name:
+          type: string
+          example: Clearbit
+        legalName:
+          type: string
+          example: Clearbit, Inc.
+        domain:
+          type: string
+          example: clearbit.com
+        domainAliases:
+          type: array
+          items:
+            type: string
+        site:
+          type: object
+          properties:
+            phoneNumbers:
+              type: array
+              items:
+                type: string
+            emailAddresses:
+              type: array
+              items:
+                type: string
+        category:
+          type: object
+          properties:
+            sector:
+              type: string
+            industryGroup:
+              type: string
+            industry:
+              type: string
+            subIndustry:
+              type: string
+            gicsCode:
+              type: string
+            sicCode:
+              type: string
+            sic4Codes:
+              type: array
+              items:
+                type: string
+            naicsCode:
+              type: string
+            naics6Codes:
+              type: array
+              items:
+                type: string
+        tags:
+          type: array
+          items:
+            type: string
+        description:
+          type: string
+        foundedYear:
+          type: integer
+        location:
+          type: string
+        timeZone:
+          type: string
+        utcOffset:
+          type: integer
+        geo:
+          type: object
+          properties:
+            streetNumber:
+              type: string
+            streetName:
+              type: string
+            subPremise:
+              type: string
+            city:
+              type: string
+            postalCode:
+              type: string
+            state:
+              type: string
+            stateCode:
+              type: string
+            country:
+              type: string
+            countryCode:
+              type: string
+            lat:
+              type: number
+            lng:
+              type: number
+        logo:
+          type: string
+        facebook:
+          type: object
+          properties:
+            handle:
+              type: string
+            likes:
+              type: integer
+        linkedin:
+          type: object
+          properties:
+            handle:
+              type: string
+        twitter:
+          type: object
+          properties:
+            handle:
+              type: string
+            id:
+              type: string
+            bio:
+              type: string
+            followers:
+              type: integer
+            following:
+              type: integer
+            location:
+              type: string
+            site:
+              type: string
+            avatar:
+              type: string
+        crunchbase:
+          type: object
+          properties:
+            handle:
+              type: string
+        emailProvider:
+          type: boolean
+        type:
+          type: string
+        ticker:
+          type: string
+        identifiers:
+          type: object
+          properties:
+            usEIN:
+              type: string
+        phone:
+          type: string
+        metrics:
+          type: object
+          properties:
+            alexaUsRank:
+              type: integer
+            alexaGlobalRank:
+              type: integer
+            employees:
+              type: integer
+            employeesRange:
+              type: string
+            marketCap:
+              type: integer
+            raised:
+              type: integer
+            annualRevenue:
+              type: integer
+            estimatedAnnualRevenue:
+              type: string
+            fiscalYearEnd:
+              type: integer
+        indexedAt:
+          type: string
+          format: date-time
+        tech:
+          type: array
+          items:
+            type: string
+        techCategories:
+          type: array
+          items:
+            type: string
+        parent:
+          type: object
+          properties:
+            domain:
+              type: string
+        ultimateParent:
+          type: object
+          properties:
+            domain:
+              type: string
+security:
+  - bearerAuth: []

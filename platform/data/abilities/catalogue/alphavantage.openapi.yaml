@@ -1,0 +1,81 @@
+# @see https://www.alphavantage.co/documentation/
+# @note this is a barebone OpenAPI spec for Alpha Vantage API
+# @todo replace with official spec when available
+openapi: 3.0.3
+info:
+  title: Alpha Vantage API
+  version: '1.0'
+  description: Alpha Vantage provides free APIs for realtime and historical stock data
+servers:
+  - url: https://www.alphavantage.co
+paths:
+  /query:
+    get:
+      operationId: getStockQuote
+      summary: Get stock market data
+      parameters:
+        - name: function
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [GLOBAL_QUOTE]
+        - name: symbol
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: apikey
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GlobalQuoteResponse'
+              example:
+                Global Quote:
+                  '01. symbol': 'AAPL'
+                  '02. open': '150.00'
+                  '03. high': '152.00'
+                  '04. low': '149.00'
+                  '05. price': '151.00'
+                  '06. volume': '50000000'
+                  '07. latest trading day': '2024-12-04'
+                  '08. previous close': '150.50'
+                  '09. change': '0.50'
+                  '10. change percent': '0.33%'
+components:
+  schemas:
+    GlobalQuote:
+      type: object
+      properties:
+        '01. symbol':
+          type: string
+        '02. open':
+          type: string
+        '03. high':
+          type: string
+        '04. low':
+          type: string
+        '05. price':
+          type: string
+        '06. volume':
+          type: string
+        '07. latest trading day':
+          type: string
+        '08. previous close':
+          type: string
+        '09. change':
+          type: string
+        '10. change percent':
+          type: string
+    GlobalQuoteResponse:
+      type: object
+      properties:
+        'Global Quote':
+          $ref: '#/components/schemas/GlobalQuote'

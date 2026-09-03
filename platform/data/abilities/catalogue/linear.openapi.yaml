@@ -1,0 +1,214 @@
+# @see https://developers.linear.app/docs/graphql/working-with-the-graphql-api
+# @note this is a barebone OpenAPI spec for Linear GraphQL API
+# @note Linear uses GraphQL, so this spec only covers the single GraphQL endpoint
+openapi: 3.0.3
+info:
+  title: Linear GraphQL API
+  version: '1.0'
+  description: Linear's GraphQL API for project management
+servers:
+  - url: https://api.linear.app
+paths:
+  /graphql:
+    post:
+      operationId: graphqlQuery
+      summary: Execute GraphQL query or mutation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - query
+              properties:
+                query:
+                  type: string
+                  description: The GraphQL query or mutation string
+                variables:
+                  type: object
+                  description: Variables for the GraphQL operation
+                operationName:
+                  type: string
+                  description: Optional operation name
+      responses:
+        '200':
+          description: Successful GraphQL response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      issueCreate:
+                        type: object
+                        properties:
+                          success:
+                            type: boolean
+                          issue:
+                            $ref: '#/components/schemas/Issue'
+                      issueUpdate:
+                        type: object
+                        properties:
+                          success:
+                            type: boolean
+                          issue:
+                            $ref: '#/components/schemas/Issue'
+                      issue:
+                        $ref: '#/components/schemas/Issue'
+                      issues:
+                        type: object
+                        properties:
+                          nodes:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/Issue'
+                          pageInfo:
+                            $ref: '#/components/schemas/PageInfo'
+                      teams:
+                        type: object
+                        properties:
+                          nodes:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/Team'
+                          pageInfo:
+                            $ref: '#/components/schemas/PageInfo'
+                  errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        message:
+                          type: string
+                        locations:
+                          type: array
+                          items:
+                            type: object
+                        path:
+                          type: array
+                          items:
+                            type: string
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+  schemas:
+    Issue:
+      type: object
+      properties:
+        id:
+          type: string
+          example: issue-123
+        identifier:
+          type: string
+          example: ENG-123
+        title:
+          type: string
+          example: Fix login bug
+        description:
+          type: string
+          example: Users cannot log in with email
+        priority:
+          type: integer
+          example: 2
+        url:
+          type: string
+          example: https://linear.app/team/issue/ENG-123
+        createdAt:
+          type: string
+          format: date-time
+          example: '2024-01-01T00:00:00.000Z'
+        updatedAt:
+          type: string
+          format: date-time
+          example: '2024-01-02T00:00:00.000Z'
+        state:
+          $ref: '#/components/schemas/WorkflowState'
+        assignee:
+          $ref: '#/components/schemas/User'
+        team:
+          $ref: '#/components/schemas/Team'
+        project:
+          $ref: '#/components/schemas/Project'
+        labels:
+          type: object
+          properties:
+            nodes:
+              type: array
+              items:
+                $ref: '#/components/schemas/Label'
+    WorkflowState:
+      type: object
+      properties:
+        id:
+          type: string
+          example: state-123
+        name:
+          type: string
+          example: In Progress
+        type:
+          type: string
+          example: started
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          example: user-123
+        name:
+          type: string
+          example: John Doe
+        email:
+          type: string
+          example: john@example.com
+    Team:
+      type: object
+      properties:
+        id:
+          type: string
+          example: team-123
+        name:
+          type: string
+          example: Engineering
+        key:
+          type: string
+          example: ENG
+        description:
+          type: string
+          example: Engineering team
+    Project:
+      type: object
+      properties:
+        id:
+          type: string
+          example: project-123
+        name:
+          type: string
+          example: Q1 2024
+    Label:
+      type: object
+      properties:
+        id:
+          type: string
+          example: label-123
+        name:
+          type: string
+          example: bug
+        color:
+          type: string
+          example: '#ff0000'
+    PageInfo:
+      type: object
+      properties:
+        hasNextPage:
+          type: boolean
+          example: false
+        endCursor:
+          type: string
+          example: cursor-123
+security:
+  - bearerAuth: []

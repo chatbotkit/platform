@@ -1,0 +1,12 @@
+- question: What is a bot?
+  answer: A bot is a software application that can mimic human conversation through either text or voice interactions.
+- question: What is a shadow bot?
+  answer: A shadow bot is a bot that is directly configured inside an integration such as the Widget, Slack, Discord, and WhatsApp.
+- question: How can I create a bot using ChatBotKit?
+  answer: You can create a chatbot in ChatBotKit by using our platform to design and train your bot, and then deploy it for use in your desired channels. Simply click the **Create Bot** button to get started.
+- question: What channels can I use to deploy my chatbot?
+  answer: ChatBotKit supports deployment to a wide range of integrations, including web chat, Slack, Discord, WhatsApp, and more. You can even use our extensive API and Zapier to create custom integrations.
+- question: Is it difficult to create a chatbot using ChatBotKit?
+  answer: No, it is not difficult to create a chatbot using ChatBotKit. Our platform is designed to be intuitive and user-friendly, so that even users with no coding experience can create and launch a chatbot.
+- question: Can I integrate my chatbot with other systems?
+  answer: Yes, ChatBotKit provides APIs that allow you to integrate your chatbot with other systems or services.

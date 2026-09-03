@@ -1,0 +1,9 @@
+{
+  "start": "/apps/eventlog",
+  "name": "Event Logs",
+  "description": "Advanced event log analysis and viewing tool.",
+  "icon": "@lucide/scroll-text",
+  "order": 1001,
+  "category": "developer",
+  "config": {}
+}

@@ -1,0 +1,17 @@
+- question: What is Sitemap Integration?
+  answer: Sitemap Integration is a sophisticated feature designed to dynamically import content from a website into a dataset. This ensures your chatbot is equipped with the latest information, enhancing its responses with up-to-date data.
+- question: Where can I find instructions for setting up Sitemap Integration?
+  answer: Comprehensive setup instructions for Sitemap Integration are available in the ChatBotKit [Integrations documentation](https://chatbotkit.com/docs/sitemap). This guide provides step-by-step directions to help you seamlessly integrate your website's content.
+- question: What information is required to set up Sitemap Integration?
+  answer: |-
+    Configuring Sitemap Integration necessitates certain details to tailor the integration to your needs, including:
+
+    - **Dataset**: Specifies the destination dataset for the imported information.
+    - **URL**: The website's sitemap URL, usually ending in /sitemap.xml. If the URL does not direct to a sitemap, an attempt will be made to crawl the website.
+    - **Glob**: Defines which files to include through glob patterns, allowing for targeted inclusion of specific file types or directories.
+    - **Selectors**: Used to refine the extraction to particular content segments, prioritizing elements like articles, main content, or the entire body.
+    - **JavaScript**: Activates an enhanced crawling engine for dynamic pages. This feature, available where your account limits allow the advanced engine, is crucial for websites that dynamically load content using JavaScript.
+- question: How does enabling JavaScript improve web crawling?
+  answer: 'Enabling JavaScript allows the use of an advanced crawling engine capable of interpreting and navigating dynamic web pages. This is essential for comprehensively scraping sites that rely on JavaScript for content loading, ensuring thorough data extraction and integration. Note: This feature is only used where your account limits allow the advanced engine.'
+- question: What steps should I take if my sitemap is not syncing?
+  answer: Ensure you have set a "Sync Schedule" to enable automatic sitemap synchronization. For immediate synchronization, use the "Sync" button to manually initiate the process. This function helps maintain your dataset's currency by regularly updating it according to your specified schedule.

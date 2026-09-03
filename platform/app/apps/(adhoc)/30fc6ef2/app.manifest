@@ -1,0 +1,9 @@
+{
+  "start": "/apps/30fc6ef2",
+  "name": "Priorities",
+  "description": "Get a consolidated view of your top priorities from all connected AI agents.",
+  "icon": "@lucide/list-checks",
+  "order": 10050,
+  "category": "user",
+  "config": {}
+}

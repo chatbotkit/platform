@@ -1,0 +1,985 @@
+# @see https://developers.taxjar.com/api/reference/
+# @note this is a barebone OpenAPI spec for TaxJar Sales Tax API
+# @todo replace with official spec when available
+openapi: 3.0.3
+info:
+  title: TaxJar Sales Tax API
+  description: TaxJar's Sales Tax API for tax calculations, reporting, and filing
+  version: '2.0'
+servers:
+  - url: https://api.taxjar.com
+paths:
+  /v2/categories:
+    get:
+      operationId: listCategories
+      summary: List Tax Categories
+      description: Lists all tax categories
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CategoriesResponse'
+
+  /v2/taxes:
+    post:
+      operationId: calculateTax
+      summary: Calculate Sales Tax
+      description: Shows the sales tax that should be collected for a given order
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaxRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaxResponse'
+
+  /v2/rates/{zip}:
+    get:
+      operationId: getRateForLocation
+      summary: Get Tax Rate for Location
+      description: Shows the sales tax rates for a given location
+      parameters:
+        - name: zip
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Postal code for the location
+        - name: country
+          in: query
+          schema:
+            type: string
+          description: Two-letter ISO country code
+        - name: state
+          in: query
+          schema:
+            type: string
+          description: Two-letter ISO state code
+        - name: city
+          in: query
+          schema:
+            type: string
+          description: City name
+        - name: street
+          in: query
+          schema:
+            type: string
+          description: Street address
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RateResponse'
+
+  /v2/addresses/validate:
+    post:
+      operationId: validateAddress
+      summary: Validate Address
+      description: Validates a customer address and returns the standardized form
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddressValidationRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AddressValidationResponse'
+
+  /v2/customers:
+    get:
+      operationId: listCustomers
+      summary: List Customers
+      description: Lists existing customers created through the API
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomersListResponse'
+    post:
+      operationId: createCustomer
+      summary: Create Customer
+      description: Creates a new customer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomerRequest'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerResponse'
+
+  /v2/customers/{customer_id}:
+    get:
+      operationId: showCustomer
+      summary: Show Customer
+      description: Shows an existing customer created through the API
+      parameters:
+        - name: customer_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Unique identifier of the customer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerResponse'
+    put:
+      operationId: updateCustomer
+      summary: Update Customer
+      description: Updates an existing customer created through the API
+      parameters:
+        - name: customer_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Unique identifier of the customer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomerRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerResponse'
+    delete:
+      operationId: deleteCustomer
+      summary: Delete Customer
+      description: Deletes an existing customer created through the API
+      parameters:
+        - name: customer_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Unique identifier of the customer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerResponse'
+
+  /v2/transactions/orders:
+    get:
+      operationId: listOrders
+      summary: List Order Transactions
+      description: Lists existing order transactions created through the API
+      parameters:
+        - name: transaction_date
+          in: query
+          schema:
+            type: string
+          description: The date the transactions were originally recorded
+        - name: from_transaction_date
+          in: query
+          schema:
+            type: string
+          description: Start date of a range for which the transactions were originally recorded
+        - name: to_transaction_date
+          in: query
+          schema:
+            type: string
+          description: End date of a range for which the transactions were originally recorded
+        - name: provider
+          in: query
+          schema:
+            type: string
+          description: Source of where the transactions were originally recorded
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrdersListResponse'
+    post:
+      operationId: createOrder
+      summary: Create Order Transaction
+      description: Creates a new order transaction
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderRequest'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+
+  /v2/transactions/orders/{transaction_id}:
+    get:
+      operationId: showOrder
+      summary: Show Order Transaction
+      description: Shows an existing order transaction created through the API
+      parameters:
+        - name: transaction_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Unique identifier of the order transaction
+        - name: provider
+          in: query
+          schema:
+            type: string
+          description: Source of where the transaction was originally recorded
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+    put:
+      operationId: updateOrder
+      summary: Update Order Transaction
+      description: Updates an existing order transaction created through the API
+      parameters:
+        - name: transaction_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Unique identifier of the order transaction
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+    delete:
+      operationId: deleteOrder
+      summary: Delete Order Transaction
+      description: Deletes an existing order transaction created through the API
+      parameters:
+        - name: transaction_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Unique identifier of the order transaction
+        - name: provider
+          in: query
+          schema:
+            type: string
+          description: Source of where the transaction was originally recorded
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+
+  /v2/transactions/refunds:
+    get:
+      operationId: listRefunds
+      summary: List Refund Transactions
+      description: Lists existing refund transactions created through the API
+      parameters:
+        - name: transaction_date
+          in: query
+          schema:
+            type: string
+          description: The date the transactions were originally recorded
+        - name: from_transaction_date
+          in: query
+          schema:
+            type: string
+          description: Start date of a range for which the transactions were originally recorded
+        - name: to_transaction_date
+          in: query
+          schema:
+            type: string
+          description: End date of a range for which the transactions were originally recorded
+        - name: provider
+          in: query
+          schema:
+            type: string
+          description: Source of where the transactions were originally recorded
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RefundsListResponse'
+    post:
+      operationId: createRefund
+      summary: Create Refund Transaction
+      description: Creates a new refund transaction
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefundRequest'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RefundResponse'
+
+  /v2/transactions/refunds/{transaction_id}:
+    get:
+      operationId: showRefund
+      summary: Show Refund Transaction
+      description: Shows an existing refund transaction created through the API
+      parameters:
+        - name: transaction_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Unique identifier of the refund transaction
+        - name: provider
+          in: query
+          schema:
+            type: string
+          description: Source of where the transaction was originally recorded
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RefundResponse'
+    put:
+      operationId: updateRefund
+      summary: Update Refund Transaction
+      description: Updates an existing refund transaction created through the API
+      parameters:
+        - name: transaction_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Unique identifier of the refund transaction
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefundRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RefundResponse'
+    delete:
+      operationId: deleteRefund
+      summary: Delete Refund Transaction
+      description: Deletes an existing refund transaction created through the API
+      parameters:
+        - name: transaction_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Unique identifier of the refund transaction
+        - name: provider
+          in: query
+          schema:
+            type: string
+          description: Source of where the transaction was originally recorded
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RefundResponse'
+
+  /v2/nexus/addresses:
+    get:
+      operationId: listNexusAddresses
+      summary: List Nexus Addresses
+      description: Lists existing nexus addresses for the current API user
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NexusAddressesResponse'
+    post:
+      operationId: createNexusAddress
+      summary: Create Nexus Address
+      description: Creates a new nexus address
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NexusAddressRequest'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NexusAddressResponse'
+
+  /v2/nexus/addresses/{id}:
+    get:
+      operationId: showNexusAddress
+      summary: Show Nexus Address
+      description: Shows an existing nexus address
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Unique identifier of the nexus address
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NexusAddressResponse'
+    put:
+      operationId: updateNexusAddress
+      summary: Update Nexus Address
+      description: Updates an existing nexus address
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Unique identifier of the nexus address
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NexusAddressRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NexusAddressResponse'
+    delete:
+      operationId: deleteNexusAddress
+      summary: Delete Nexus Address
+      description: Deletes an existing nexus address
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Unique identifier of the nexus address
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NexusAddressResponse'
+
+  /v2/nexus/regions:
+    get:
+      operationId: listNexusRegions
+      summary: List Nexus Regions
+      description: Lists existing nexus regions for the current API user
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NexusRegionsResponse'
+
+  /v2/summary_rates:
+    get:
+      operationId: listSummaryRates
+      summary: List Summary Rates
+      description: Retrieve minimum and average sales tax rates by region as a backup
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SummaryRatesResponse'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+
+  schemas:
+    Category:
+      type: object
+      properties:
+        product_tax_code:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+
+    CategoriesResponse:
+      type: object
+      properties:
+        categories:
+          type: array
+          items:
+            $ref: '#/components/schemas/Category'
+
+    TaxRequest:
+      type: object
+      properties:
+        from_country:
+          type: string
+        from_zip:
+          type: string
+        from_state:
+          type: string
+        from_city:
+          type: string
+        from_street:
+          type: string
+        to_country:
+          type: string
+        to_zip:
+          type: string
+        to_state:
+          type: string
+        to_city:
+          type: string
+        to_street:
+          type: string
+        amount:
+          type: number
+        shipping:
+          type: number
+        customer_id:
+          type: string
+        exemption_type:
+          type: string
+
+    TaxResponse:
+      type: object
+      properties:
+        tax:
+          type: object
+          properties:
+            order_total_amount:
+              type: number
+            shipping:
+              type: number
+            taxable_amount:
+              type: number
+            amount_to_collect:
+              type: number
+            rate:
+              type: number
+            has_nexus:
+              type: boolean
+            freight_taxable:
+              type: boolean
+            tax_source:
+              type: string
+
+    RateResponse:
+      type: object
+      properties:
+        rate:
+          type: object
+          properties:
+            zip:
+              type: string
+            state:
+              type: string
+            state_rate:
+              type: string
+            county:
+              type: string
+            county_rate:
+              type: string
+            city:
+              type: string
+            city_rate:
+              type: string
+            combined_district_rate:
+              type: string
+            combined_rate:
+              type: string
+            freight_taxable:
+              type: boolean
+
+    AddressValidationRequest:
+      type: object
+      properties:
+        country:
+          type: string
+        state:
+          type: string
+        zip:
+          type: string
+        city:
+          type: string
+        street:
+          type: string
+
+    AddressValidationResponse:
+      type: object
+      properties:
+        addresses:
+          type: array
+          items:
+            type: object
+            properties:
+              zip:
+                type: string
+              state:
+                type: string
+              country:
+                type: string
+              city:
+                type: string
+              street:
+                type: string
+
+    CustomerRequest:
+      type: object
+      properties:
+        customer_id:
+          type: string
+        exemption_type:
+          type: string
+        name:
+          type: string
+        country:
+          type: string
+        state:
+          type: string
+        zip:
+          type: string
+        city:
+          type: string
+        street:
+          type: string
+
+    CustomerResponse:
+      type: object
+      properties:
+        customer:
+          type: object
+          properties:
+            customer_id:
+              type: string
+            exemption_type:
+              type: string
+            name:
+              type: string
+            country:
+              type: string
+            state:
+              type: string
+            zip:
+              type: string
+            city:
+              type: string
+            street:
+              type: string
+
+    CustomersListResponse:
+      type: object
+      properties:
+        customers:
+          type: array
+          items:
+            type: string
+
+    OrderRequest:
+      type: object
+      properties:
+        transaction_id:
+          type: string
+        transaction_date:
+          type: string
+        to_country:
+          type: string
+        to_zip:
+          type: string
+        to_state:
+          type: string
+        to_city:
+          type: string
+        to_street:
+          type: string
+        amount:
+          type: number
+        shipping:
+          type: number
+        sales_tax:
+          type: number
+
+    OrderResponse:
+      type: object
+      properties:
+        order:
+          type: object
+          properties:
+            transaction_id:
+              type: string
+            user_id:
+              type: integer
+            transaction_date:
+              type: string
+            provider:
+              type: string
+            to_country:
+              type: string
+            to_zip:
+              type: string
+            to_state:
+              type: string
+            to_city:
+              type: string
+            to_street:
+              type: string
+            amount:
+              type: string
+            shipping:
+              type: string
+            sales_tax:
+              type: string
+
+    OrdersListResponse:
+      type: object
+      properties:
+        orders:
+          type: array
+          items:
+            type: string
+
+    RefundRequest:
+      type: object
+      properties:
+        transaction_id:
+          type: string
+        transaction_reference_id:
+          type: string
+        transaction_date:
+          type: string
+        to_country:
+          type: string
+        to_zip:
+          type: string
+        to_state:
+          type: string
+        to_city:
+          type: string
+        to_street:
+          type: string
+        amount:
+          type: number
+        shipping:
+          type: number
+        sales_tax:
+          type: number
+
+    RefundResponse:
+      type: object
+      properties:
+        refund:
+          type: object
+          properties:
+            transaction_id:
+              type: string
+            user_id:
+              type: integer
+            transaction_date:
+              type: string
+            transaction_reference_id:
+              type: string
+            provider:
+              type: string
+            to_country:
+              type: string
+            to_zip:
+              type: string
+            to_state:
+              type: string
+            to_city:
+              type: string
+            to_street:
+              type: string
+            amount:
+              type: string
+            shipping:
+              type: string
+            sales_tax:
+              type: string
+
+    RefundsListResponse:
+      type: object
+      properties:
+        refunds:
+          type: array
+          items:
+            type: string
+
+    NexusAddressRequest:
+      type: object
+      properties:
+        id:
+          type: string
+        country:
+          type: string
+        zip:
+          type: string
+        state:
+          type: string
+        city:
+          type: string
+        street:
+          type: string
+
+    NexusAddressResponse:
+      type: object
+      properties:
+        address:
+          type: object
+          properties:
+            id:
+              type: string
+            country:
+              type: string
+            zip:
+              type: string
+            state:
+              type: string
+            city:
+              type: string
+            street:
+              type: string
+
+    NexusAddressesResponse:
+      type: object
+      properties:
+        addresses:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              country:
+                type: string
+              zip:
+                type: string
+              state:
+                type: string
+              city:
+                type: string
+              street:
+                type: string
+
+    NexusRegionsResponse:
+      type: object
+      properties:
+        regions:
+          type: array
+          items:
+            type: object
+            properties:
+              country_code:
+                type: string
+              country:
+                type: string
+              region_code:
+                type: string
+              region:
+                type: string
+
+    SummaryRatesResponse:
+      type: object
+      properties:
+        summary_rates:
+          type: array
+          items:
+            type: object
+            properties:
+              country_code:
+                type: string
+              country:
+                type: string
+              region_code:
+                type: string
+              region:
+                type: string
+              minimum_rate:
+                type: object
+                properties:
+                  label:
+                    type: string
+                  rate:
+                    type: number
+              average_rate:
+                type: object
+                properties:
+                  label:
+                    type: string
+                  rate:
+                    type: number
+
+security:
+  - bearerAuth: []

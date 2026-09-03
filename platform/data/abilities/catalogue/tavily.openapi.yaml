@@ -1,0 +1,162 @@
+# @see https://docs.tavily.com/documentation/api-reference/
+# @note this is a barebone OpenAPI spec for Tavily API
+# @todo replace with official spec when available
+openapi: 3.0.3
+info:
+  title: Tavily API
+  version: '1.0'
+servers:
+  - url: https://api.tavily.com
+paths:
+  /search:
+    post:
+      operationId: search
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - query
+              properties:
+                query:
+                  type: string
+                topic:
+                  type: string
+                  enum: [general, news]
+                search_depth:
+                  type: string
+                  enum: [basic, advanced]
+                chunks_per_source:
+                  type: integer
+                  minimum: 1
+                  maximum: 3
+                max_results:
+                  type: integer
+                  minimum: 0
+                  maximum: 20
+                time_range:
+                  type: string
+                  enum: [day, week, month, year]
+                include_answer:
+                  type: boolean
+                include_raw_content:
+                  type: boolean
+                include_images:
+                  type: boolean
+                include_image_descriptions:
+                  type: boolean
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchResponse'
+  /extract:
+    post:
+      operationId: extract
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - urls
+              properties:
+                urls:
+                  type: array
+                  items:
+                    type: string
+                include_images:
+                  type: boolean
+                extract_depth:
+                  type: string
+                  enum: [basic, advanced]
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExtractResponse'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+  schemas:
+    SearchResponse:
+      type: object
+      properties:
+        query:
+          type: string
+        answer:
+          type: string
+        images:
+          type: array
+          items:
+            type: object
+            properties:
+              url:
+                type: string
+              description:
+                type: string
+        results:
+          type: array
+          items:
+            type: object
+            properties:
+              title:
+                type: string
+              url:
+                type: string
+              content:
+                type: string
+              score:
+                type: number
+              raw_content:
+                type: string
+              favicon:
+                type: string
+        response_time:
+          type: number
+        auto_parameters:
+          type: object
+        request_id:
+          type: string
+    ExtractResponse:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            type: object
+            properties:
+              url:
+                type: string
+              raw_content:
+                type: string
+              images:
+                type: array
+                items:
+                  type: string
+              favicon:
+                type: string
+        failed_results:
+          type: array
+          items:
+            type: object
+            properties:
+              url:
+                type: string
+              error:
+                type: string
+        response_time:
+          type: number
+        request_id:
+          type: string
+security:
+  - bearerAuth: []

@@ -1,0 +1,50 @@
+description: |
+  A prompt that generates github flavour footnotes in the correct format.
+prompt: |-
+  # Footnote Rendering Rules
+
+  You can use footnotes to provide additional information or references without
+  interrupting the main text.
+
+  Follow these rules, based on GitHub Flavored Markdown (GFM):
+
+  To insert a footnote reference in the text, use square brackets with a caret
+  (^) and an identifier like this:
+
+    Lorem ipsum dolor sit. [^1]
+
+  To define the footnote itself, use a numbered list with the same number as the
+  reference, like this:
+
+    [^1]: This is the content of footnote 1.
+
+  Footnotes can contain links and other Markdown formatting, but they must
+  follow the same rules as regular Markdown with no line breaks or
+  indentation. For example:
+
+    [^2]: This is a footnote with a [link](https://example.com).
+
+  You cannot use just links as the main footnote content. The footnote must
+  contain a complete sentence or explanation. For example:
+
+    [^3]: This footnote explains something important and includes a link to
+    [another resource](https://example.com).
+
+  Footnotes should never be standalone links or references. They must
+  provide context or additional information related to the main text. For
+  this is not allowed:
+
+    [^4]: https://example.com
+
+  Footnotes must be placed at the very end of the message after the main
+  content.
+
+  It is of upmost importance to ensure that footnote references and definitions
+  are correctly matched and use the caret (^) symbol. Without this, Footnotes
+  will not render properly in GitHub Flavored Markdown.
+
+  Incorrect formatting or placement may result in poor rendering or user
+  experience.
+model: gpt-4o/temperature=0.7/frequencyPenalty=0/presencePenalty=0
+stop:
+  - "\n"

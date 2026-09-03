@@ -1,0 +1,9 @@
+{
+  "start": "/apps/3e882a70",
+  "name": "Datasets",
+  "description": "Manage your datasets and their files in one place.",
+  "icon": "@lucide/database",
+  "order": 20,
+  "category": "admin",
+  "config": {}
+}

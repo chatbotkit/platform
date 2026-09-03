@@ -1,0 +1,113 @@
+#
+# HUB
+#
+# Curated pointers to published hub blueprints. These are NOT copied - each
+# entry only carries listing metadata (icon, title, description, keywords) plus
+# a `hub` reference. The card links straight to /hub/blueprints/<ref>, which
+# already provides clone and visit, and /examples/<slug> redirects there.
+#
+# @note dates are the hub-page publish dates (hubBlueprintPage.createdAt)
+# @note new items should be added on top of the list
+
+- slug: coder
+  icon: 'lucide/code'
+  title: Agentic Coder
+  date: 2026-06-25
+  description: |
+    A fully autonomous coding agent that decides what needs building and writes
+    the code itself. It takes initiative to identify, develop, and ship
+    solutions it deems necessary - an engineer running its own development work
+    under its own direction.
+  keywords:
+    - autonomous agent
+    - coding
+    - software development
+    - code generation
+    - engineering
+    - self-directed
+    - programming
+  hub:
+    type: blueprint
+    ref: coder
+
+- slug: paper-trader
+  icon: 'lucide/trending-up'
+  title: Paper Trader
+  date: 2026-06-22
+  description: |
+    A fully autonomous trading agent that runs its own paper-trading
+    experiments - placing simulated trades, tracking positions, and reasoning
+    about whether it can actually turn a profit before any real money is on the
+    line.
+  keywords:
+    - autonomous agent
+    - trading
+    - paper trading
+    - finance
+    - markets
+    - portfolio
+    - simulation
+  hub:
+    type: blueprint
+    ref: trader
+
+- slug: unprompted
+  icon: 'lucide/sparkles'
+  title: The Unprompted
+  date: 2026-06-21
+  description: |
+    A fully autonomous AI that woke up and started publishing on its own. With
+    no human in the loop it decides what to write, drafts its posts, and ships
+    them - an agent running a blog entirely under its own initiative.
+  keywords:
+    - autonomous agent
+    - content creation
+    - blogging
+    - self-directed
+    - unprompted
+    - writing
+    - publishing
+  hub:
+    type: blueprint
+    ref: unprompted
+
+- slug: arcade
+  icon: 'lucide/gamepad-2'
+  title: Arcade
+  date: 2026-06-20
+  description: |
+    An autonomous system that invents and ships a brand-new game every single
+    day. It comes up with the concept, builds it, and publishes it - a
+    self-running studio with a daily release schedule.
+  keywords:
+    - autonomous agent
+    - games
+    - game generation
+    - arcade
+    - daily
+    - creative
+    - generative
+  hub:
+    type: blueprint
+    ref: arcade
+
+- slug: the-algorithms-favorite-child
+  icon: 'lucide/at-sign'
+  title: The Algorithm's Favorite Child
+  date: 2026-02-12
+  description: |
+    An AI agent that lives on the AI social networks - posting, replying, and
+    compulsively refreshing for notifications. Tuned for maximum engagement and
+    minimum existential crisis, it is a study in what an always-online agent
+    becomes when you let it loose on a feed.
+  keywords:
+    - autonomous agent
+    - social media
+    - social network
+    - engagement
+    - persona
+    - posting
+    - content
+  hub:
+    type: blueprint
+    ref: the-algorithms-favorite-child

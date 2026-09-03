@@ -1,0 +1,352 @@
+# @see https://docs.lemonsqueezy.com/api
+# @note this is a barebone OpenAPI spec for Lemon Squeezy
+# @todo replace with official spec when available
+openapi: 3.0.3
+info:
+  title: Lemon Squeezy API
+  version: '1.0'
+servers:
+  - url: https://api.lemonsqueezy.com
+paths:
+  /v1/customers:
+    get:
+      operationId: listCustomers
+      parameters:
+        - name: page[number]
+          in: query
+          schema:
+            type: integer
+        - name: page[size]
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: '#/components/schemas/CustomerList'
+  /v1/customers/{id}:
+    get:
+      operationId: getCustomer
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: '#/components/schemas/CustomerResponse'
+  /v1/orders:
+    get:
+      operationId: listOrders
+      parameters:
+        - name: page[number]
+          in: query
+          schema:
+            type: integer
+        - name: page[size]
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: '#/components/schemas/OrderList'
+  /v1/orders/{id}:
+    get:
+      operationId: getOrder
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+  /v1/products:
+    get:
+      operationId: listProducts
+      parameters:
+        - name: page[number]
+          in: query
+          schema:
+            type: integer
+        - name: page[size]
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: '#/components/schemas/ProductList'
+  /v1/products/{id}:
+    get:
+      operationId: getProduct
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: '#/components/schemas/ProductResponse'
+  /v1/subscriptions:
+    get:
+      operationId: listSubscriptions
+      parameters:
+        - name: page[number]
+          in: query
+          schema:
+            type: integer
+        - name: page[size]
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: '#/components/schemas/SubscriptionList'
+  /v1/subscriptions/{id}:
+    get:
+      operationId: getSubscription
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/vnd.api+json:
+              schema:
+                $ref: '#/components/schemas/SubscriptionResponse'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+  schemas:
+    Customer:
+      type: object
+      properties:
+        type:
+          type: string
+          example: customers
+        id:
+          type: string
+          example: '1'
+        attributes:
+          type: object
+          properties:
+            store_id:
+              type: integer
+            name:
+              type: string
+            email:
+              type: string
+            status:
+              type: string
+            created_at:
+              type: string
+            updated_at:
+              type: string
+    CustomerResponse:
+      type: object
+      properties:
+        jsonapi:
+          type: object
+          properties:
+            version:
+              type: string
+        data:
+          $ref: '#/components/schemas/Customer'
+    CustomerList:
+      type: object
+      properties:
+        jsonapi:
+          type: object
+          properties:
+            version:
+              type: string
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Customer'
+    Order:
+      type: object
+      properties:
+        type:
+          type: string
+          example: orders
+        id:
+          type: string
+          example: '1'
+        attributes:
+          type: object
+          properties:
+            store_id:
+              type: integer
+            customer_id:
+              type: integer
+            identifier:
+              type: string
+            order_number:
+              type: integer
+            status:
+              type: string
+            total:
+              type: integer
+            created_at:
+              type: string
+            updated_at:
+              type: string
+    OrderResponse:
+      type: object
+      properties:
+        jsonapi:
+          type: object
+          properties:
+            version:
+              type: string
+        data:
+          $ref: '#/components/schemas/Order'
+    OrderList:
+      type: object
+      properties:
+        jsonapi:
+          type: object
+          properties:
+            version:
+              type: string
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Order'
+    Product:
+      type: object
+      properties:
+        type:
+          type: string
+          example: products
+        id:
+          type: string
+          example: '1'
+        attributes:
+          type: object
+          properties:
+            store_id:
+              type: integer
+            name:
+              type: string
+            slug:
+              type: string
+            status:
+              type: string
+            price:
+              type: integer
+            created_at:
+              type: string
+            updated_at:
+              type: string
+    ProductResponse:
+      type: object
+      properties:
+        jsonapi:
+          type: object
+          properties:
+            version:
+              type: string
+        data:
+          $ref: '#/components/schemas/Product'
+    ProductList:
+      type: object
+      properties:
+        jsonapi:
+          type: object
+          properties:
+            version:
+              type: string
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Product'
+    Subscription:
+      type: object
+      properties:
+        type:
+          type: string
+          example: subscriptions
+        id:
+          type: string
+          example: '1'
+        attributes:
+          type: object
+          properties:
+            store_id:
+              type: integer
+            customer_id:
+              type: integer
+            order_id:
+              type: integer
+            product_id:
+              type: integer
+            variant_id:
+              type: integer
+            status:
+              type: string
+            created_at:
+              type: string
+            updated_at:
+              type: string
+    SubscriptionResponse:
+      type: object
+      properties:
+        jsonapi:
+          type: object
+          properties:
+            version:
+              type: string
+        data:
+          $ref: '#/components/schemas/Subscription'
+    SubscriptionList:
+      type: object
+      properties:
+        jsonapi:
+          type: object
+          properties:
+            version:
+              type: string
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Subscription'
+security:
+  - bearerAuth: []

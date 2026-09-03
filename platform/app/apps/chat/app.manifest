@@ -1,0 +1,40 @@
+{
+  "start": "/apps/chat",
+  "name": "Chat",
+  "description": "Explore ideas and get work done with AI connected to your models, agents, data, tools, and spaces.",
+  "icon": "@lucide/message-square",
+  "banner": "/apps/chat/banner.png",
+  "order": 0,
+  "category": "main",
+  "config": {
+    "models": true,
+    "sources": {
+      "datasets": true,
+      "skillsets": true,
+      "spaces": true,
+      "mcps": true
+    },
+    "save": true,
+    "layout": {
+      "sidebar": {
+        "icon": "/icon.png;/icon.png#filter=invertGrayscale"
+      }
+    }
+  },
+  "global": {
+    "features": {
+      "feedback": {
+        "reason": true
+      },
+      "references": {
+        "force": true
+      },
+      "search": {
+        "multi": true
+      },
+      "promptImprovement": {
+        "enabled": true
+      }
+    }
+  }
+}

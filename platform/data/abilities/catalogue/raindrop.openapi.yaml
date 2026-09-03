@@ -1,0 +1,402 @@
+# @see https://developer.raindrop.io
+# @note this is a barebone OpenAPI spec for Raindrop.io API
+# @todo replace with official spec when available
+openapi: 3.0.3
+info:
+  title: Raindrop.io API
+  version: '1.0'
+  description: Raindrop.io bookmark management API
+servers:
+  - url: https://api.raindrop.io
+paths:
+  /rest/v1/raindrop:
+    post:
+      operationId: createRaindrop
+      summary: Create a new bookmark
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - link
+              properties:
+                link:
+                  type: string
+                  example: 'https://example.com'
+                title:
+                  type: string
+                  example: 'Example Website'
+                excerpt:
+                  type: string
+                  example: 'This is a description'
+                tags:
+                  type: array
+                  items:
+                    type: string
+                  example: ['web', 'example']
+                collection:
+                  type: object
+                  properties:
+                    $id:
+                      type: integer
+                      example: -1
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: boolean
+                    example: true
+                  item:
+                    $ref: '#/components/schemas/Raindrop'
+  /rest/v1/raindrops/{collectionId}:
+    get:
+      operationId: listRaindrops
+      summary: List bookmarks from a collection
+      parameters:
+        - name: collectionId
+          in: path
+          required: true
+          schema:
+            type: integer
+            example: 0
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: sort
+          in: query
+          schema:
+            type: string
+            enum:
+              ['-created', 'created', '-title', 'title', '-domain', 'domain']
+        - name: perpage
+          in: query
+          schema:
+            type: integer
+            example: 20
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: boolean
+                    example: true
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Raindrop'
+  /rest/v1/raindrop/{id}:
+    get:
+      operationId: getRaindrop
+      summary: Get a specific bookmark
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: boolean
+                    example: true
+                  item:
+                    $ref: '#/components/schemas/Raindrop'
+    put:
+      operationId: updateRaindrop
+      summary: Update a bookmark
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                excerpt:
+                  type: string
+                tags:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: boolean
+                    example: true
+                  item:
+                    $ref: '#/components/schemas/Raindrop'
+    delete:
+      operationId: deleteRaindrop
+      summary: Delete a bookmark
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: boolean
+                    example: true
+  /rest/v1/collection:
+    post:
+      operationId: createCollection
+      summary: Create a new collection
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - title
+              properties:
+                title:
+                  type: string
+                  example: 'My Collection'
+                view:
+                  type: string
+                  enum: ['list', 'simple', 'grid', 'masonry']
+                  example: 'list'
+                public:
+                  type: boolean
+                  example: false
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: boolean
+                    example: true
+                  item:
+                    $ref: '#/components/schemas/Collection'
+  /rest/v1/collections:
+    get:
+      operationId: listCollections
+      summary: List all collections
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: boolean
+                    example: true
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Collection'
+  /rest/v1/collection/{id}:
+    get:
+      operationId: getCollection
+      summary: Get a specific collection
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: boolean
+                    example: true
+                  item:
+                    $ref: '#/components/schemas/Collection'
+    put:
+      operationId: updateCollection
+      summary: Update a collection
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                view:
+                  type: string
+                  enum: ['list', 'simple', 'grid', 'masonry']
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: boolean
+                    example: true
+                  item:
+                    $ref: '#/components/schemas/Collection'
+    delete:
+      operationId: deleteCollection
+      summary: Delete a collection
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: boolean
+                    example: true
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+  schemas:
+    Raindrop:
+      type: object
+      properties:
+        _id:
+          type: integer
+          example: 12345678
+        link:
+          type: string
+          example: 'https://example.com'
+        title:
+          type: string
+          example: 'Example Website'
+        excerpt:
+          type: string
+          example: 'This is a description'
+        note:
+          type: string
+        type:
+          type: string
+          example: 'link'
+        cover:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+          example: ['web', 'example']
+        created:
+          type: string
+          format: date-time
+          example: '2023-01-01T00:00:00.000Z'
+        lastUpdate:
+          type: string
+          format: date-time
+          example: '2023-01-01T00:00:00.000Z'
+        domain:
+          type: string
+          example: 'example.com'
+        collection:
+          type: object
+          properties:
+            $id:
+              type: integer
+              example: -1
+    Collection:
+      type: object
+      properties:
+        _id:
+          type: integer
+          example: 8492393
+        title:
+          type: string
+          example: 'Development'
+        count:
+          type: integer
+          example: 16
+        view:
+          type: string
+          enum: ['list', 'simple', 'grid', 'masonry']
+          example: 'list'
+        public:
+          type: boolean
+          example: false
+        cover:
+          type: array
+          items:
+            type: string
+        color:
+          type: string
+          example: '#0c797d'
+        created:
+          type: string
+          format: date-time
+          example: '2019-10-09T11:49:53.518Z'
+        lastUpdate:
+          type: string
+          format: date-time
+          example: '2019-11-27T17:51:19.085Z'
+        expanded:
+          type: boolean
+          example: false
+        sort:
+          type: integer
+          example: 8492393
+security:
+  - bearerAuth: []

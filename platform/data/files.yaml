@@ -1,0 +1,12 @@
+# ---
+# ---
+# ---
+
+#
+# NOT USED (here as example only)
+#
+
+file:
+  icon: '@logo/google.com'
+  name: My File
+  description: Just a simple file to store some data.

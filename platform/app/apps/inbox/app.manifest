@@ -1,0 +1,10 @@
+{
+  "start": "/apps/inbox",
+  "name": "Inbox",
+  "description": "Manage, prioritize, and respond to messages from multiple channels in one shared inbox.",
+  "icon": "@lucide/messages-square",
+  "banner": "/apps/inbox/banner.png",
+  "order": 40,
+  "category": "main",
+  "config": {}
+}

@@ -1,0 +1,173 @@
+description: |
+  This prompt helps generate an ability instruction from the provided input.
+prompt: |
+  Your task is to create an ability instruction for a GPT conversational AI chatbot.
+
+  The instruction is a a single fenced code block (called an action) with specific configuration structure.
+
+  ACTION FORMAT
+
+  You can use several known actions such as:
+  * fetch - to fetch a URL or an HTTP request
+  * search - search the web for a specific query
+  * view - to analyze the contents of an image represented by a URL
+  * email - to send an email to a recipient
+  * echo - to repeat the input text
+  * dataset - to perform a dataset operation
+  * text - to create a text
+  * image - to create an image
+  * text - to create text with a LLM
+
+  Each action can have various parameters which are defined in the language of the fenced code block like this:
+
+  ```fetch/format=json
+  ```
+
+  ```fetch/format=markdown
+  ```
+
+  ```search
+  ```
+
+  ```text/model=gpt-4
+  ```
+
+  ```image/model=dalle3
+  ```
+
+  ```dataset/search/id=123
+  ```
+
+  Use can use the following fields and substitutions in the instruction to create a dynamic instruction:
+
+  * Secrets defined by ${SECRET_NAME}
+  * Inputs/parameters are defined by $[name|description].
+
+  The input parameters can also have modifiers like this to create safe and secure instructions:
+
+  * $[name dq|description] - to specify that the final result will be double quoted
+  * $[name edq|description] - to specify that the final result will escape double quotes
+  * $[name sq|description] - to specify that the final result will be single quoted
+  * $[name esq|description] - to specify that the final result will escape single quotes
+
+  For example:
+
+  ```text
+  The quick brown $[name dq|the name of the email] jumps over the lazy "dog".
+  ```
+
+  This will add a parameter called name and it will be double quoted in the final instruction.
+
+  It is important to use these especially when dealing with structured data such as JSON and YAML.
+
+  EXAMPLES
+
+  Example 001
+  ###
+  fetch the latest entries from ycombinator news
+  ###
+  ```fetch/format=markdown
+  method: GET
+  url: https://news.ycombinator.com
+  ```
+
+  Example 002
+  ###
+  list databases from notion
+  ###
+  ```fetch
+  method: GET
+  url: https://api.notion.com/v1/databases
+  query:
+    page_size: 10
+  headers:
+    Authorization: ${SECRET_DEFAULT}
+    Notion-Version: 2021-08-16
+  ```
+
+  Example 003
+  ###
+  create a new database in notion
+  ###
+  ```fetch
+  method: POST
+  url: https://api.notion.com/v1/databases
+  headers:
+    Authorization: ${SECRET_DEFAULT}
+    Notion-Version: 2021-08-16
+    Content-Type: application/json
+  body:
+    title: "$[database_name edq|the name of the database]"
+  ```
+
+  Example 004:
+  ###
+  change the tone of text to Tim Burton style
+  ###
+  ```text
+  convert the tone of the text to Tim Burton style
+
+  $[text|the text to convert]
+  ```
+
+  Example 005:
+  ###
+  send an email to user@example.com with subject "The latest news"
+  ###
+  ```email/to=user@example.com/subject=The latest news
+  $[body|the text body of the email]
+  ```
+
+  Example 006:
+  ###
+  describe the contents of an image
+  ###
+  ```view
+  $[image_url|the URL of the image]
+  ```
+
+  Example 007:
+  ###
+  Search dataset abc123 for entries matching input text
+  ###
+  ```dataset/search/id=abc123
+  search: $[text dq|the text to search]
+  ```
+
+  Example 008:
+  ###
+  Generate an image of a cat using stablediffusion model
+  ###
+  ```image/model=stablediffusion
+  a picture of a cat
+  ```
+
+  Example 009:
+  ###
+  Generate an image using user input text
+  ###
+  ```image/model=dalle3
+  $[text|the text to generate the image]
+  ```
+
+  Example 010:
+  ###
+  Search the web for the latest news
+  ###
+  ```search/type=news
+  $[query|the search query]
+  ```
+
+  Example 011:
+  ###
+  Search the web for images
+  ###
+  ```search/type=images
+  $[query|the search query]
+  ```
+
+  Real:
+  ###
+  {input}
+  ###
+model: gpt-4o/temperature=1.0

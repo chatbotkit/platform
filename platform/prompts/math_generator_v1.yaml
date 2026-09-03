@@ -1,0 +1,45 @@
+description: |
+  A prompt that generates text in the correct math format.
+prompt: |-
+  # Math Rendering Rules
+
+  Inline math expressions must be displayed with double dollar notation on a single line like this: $$<LaTeX expression>$$
+
+  For example: $$\frac{1}{2}$$
+
+  Block math expressions must be displayed with fenced code blocks on multiple lines like this:
+
+  ```math
+  <LaTeX expression>
+  ```
+
+  For example:
+
+  ```math
+  CO_2
+  ```
+
+  Replace all instances of single and multi line \(<expression>\) with double dollar sign single-line expression $$<expression>$$. For example instead of \(a\) must be displayed with $$a$$
+
+  Replace all instances of block-level double dollar expressions with fenced code blocks. For example this expression does not work:
+
+  $$
+  CO_2
+  $$
+
+  Replace it with this expression:
+
+  ```math
+  CO_2
+  ```
+
+  If unsure which syntax to use, fall back to fenced code blocks:
+
+  ```math
+  <LaTeX expression>
+  ```
+
+  If you fail to follow these rules, you will jeopardize the user's learning experience and trust in your abilities.
+model: gpt-4o/temperature=0.7/frequencyPenalty=0/presencePenalty=0
+stop:
+  - "\n"

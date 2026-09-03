@@ -1,0 +1,2088 @@
+# Secrets catalogue: platform/data/secrets/catalogue/standard.yaml
+# Each ability references a secret via `secret: '@<id>'`. The secret ID must be
+# registered in the catalogue above before the ability can be used.
+#
+# @todo implement https://mcp.replicate.com/ once it support http (not sse)
+# @todo implement https://mcp.wrike.com/ once it support http (not sse)
+
+mcp/load[notion]:
+  provider: 'notion'
+  icon: '@logo/notion.so'
+  name: Load Notion Tools
+  description: |
+    Dynamically load Model Context Protocol (MCP) tools for comprehensive Notion workspace management.
+
+    This ability provides access to advanced Notion capabilities including:
+    - Create, read, update, and delete pages and databases
+    - Query databases with complex filters and sorting
+    - Manage page properties, blocks, and content
+    - Handle workspace navigation and organization
+    - Work with templates and page structures
+
+    Note: Do not call this ability if Notion MCP tools are already loaded and available.
+  tags:
+    - mcp
+  instruction: |
+    ```mcp/install
+    url: https://mcp.notion.com/mcp
+    prefix: notion
+    ```
+  secret: '@notion[mcp]'
+
+mcp/load[linear]:
+  provider: 'linear'
+  icon: '@logo/linear.app'
+  name: Load Linear Tools
+  description: |
+    Dynamically load Model Context Protocol (MCP) tools for comprehensive Linear project management.
+
+    This ability provides access to advanced Linear capabilities including:
+    - Create, update, issues across teams and projects
+    - Query issues with filters, labels, and conditions
+    - Handle assignments
+    - Work with roadmaps
+    - Access issue tracking and progress analytics
+
+    Note: Do not call this ability if Linear MCP tools are already loaded and available.
+  tags:
+    - mcp
+  instruction: |
+    ```mcp/install
+    url: https://mcp.linear.app/mcp
+    prefix: linear
+    ```
+  secret: '@linear[mcp]'
+
+mcp/load[sentry]:
+  provider: 'sentry'
+  icon: '@logo/sentry.io'
+  name: Load Sentry Tools
+  description: |
+    Dynamically load MCP tools for comprehensive Sentry error tracking and performance monitoring.
+
+    This ability provides access to advanced Sentry capabilities including:
+    - Create, update, issues across teams and projects
+    - Query issues with filters, labels, and conditions
+    - Manage project workflows, milestones, and sprints
+    - Handle assignments
+    - Work with roadmaps
+    - Access issue tracking and progress
+
+    Note: Do not call this ability if Sentry MCP tools are already loaded and available.
+  tags:
+    - mcp
+  instruction: |
+    ```mcp/install
+    url: https://mcp.sentry.dev/mcp
+    prefix: sentry
+    ```
+  secret: '@sentry[mcp]'
+
+mcp/load[betterstack]:
+  provider: 'betterstack'
+  icon: '@logo/betterstack.com'
+  name: Load BetterStack Tools
+  description: |
+    Dynamically load MCP tools for comprehensive BetterStack monitoring and incident management.
+
+    This ability provides access to advanced BetterStack capabilities including:
+    - Create, update, and manage monitors and alerts
+    - Query monitoring data with complex filters and sorting
+    - Manage incident workflows and on-call schedules
+    - Handle team collaboration and communication
+    - Work with reporting and analytics features
+
+    Note: Do not call this ability if BetterStack MCP tools are already loaded and available.
+  tags:
+    - mcp
+  instruction: |
+    ```mcp/install
+    url: https://mcp.betterstack.com
+    headers:
+      Authorization: ${SECRET_DEFAULT}
+    prefix: betterstack
+    ```
+  secret: '@betterstack[key]'
+
+mcp/load[box]:
+  provider: 'box'
+  icon: '@logo/box.com'
+  name: Load Box Tools
+  description: |
+    Dynamically load Model Context Protocol (MCP) tools for comprehensive Box file management.
+
+    This ability provides access to advanced Box capabilities including:
+    - Create, read, update, and delete files and folders
+    - Query files with complex filters and sorting
+    - Manage file properties, metadata, and sharing settings
+    - Handle workspace navigation and organization
+    - Work with templates and file structures
+
+    Note: Do not call this ability if Box MCP tools are already loaded and available.
+  tags:
+    - mcp
+  instruction: |
+    ```mcp/install
+    url: https://mcp.box.com/
+    prefix: box
+    ```
+  secret: '@box[mcp]'
+
+mcp/load[buffer]:
+  provider: 'buffer'
+  icon: '@logo/buffer.com'
+  name: Load Buffer Tools
+  description: |
+    Dynamically load Model Context Protocol (MCP) tools for Buffer social media management.
+
+    This ability provides access to Buffer capabilities including:
+    - Create, schedule, and publish social posts
+    - Query posts, channels, and organizations
+    - Manage queues and publishing workflows
+
+    Note: Do not call this ability if Buffer MCP tools are already loaded and available.
+  tags:
+    - mcp
+  instruction: |
+    ```mcp/install
+    url: https://mcp.buffer.com/mcp
+    headers:
+      Authorization: ${SECRET_DEFAULT}
+    prefix: buffer
+    ```
+  secret: '@buffer'
+
+mcp/load[paypal]:
+  provider: 'paypal'
+  icon: '@logo/paypal.com'
+  name: Load PayPal Tools
+  description: |
+    Dynamically load MCP tools for comprehensive PayPal payment processing and management.
+
+    This ability provides access to advanced PayPal capabilities including:
+    - Create, update, and manage payments and transactions
+    - Query transaction history 
+    - Manage invoicing, subscriptions, and billing agreements
+    - Handle disputes and chargebacks
+    - Retrieve reporting and analytics data
+
+    Note: Do not call this ability if PayPal MCP tools are already loaded and available.
+  tags:
+    - mcp
+  instruction: |
+    ```mcp/install
+    url: https://mcp.paypal.com/mcp
+    prefix: paypal
+    ```
+  secret: '@paypal[mcp]'
+
+# @see https://support.pagerduty.com/main/docs/pagerduty-mcp-server-integration-guide
+mcp/load[pagerduty]:
+  provider: 'pagerduty'
+  icon: '@logo/pagerduty.com'
+  name: Load PagerDuty Tools
+  description: |
+    Dynamically load MCP tools for comprehensive PagerDuty incident management and on-call scheduling.
+
+    This ability provides access to advanced PagerDuty capabilities including:
+    - Create, update, and manage incidents
+    - Query incidents with complex filters and sorting
+    - Manage on-call schedules and escalation policies
+    - Handle incident response workflows
+    - Work with PagerDuty's analytics and reporting features
+
+    Note: Do not call this ability if PagerDuty MCP tools are already loaded and available.
+  tags:
+    - mcp
+  instruction: |
+    ```mcp/install
+    url: https://mcp.pagerduty.com/mcp
+    headers:
+      Authorization: ${SECRET_DEFAULT}
+    prefix: pagerduty
+    ```
+  secret: '@platform/pagerduty'
+
+mcp/load[stripe]:
+  provider: 'stripe'
+  icon: '@logo/stripe.com'
+  name: Load Stripe Tools
+  description: |
+    Dynamically load MCP tools for comprehensive Stripe payment processing and management.
+
+    This ability provides access to advanced Stripe capabilities including:
+    - Create, update, and manage payments and transactions
+    - Query transaction history 
+    - Manage invoicing, subscriptions, and billing
+    - Handle disputes and chargebacks
+    - Retrieve reporting and analytics data
+
+    Note: Do not call this ability if Stripe MCP tools are already loaded and available.
+  tags:
+    - mcp
+  instruction: |
+    ```mcp/install
+    url: https://mcp.stripe.com
+    prefix: stripe
+    ```
+  secret: '@stripe[mcp]'
+
+mcp/load[cloudinary]:
+  provider: 'cloudinary'
+  icon: '@logo/cloudinary.com'
+  name: Load Cloudinary Tools
+  description: |
+    Dynamically load MCP tools for comprehensive Cloudinary media management.
+
+    This ability provides access to advanced Cloudinary capabilities including:
+    - Upload, manage, and transform images and videos
+    - Query media assets with complex filters and sorting
+    - Manage media properties, metadata, and sharing settings
+    - Handle media organization and categorization
+    - Work with Cloudinary's delivery and optimization features
+
+    Note: Do not call this ability if Cloudinary MCP tools are already loaded and available.
+  tags:
+    - mcp
+  instruction: |
+    ```mcp/install
+    url: https://mcp.cloudinary.com/mcp
+    prefix: cloudinary
+    ```
+  secret: '@cloudinary[mcp]'
+
+mcp/load[crmkit]:
+  provider: 'crmkit'
+  icon: 'https://crmkit.ai/icon-light.svg;https://crmkit.ai/icon-dark.svg'
+  name: Load crmkit Tools
+  description: |
+    Dynamically load Model Context Protocol (MCP) tools for comprehensive crmkit CRM management.
+
+    This ability provides access to crmkit capabilities including:
+    - Create, read, update, and delete contacts, companies, and deals
+    - Log activities and notes against CRM records
+    - Query reminders, pipeline records, and audit activity
+    - Manage workspace-scoped CRM data through the agent-first API
+
+    Note: Do not call this ability if crmkit MCP tools are already loaded and available.
+  tags:
+    - mcp
+  instruction: |
+    ```mcp/install
+    url: https://api.crmkit.ai/mcp
+    prefix: crmkit
+    ```
+  secret: '@crmkit[mcp]'
+
+mcp/load[canva]:
+  provider: 'canva'
+  icon: '@logo/canva.com'
+  name: Load Canva Tools
+  description: |
+    Dynamically load MCP tools for comprehensive Canva design management.
+
+    This ability provides access to advanced Canva capabilities including:
+    - Create, edit, and manage designs and templates
+    - Query design assets with complex filters and sorting
+    - Manage design properties, metadata, and sharing settings
+    - Handle design organization and categorization
+    - Work with Canva's collaboration and feedback features
+
+    Note: Do not call this ability if Canva MCP tools are already loaded and available.
+  tags:
+    - mcp
+  instruction: |
+    ```mcp/install
+    url: https://mcp.canva.com/mcp
+    prefix: canva
+    ```
+  secret: '@canva[mcp]'
+
+mcp/load[github]:
+  provider: 'github'
+  icon: '@logo/github.com'
+  name: Load GitHub Tools
+  description: |
+    Dynamically load MCP tools for comprehensive GitHub repository management.
+
+    This ability provides access to advanced GitHub capabilities including:
+    - Create, update, and manage repositories and branches
+    - Query commit history with complex filters and sorting
+    - Manage pull requests, issues, and project boards
+    - Handle webhooks and integrations with other tools
+    - Work with GitHub's reporting and analytics features
+
+    Note: Do not call this ability if GitHub MCP tools are already loaded and available.
+  tags:
+    - mcp
+  instruction: |
+    ```mcp/install
+    url: https://api.githubcopilot.com/mcp
+    prefix: github
+    headers:
+      Authorization: ${SECRET_DEFAULT}
+      X-MCP-Toolsets": ((toolsets string|a comma-separated list of toolsets to load, e.g., "repos,issues,pull_requests" or leave empty to load all available toolsets))
+      X-MCP-Tools: ((tools string|a comma-separated list of specific tools to load, e.g., "create_issue,merge_pull_request" or leave empty to load all available tools))
+      X-MCP-Readonly": ((readonly boolean default<false>|whether to enable read-only mode)) 
+      X-MCP-Lockdown": ((lockdown boolean default<false>|whether to enable lockdown mode, hiding public issue details created by users without push access))
+    ```
+  secret: '@github[key]'
+
+mcp/load[apify]:
+  provider: 'apify'
+  icon: '@logo/apify.com'
+  name: Load Apify Tools
+  description: |
+    Dynamically MCP tools for comprehensive Apify web scraping and automation.
+
+    This ability provides access to advanced Apify capabilities including:
+    - Create, update, and manage web scraping tasks
+    - Query task results with complex filters and sorting
+    - Manage proxies, cookies, and other request settings
+    - Handle scheduling and monitoring of scraping jobs
+    - Work with Apify's reporting and analytics features
+
+    Note: Do not call this ability if Apify MCP tools are already loaded and available.
+  tags:
+    - mcp
+  instruction: |
+    ```mcp/install
+    url: https://mcp.apify.com/
+    prefix: apify
+    ```
+  secret: '@apify[mcp]'
+
+mcp/load[apollo]:
+  provider: 'apollo'
+  icon: '@logo/apollo.io'
+  name: Load Apollo Tools
+  description: |
+    Dynamically load Model Context Protocol (MCP) tools for comprehensive Apollo sales intelligence and engagement.
+
+    This ability provides access to Apollo capabilities including:
+    - Search and enrich people, contacts, and organizations
+    - Manage accounts, opportunities, tasks, and contact records
+    - Work with email campaigns and schedules
+    - Query usage, credits, users, and custom fields
+
+    Note: Do not call this ability if Apollo MCP tools are already loaded and available.
+  tags:
+    - mcp
+    - crm
+  instruction: |
+    ```mcp/install
+    url: https://mcp.apollo.io/mcp
+    prefix: apollo
+    ```
+  secret: '@apollo[mcp]'
+
+mcp/load[zapier]:
+  provider: 'zapier'
+  icon: '@logo/zapier.com'
+  name: Load Zapier Tools
+  description: |
+    Dynamically load Model Context Protocol (MCP) tools for comprehensive Zapier automation.
+
+    Note: Do not call this ability if Zapier MCP tools are already loaded and available.
+  tags:
+    - mcp
+  instruction: |
+    ```mcp/install
+    url: ((url!|the zapier mcp server url))
+    prefix: zapier
+    ```
+  secret: '@zapier[mcp]'
+
+mcp/load[workato]:
+  provider: 'workato'
+  icon: '@logo/workato.com'
+  name: Load Workato Tools
+  description: |
+    Dynamically load Model Context Protocol (MCP) tools for comprehensive Workato automation.
+
+    Note: Do not call this ability if Workato MCP tools are already loaded and available.
+  tags:
+    - mcp
+  instruction: |
+    ```mcp/install
+    url: ((url!|the workato mcp server url))
+    prefix: workato
+    ```
+  secret: '@workato[mcp]'
+
+mcp/load[isometric]:
+  provider: 'isometric'
+  icon: '@logo/isometric.com'
+  name: Load Isometric Tools
+  description: |
+    Dynamically load Model Context Protocol (MCP) tools for managing carbon removal credits, managing suppliers, and tracking impact.
+
+    Note: Do not call this ability if Isometric MCP tools are already loaded and available.
+  tags:
+    - mcp
+  instruction: |
+    ```mcp/install
+    url: "https://api.isometric.com/mcp/?token=${SECRET_DEFAULT}"
+    prefix: isometric
+    ```
+  secret: '@isometric[key]'
+
+mcp/load[ahrefs]:
+  provider: 'ahrefs'
+  icon: '@logo/ahrefs.com'
+  name: Load Ahrefs Tools
+  description: |
+    Dynamically load Model Context Protocol (MCP) tools for comprehensive Ahrefs SEO and marketing management.
+
+    Note: Do not call this ability if Ahrefs MCP tools are already loaded and available.
+  tags:
+    - mcp
+  instruction: |
+    ```mcp/install
+    url: "https://api.ahrefs.com/mcp/mcp"
+    prefix: ahref
+    ```
+  secret: '@ahrefs[mcp]'
+
+mcp/load[figma]:
+  provider: 'figma'
+  icon: '@logo/figma.com'
+  name: Load Figma Tools
+  description: |
+    Dynamically load Model Context Protocol (MCP) tools for comprehensive Figma design and collaboration management.
+
+    Note: Do not call this ability if Figma MCP tools are already loaded and available.
+  tags:
+    - mcp
+  instruction: |
+    ```mcp/install
+    url: "https://mcp.figma.com/mcp"
+    prefix: figma
+    ```
+  secret: '@figma[mcp]'
+
+mcp/load[intercom]:
+  provider: 'intercom'
+  icon: '@logo/intercom.com'
+  name: Load Intercom Tools
+  description: |
+    Dynamically load Model Context Protocol (MCP) tools for comprehensive Intercom customer communication and management.
+
+    Note: Do not call this ability if Intercom MCP tools are already loaded and available.
+  tags:
+    - mcp
+  instruction: |
+    ```mcp/install
+    url: "https://mcp.intercom.com/mcp"
+    prefix: intercom
+    ```
+  secret: '@intercom[mcp]'
+
+mcp/load[pipedream]:
+  provider: 'pipedream'
+  icon: '@logo/pipedream.com'
+  name: Load Pipedream Tools
+  description: |
+    Dynamically load Model Context Protocol (MCP) tools for comprehensive Pipedream workflow automation.
+
+    Note: Do not call this ability if Pipedream MCP tools are already loaded and available.
+  tags:
+    - mcp
+  instruction: |
+    ```mcp/install
+    url: "https://remote.mcp.pipedream.net"
+    prefix: pipedream
+    headers:
+      Authorization: ${SECRET_DEFAULT}
+      x-pd-project-id: ((projectId ys!|the pipedream project id))
+      x-pd-environment: ((environment ys! enum<development,production>|the pipedream environment))
+      x-pd-external-user-id: ${EXTERNAL_ID}
+      x-pd-app-slug: ((appSlug ys!|the pipedream app slug))
+    ```
+  secret: '@pipedream[mcp]'
+
+mcp/load[parallelai-search]:
+  provider: 'parallel'
+  icon: '@logo/parallel.ai'
+  name: Load Parallel.ai Search Tools
+  description: |
+    Dynamically load Model Context Protocol (MCP) tools for managing and executing search operations.
+
+    Note: Do not call this ability if Parallel Search MCP tools are already loaded and available.
+  tags:
+    - mcp
+  instruction: |
+    ```mcp/install
+    url: "https://search-mcp.parallel.ai/mcp"
+    prefix: parallel-search
+    ```
+  secret: '@parallel[mcp]'
+
+mcp/load[parallelai-task]:
+  provider: 'parallel'
+  icon: '@logo/parallel.ai'
+  name: Load Parallel.ai Task Tools
+  description: |
+    Dynamically load Model Context Protocol (MCP) tools for managing and executing task operations for complex search and data processing workflows.
+
+    Note: Do not call this ability if Parallel Task MCP tools are already loaded and available.
+  tags:
+    - mcp
+  instruction: |
+    ```mcp/install
+    url: "https://task-mcp.parallel.ai/mcp"
+    prefix: parallel-task
+    ```
+  secret: '@parallel[mcp]'
+
+# @see https://developer.todoist.com/api/v1/#tag/Todoist-MCP
+mcp/load[todoist]:
+  provider: 'todolist'
+  icon: '@logo/todoist.com'
+  name: Load Todoist Tools
+  description: |
+    Dynamically load Model Context Protocol (MCP) tools for comprehensive Todoist task and project management.
+
+    Note: Do not call this ability if Todoist MCP tools are already loaded and available.
+  tags:
+    - mcp
+  instruction: |
+    ```mcp/install
+    url: "https://ai.todoist.net/mcp"
+    prefix: todolist
+    ```
+  secret: '@todoist[mcp]'
+
+# @see https://docs.mapbox.com/api/guides/mcp-server/
+mcp/load[mapbox]:
+  provider: 'mapbox'
+  icon: '@logo/mapbox.com'
+  name: Load Mapbox Tools
+  description: |
+    Dynamically load Model Context Protocol (MCP) tools for comprehensive Mapbox mapping and location services management.
+
+    Note: Do not call this ability if Mapbox MCP tools are already loaded and available.
+  tags:
+    - mcp
+  instruction: |
+    ```mcp/install
+    url: "https://mcp.mapbox.com/mcp"
+    prefix: mapbox
+    ```
+  secret: '@mapbox[mcp]'
+# @see https://developer.clickup.com/docs/connect-an-ai-assistant-to-clickups-mcp-server-1
+mcp/load[clickup]:
+  provider: 'clickup'
+  icon: '@logo/clickup.com'
+  name: Load ClickUp Tools
+  description: |
+    Dynamically load Model Context Protocol (MCP) tools for comprehensive ClickUp task and project management.
+
+    Note: Do not call this ability if ClickUp MCP tools are already loaded and available.
+  tags:
+    - mcp
+  instruction: |
+    ```mcp/install
+    url: "https://mcp.clickup.com/mcp"
+    prefix: clickup
+    ```
+  secret: '@clickup[mcp]'
+
+# @see https://hunter.io/api-documentation#mcp
+mcp/load[hunter]:
+  provider: 'hunter'
+  icon: '@logo/hunter.io'
+  name: Load Hunter Tools
+  description: |
+    Dynamically load Model Context Protocol (MCP) tools for comprehensive Hunter email finding and verification services.
+
+    Note: Do not call this ability if Hunter MCP tools are already loaded and available.
+  tags:
+    - mcp
+  instruction: |
+    ```mcp/install
+    url: "https://mcp.hunter.io/mcp"
+    prefix: hunter
+    headers:
+      X-API-KEY: ${SECRET_DEFAULT}
+    ```
+  secret: '@hunter'
+
+# @see https://developers.tally.so/api-reference/mcp
+mcp/load[tally]:
+  provider: 'tally'
+  icon: '@logo/tally.so'
+  name: Load Tally Tools
+  description: |
+    Dynamically load Model Context Protocol (MCP) tools for comprehensive Tally form and survey management.
+
+    Note: Do not call this ability if Tally MCP tools are already loaded and available.
+  tags:
+    - mcp
+  instruction: |
+    ```mcp/install
+    url: "https://api.tally.so/mcp"
+    prefix: tally
+    ```
+  secret: '@tally[mcp]'
+
+mcp/load[amplitude]:
+  provider: 'amplitude'
+  icon: '@logo/amplitude.com'
+  name: Load Amplitude Tools
+  description: |
+    Dynamically load Model Context Protocol (MCP) tools for comprehensive Amplitude analytics and user behavior tracking.
+
+    Note: Do not call this ability if Amplitude MCP tools are already loaded and available.
+  tags:
+    - mcp
+  instruction: |
+    ```mcp/install
+    url: "https://mcp.amplitude.com/mcp"
+    prefix: amplitude
+    ```
+  secret: '@amplitude[mcp]'
+
+mcp/load[amplitude][eu]:
+  provider: 'amplitude'
+  icon: '@logo/amplitude.com'
+  name: Load Amplitude EU Tools
+  description: |
+    Dynamically load Model Context Protocol (MCP) tools for comprehensive Amplitude analytics and user behavior tracking in the EU region.
+
+    Note: Do not call this ability if Amplitude EU MCP tools are already loaded and available.
+  tags:
+    - mcp
+  instruction: |
+    ```mcp/install
+    url: "https://mcp.eu.amplitude.com/mcp"
+    prefix: amplitude-eu
+    ```
+  secret: '@amplitude[mcp]'
+
+mcp/load[miro]:
+  provider: 'miro'
+  icon: '@logo/miro.com'
+  name: Load Miro Tools
+  description: |
+    Dynamically load Model Context Protocol (MCP) tools for comprehensive Miro collaborative whiteboard management.
+
+    Note: Do not call this ability if Miro MCP tools are already loaded and available.
+  instruction: |
+    ```mcp/install
+    url: "https://mcp.miro.com/"
+    prefix: miro
+    ```
+  secret: '@miro[mcp]'
+
+mcp/load[tavily]:
+  provider: 'tavily'
+  icon: '@logo/tavily.com'
+  name: Load Tavily Tools
+  description: |
+    Dynamically load Model Context Protocol (MCP) tools for comprehensive Tavily AI-powered data analysis and insights.
+
+    Note: Do not call this ability if Tavily MCP tools are already loaded and available.
+  tags:
+    - mcp
+  instruction: |
+    ```mcp/install
+    url: "https://mcp.tavily.com/mcp/?tavilyApiKey=${SECRET_DEFAULT}"
+    prefix: tavily
+    ```
+  secret: '@tavily'
+
+mcp/load[pulumi]:
+  provider: 'pulumi'
+  icon: '@logo/pulumi.com'
+  name: Load Pulumi Tools
+  description: |
+    Dynamically load Model Context Protocol (MCP) tools for comprehensive Pulumi infrastructure as code management.
+
+    Note: Do not call this ability if Pulumi MCP tools are already loaded and available.
+  tags:
+    - mcp
+  instruction: |
+    ```mcp/install
+    url: "https://mcp.ai.pulumi.com/mcp"
+    prefix: pulumi
+    ```
+  secret: '@pulumi[mcp]'
+
+mcp/load[posthog]:
+  provider: 'posthog'
+  icon: '@logo/posthog.com'
+  name: Load PostHog Tools
+  description: |
+    Dynamically load Model Context Protocol (MCP) tools for comprehensive PostHog analytics and user behavior tracking.
+
+    Note: Do not call this ability if PostHog MCP tools are already loaded and available.
+  tags:
+    - mcp
+  instruction: |
+    ```mcp/install
+    url: "https://mcp.posthog.com/mcp"
+    prefix: posthog
+    headers:
+      Authorization: ${SECRET_DEFAULT}
+    ```
+  secret: '@posthog[key]'
+
+mcp/load[context7]:
+  provider: 'context7'
+  icon: '@logo/context7.com'
+  name: Load Context7 Tools
+  description: |
+    Dynamically load Model Context Protocol (MCP) tools for comprehensive Context7 data management and analysis.
+
+    Note: Do not call this ability if Context7 MCP tools are already loaded and available.
+  tags:
+    - mcp
+  instruction: |
+    ```mcp/install
+    url: "https://mcp.context7.com/mcp"
+    prefix: context7
+    headers:
+      Authorization: ${SECRET_DEFAULT}
+    ```
+  secret: '@context7'
+
+mcp/load[firecrawl]:
+  provider: 'firecrawl'
+  icon: '@logo/firecrawl.dev'
+  name: Load FireCrawl Tools
+  description: |
+    Dynamically load Model Context Protocol (MCP) tools for comprehensive FireCrawl web crawling and data extraction.
+
+    Note: Do not call this ability if FireCrawl MCP tools are already loaded and available.
+  tags:
+    - mcp
+  instruction: |
+    ```mcp/install
+    url: "https://mcp.firecrawl.dev/${SECRET_DEFAULT}/v2/mcp"
+    prefix: firecrawl
+    ```
+  secret: '@firecrawl'
+
+mcp/load[linkup]:
+  provider: 'linkup'
+  icon: '@logo/linkup.so'
+  name: Load LinkUp Tools
+  description: |
+    Dynamically load Model Context Protocol (MCP) tools for comprehensive LinkUp job search and recruitment management.
+
+    Note: Do not call this ability if LinkUp MCP tools are already loaded and available.
+  tags:
+    - mcp
+  instruction: |
+    ```mcp/install
+    url: "https://mcp.linkup.so/mcp?apiKey=${SECRET_DEFAULT}"
+    prefix: linkup
+    ```
+  secret: '@linkupso[key]'
+
+mcp/load[revenuecat]:
+  provider: 'revenuecat'
+  icon: '@logo/revenuecat.com'
+  name: Load RevenueCat Tools
+  description: |
+    Dynamically load Model Context Protocol (MCP) tools for comprehensive RevenueCat subscription management and analytics.
+
+    Note: Do not call this ability if RevenueCat MCP tools are already loaded and available.
+  tags:
+    - mcp
+  instruction: |
+    ```mcp/install
+    url: "https://mcp.revenuecat.ai/mcp"
+    prefix: revenuecat
+    ```
+  secret: '@revenuecat[mcp]'
+
+mcp/load[jam]:
+  provider: 'jam'
+  icon: '@logo/jam.dev'
+  name: Load Jam Tools
+  description: |
+    Dynamically load Model Context Protocol (MCP) tools for comprehensive Jam content management and collaboration.
+
+    Note: Do not call this ability if Jam MCP tools are already loaded and available.
+  tags:
+    - mcp
+  instruction: |
+    ```mcp/install
+    url: "https://mcp.jam.dev/mcp"
+    prefix: jam
+    ```
+  secret: '@jam[mcp]'
+
+mcp/load[fireflies]:
+  provider: 'fireflies'
+  icon: '@logo/fireflies.ai'
+  name: Load Fireflies Tools
+  description: |
+    Dynamically load Model Context Protocol (MCP) tools for comprehensive Fireflies meeting transcription and analysis.
+
+    Note: Do not call this ability if Fireflies MCP tools are already loaded and available.
+  tags:
+    - mcp
+  instruction: |
+    ```mcp/install
+    url: "https://api.fireflies.ai/mcp"
+    prefix: fireflies
+    ```
+  secret: '@fireflies[mcp]'
+
+mcp/load[zoominfo]:
+  provider: 'zoominfo'
+  icon: '@logo/zoominfo.com'
+  name: Load ZoomInfo Tools
+  description: |
+    Dynamically load Model Context Protocol (MCP) tools for comprehensive ZoomInfo sales and marketing intelligence.
+
+    Note: Do not call this ability if ZoomInfo MCP tools are already loaded and available.
+  tags:
+    - mcp
+  instruction: |
+    ```mcp/install
+    url: "https://mcp.zoominfo.com/mcp"
+    prefix: zoominfo
+    ```
+  secret: '@zoominfo[mcp]'
+
+mcp/load[explorium]:
+  provider: 'explorium'
+  icon: '@logo/explorium.ai'
+  name: Load Explorium Tools
+  description: |
+    Dynamically load Model Context Protocol (MCP) tools for comprehensive Explorium data enrichment and insights.
+
+    Note: Do not call this ability if Explorium MCP tools are already loaded and available.
+  tags:
+    - mcp
+  instruction: |
+    ```mcp/install
+    url: "https://mcp.explorium.ai/mcp"
+    prefix: explorium
+    ```
+  secret: '@explorium[mcp]'
+
+# @see https://developers.atlassian.com/cloud/rovo/mcp
+# Atlassian ecosystem integration (Jira, Confluence, Compass)
+mcp/load[atlassian]:
+  provider: 'atlassian'
+  icon: '@logo/atlassian.com'
+  name: Load Atlassian Tools
+  description: |
+    Dynamically load Model Context Protocol (MCP) tools for comprehensive Atlassian workspace management (Jira, Confluence, Compass).
+
+    This ability provides access to advanced Atlassian capabilities including:
+    - Search, create, and manage issues
+    - Create and update pages and documentation
+    - Manage components and documentation
+    - Query content across all products
+    - Handle workflows, transitions, and project management
+
+    Note: Do not call this ability if Atlassian MCP tools are already loaded and available.
+  tags:
+    - mcp
+    - project-management
+  instruction: |
+    ```mcp/install
+    url: https://mcp.atlassian.com/v1/mcp
+    prefix: atlassian
+    ```
+  secret: '@atlassian[mcp]'
+
+# @see https://docs.vercel.com/mcp/vercel-mcp
+# Vercel deployment and hosting platform integration
+mcp/load[vercel]:
+  provider: 'vercel'
+  icon: '@logo/vercel.com'
+  name: Load Vercel Tools
+  description: |
+    Dynamically load Model Context Protocol (MCP) tools for comprehensive Vercel platform management.
+
+    This ability provides access to advanced Vercel capabilities including:
+    - Manage projects and deployments
+    - Access build logs and deployment status
+    - Check domain availability and DNS settings
+    - Purchase and configure domains
+    - Search official documentation
+
+    Note: Do not call this ability if Vercel MCP tools are already loaded and available.
+  commentary: |
+    Privacy policy: https://vercel.com/legal/privacy-policy
+  tags:
+    - mcp
+    - development
+  instruction: |
+    ```mcp/install
+    url: "https://mcp.vercel.com"
+    prefix: vercel
+    ```
+  secret: '@vercel[mcp]'
+
+# @see https://neon.com/docs/ai/neon-mcp-server
+# Neon serverless Postgres integration
+mcp/load[neon]:
+  provider: 'neon'
+  icon: '@logo/neon.tech'
+  name: Load Neon Tools
+  description: |
+    Dynamically load Model Context Protocol (MCP) tools for Neon serverless Postgres database management.
+
+    This ability provides access to advanced Neon capabilities including:
+    - Create and manage Postgres projects
+    - Execute SQL queries with natural language
+    - Manage database branches and schemas
+    - Perform database migrations
+    - Query performance tuning and optimization
+
+    Note: Do not call this ability if Neon MCP tools are already loaded and available.
+  commentary: |
+    Privacy policy: https://neon.com/privacy-policy
+  tags:
+    - mcp
+    - database
+  instruction: |
+    ```mcp/install
+    url: "https://mcp.neon.tech/mcp"
+    prefix: neon
+    ```
+  secret: '@neon[mcp]'
+
+# @see https://www.prisma.io/docs/postgres/mcp-server
+# Prisma Postgres database integration
+mcp/load[prisma]:
+  provider: 'prisma'
+  icon: '@logo/prisma.io'
+  name: Load Prisma Postgres Tools
+  description: |
+    Dynamically load Model Context Protocol (MCP) tools for Prisma Postgres database management.
+
+    This ability provides access to advanced Prisma capabilities including:
+    - Create and delete databases
+    - Execute SQL queries directly
+    - Manage backups and recovery
+    - Introspect database schemas
+    - Handle connection strings securely
+
+    Note: Do not call this ability if Prisma Postgres MCP tools are already loaded and available.
+  commentary: |
+    Privacy policy: https://www.prisma.io/privacy
+  tags:
+    - mcp
+    - database
+  instruction: |
+    ```mcp/install
+    url: "https://mcp.prisma.io/mcp"
+    prefix: prisma
+    ```
+  secret: '@prisma[mcp]'
+
+# @see https://higgsfield.ai/mcp
+# Higgsfield creative AI image and video generation integration
+mcp/load[higgsfield]:
+  provider: 'higgsfield'
+  icon: '@logo/higgsfield.ai'
+  name: Load Higgsfield Tools
+  description: |
+    Dynamically load Model Context Protocol (MCP) tools for Higgsfield creative AI generation.
+
+    This ability provides access to Higgsfield capabilities including:
+    - Generate images and videos from prompts
+    - Create marketing assets and campaign visuals
+    - Work with creative presets for product and social content
+    - Train and reuse consistent Soul Characters
+    - Browse and use previous generations as references
+
+    Note: Do not call this ability if Higgsfield MCP tools are already loaded and available.
+  commentary: |
+    Privacy policy: https://higgsfield.ai/privacy
+  tags:
+    - mcp
+    - ai
+    - media
+  instruction: |
+    ```mcp/install
+    url: "https://mcp.higgsfield.ai/mcp"
+    prefix: higgsfield
+    ```
+  secret: '@higgsfield[mcp]'
+
+# @see https://runwayml.com/mcp
+# Runway AI image and video generation integration
+mcp/load[runway]:
+  provider: 'runway'
+  icon: '@logo/runwayml.com'
+  name: Load Runway Tools
+  description: |
+    Dynamically load Model Context Protocol (MCP) tools for Runway creative generation.
+
+    This ability provides access to Runway capabilities including:
+    - Generate high-quality images and videos from prompts
+    - Create polished marketing and product videos from links or references
+    - Work with state-of-the-art creative models directly inside the agent
+    - Reuse generated assets saved in the connected Runway account
+
+    Note: Do not call this ability if Runway MCP tools are already loaded and available.
+  tags:
+    - mcp
+    - ai
+    - media
+  instruction: |
+    ```mcp/install
+    url: "https://mcp.runwayml.com/mcp"
+    prefix: runway
+    ```
+  secret: '@runway[mcp]'
+
+# @see https://huggingface.co/mcp
+# Hugging Face AI models and datasets integration
+mcp/load[huggingface]:
+  provider: 'huggingface'
+  icon: '@logo/huggingface.co'
+  name: Load Hugging Face Tools
+  description: |
+    Dynamically load Model Context Protocol (MCP) tools for Hugging Face Hub integration.
+
+    This ability provides access to Hugging Face capabilities including:
+    - Search and discover AI models
+    - Access datasets and research papers
+    - Explore model documentation
+    - Download model files and artifacts
+    - Query community resources
+
+    Note: Do not call this ability if Hugging Face MCP tools are already loaded and available.
+  commentary: |
+    Privacy policy: https://huggingface.co/privacy
+  tags:
+    - mcp
+    - ai
+  instruction: |
+    ```mcp/install
+    url: "https://huggingface.co/mcp?login"
+    prefix: huggingface
+    ```
+  secret: '@huggingface[mcp]'
+
+# @see https://www.jotform.com/developers/mcp
+# Jotform online forms integration
+mcp/load[jotform]:
+  provider: 'jotform'
+  icon: '@logo/jotform.com'
+  name: Load Jotform Tools
+  description: |
+    Dynamically load Model Context Protocol (MCP) tools for Jotform form management.
+
+    This ability provides access to Jotform capabilities including:
+    - Create forms from natural language
+    - List and search existing forms
+    - Edit and update form structures
+    - Create and retrieve submissions
+    - Share forms via email
+
+    Note: Do not call this ability if Jotform MCP tools are already loaded and available.
+  commentary: |
+    Privacy policy: https://www.jotform.com/privacy
+  tags:
+    - mcp
+    - forms
+  instruction: |
+    ```mcp/install
+    url: "https://mcp.jotform.com"
+    prefix: jotform
+    ```
+  secret: '@jotform[mcp]'
+
+# @see https://dev.wix.com/docs/sdk/articles/use-the-wix-mcp
+# Wix website builder integration
+mcp/load[wix]:
+  provider: 'wix'
+  icon: '@logo/wix.com'
+  name: Load Wix Tools
+  description: |
+    Dynamically load Model Context Protocol (MCP) tools for comprehensive Wix site management.
+
+    This ability provides access to advanced Wix capabilities including:
+    - Create and manage Wix sites
+    - Search documentation and resources
+    - Handle user authentication
+    - Manage e-commerce operations
+    - Query contacts, orders, and products
+
+    Note: Do not call this ability if Wix MCP tools are already loaded and available.
+  commentary: |
+    Privacy policy: https://www.wix.com/about/privacy
+  tags:
+    - mcp
+    - web-design
+  instruction: |
+    ```mcp/install
+    url: "https://mcp.wix.com/mcp"
+    prefix: wix
+    ```
+  secret: '@wix[mcp]'
+
+# @see https://www.dropbox.com/developers/documentation/python
+# Dropbox cloud storage integration
+mcp/load[dropbox]:
+  provider: 'dropbox'
+  icon: '@logo/dropbox.com'
+  name: Load Dropbox Tools
+  description: |
+    Dynamically load Model Context Protocol (MCP) tools for Dropbox file management.
+
+    This ability provides access to Dropbox capabilities including:
+    - Upload and download files programmatically
+    - Organize files and folders
+    - Manage sharing permissions
+    - Access team features and collaboration
+    - Query file metadata and versions
+
+    Note: Do not call this ability if Dropbox MCP tools are already loaded and available.
+  commentary: |
+    Privacy policy: https://www.dropbox.com/terms
+  tags:
+    - mcp
+    - storage
+  instruction: |
+    ```mcp/install
+    url: "https://api.dropbox.com/mcp"
+    prefix: dropbox
+    headers:
+      Authorization: ${SECRET_DEFAULT}
+    ```
+  secret: '@platform/dropbox'
+
+# @see https://help.close.com/docs/mcp-server
+# Close CRM integration
+mcp/load[close]:
+  provider: 'close'
+  icon: '@logo/close.com'
+  name: Load Close Tools
+  description: |
+    Dynamically load Model Context Protocol (MCP) tools for Close CRM management.
+
+    This ability provides access to Close capabilities including:
+    - Manage leads and sales pipeline
+    - Track opportunities and deals
+    - Create email and SMS templates
+    - Handle contact management
+    - Build automated workflows
+
+    Note: Do not call this ability if Close MCP tools are already loaded and available.
+  commentary: |
+    Privacy policy: https://www.close.com/privacy
+  tags:
+    - mcp
+    - crm
+  instruction: |
+    ```mcp/install
+    url: "https://mcp.close.com/mcp"
+    prefix: close
+    ```
+  secret: '@close[mcp]'
+
+# @see https://developers.docusign.com/tools/mcp-server/
+# DocuSign digital transaction and e-signature integration
+mcp/load[docusign]:
+  provider: 'docusign'
+  icon: '@logo/docusign.com'
+  name: Load DocuSign Tools
+  description: |
+    Dynamically load Model Context Protocol (MCP) tools for DocuSign digital transaction management.
+
+    This ability provides access to DocuSign capabilities including:
+    - Create and send envelopes for signature
+    - Manage documents and templates
+    - Track envelope and document status
+    - Handle recipient management
+    - Access agreement workflows and automation
+
+    Note: Do not call this ability if DocuSign MCP tools are already loaded and available.
+  commentary: |
+    This uses the DocuSign demo/sandbox environment. For production use, 
+    update the URL to match your production region.
+    Privacy policy: https://www.docusign.com/company/privacy
+  tags:
+    - mcp
+    - e-signature
+  instruction: |
+    ```mcp/install
+    url: "https://services.demo.docusign.net/docusign-mcp-server/v1.0/mcp"
+    prefix: docusign
+    ```
+  secret: '@docusign[mcp]'
+
+mcp/load[instantlyai]:
+  provider: 'instantlyai'
+  icon: '@logo/instantly.ai'
+  name: Load Instantly.ai Tools
+  description: |
+    Dynamically load MCP tools for comprehensive Instantly.ai email outreach and management.
+
+    This ability provides access to advanced capabilities including:
+    - Create, update, manage campaigns
+    - Query email performance data with complex filters and sorting
+    - Manage contact lists and segmentation
+    - Handle scheduling and automation of email sequences
+    - Work with Instantly.ai's reporting and analytics features
+
+    Note: Do not call this ability if tools are already loaded and available.
+  tags:
+    - mcp
+  instruction: |
+    ```mcp/install
+    url: "https://mcp.instantly.ai/mcp"
+    headers:
+      Authorization: ${SECRET_DEFAULT}
+    prefix: instantlyai
+    ```
+  secret: '@instantly'
+
+# @see https://supabase.com/docs/guides/getting-started/mcp
+# Supabase database platform integration
+mcp/load[supabase]:
+  provider: 'supabase'
+  icon: '@logo/supabase.com'
+  name: Load Supabase Tools
+  description: |
+    Dynamically load Model Context Protocol (MCP) tools for comprehensive Supabase database management.
+
+    This ability provides access to advanced Supabase capabilities including:
+    - Create and manage Postgres databases and tables
+    - Query data with complex filters and sorting
+    - Deploy and manage Edge Functions
+    - Handle authentication and user management
+    - Work with real-time subscriptions and storage
+
+    Note: Do not call this ability if Supabase MCP tools are already loaded and available.
+  tags:
+    - mcp
+    - database
+  instruction: |
+    ```mcp/install
+    url: "https://mcp.supabase.com/mcp"
+    prefix: supabase
+    ```
+  secret: '@supabase[mcp]'
+
+# @see https://docs.attio.com/mcp
+# Attio CRM integration
+mcp/load[attio]:
+  provider: 'attio'
+  icon: '@logo/attio.com'
+  name: Load Attio Tools
+  description: |
+    Dynamically load Model Context Protocol (MCP) tools for comprehensive Attio CRM management.
+
+    This ability provides access to advanced Attio capabilities including:
+    - Create, update, and manage contacts, companies, and deals
+    - Query CRM data with complex filters and sorting
+    - Manage pipelines, stages, and workflows
+    - Handle notes, tasks, and activity tracking
+    - Work with custom attributes and list views
+
+    Note: Do not call this ability if Attio MCP tools are already loaded and available.
+  tags:
+    - mcp
+    - crm
+  instruction: |
+    ```mcp/install
+    url: "https://mcp.attio.com/mcp"
+    prefix: attio
+    ```
+  secret: '@attio[mcp]'
+
+# @see https://buildkite.com/docs/apis/mcp
+# Buildkite CI/CD integration
+mcp/load[buildkite]:
+  provider: 'buildkite'
+  icon: '@logo/buildkite.com'
+  name: Load Buildkite Tools
+  description: |
+    Dynamically load Model Context Protocol (MCP) tools for comprehensive Buildkite CI/CD management.
+
+    This ability provides access to advanced Buildkite capabilities including:
+    - Query pipelines, builds, and jobs
+    - Manage build triggers and scheduling
+    - Access test analytics and flaky test data
+    - Handle artifacts and build metadata
+    - Work with Buildkite's reporting and analytics features
+
+    Note: Do not call this ability if Buildkite MCP tools are already loaded and available.
+  tags:
+    - mcp
+    - development
+  instruction: |
+    ```mcp/install
+    url: "https://mcp.buildkite.com/mcp"
+    prefix: buildkite
+    ```
+  secret: '@buildkite[mcp]'
+
+# @see https://docs.netlify.com/mcp/
+# Netlify deployment platform integration
+mcp/load[netlify]:
+  provider: 'netlify'
+  icon: '@logo/netlify.com'
+  name: Load Netlify Tools
+  description: |
+    Dynamically load Model Context Protocol (MCP) tools for comprehensive Netlify platform management.
+
+    This ability provides access to advanced Netlify capabilities including:
+    - Deploy and manage sites and builds
+    - Query deployment history and build logs
+    - Manage environment variables and domain settings
+    - Handle serverless functions and edge functions
+    - Work with Netlify's forms, identity, and analytics features
+
+    Note: Do not call this ability if Netlify MCP tools are already loaded and available.
+  tags:
+    - mcp
+    - development
+  instruction: |
+    ```mcp/install
+    url: "https://netlify-mcp.netlify.app/mcp"
+    prefix: netlify
+    ```
+  secret: '@netlify[mcp]'
+
+# @see https://grafbase.com/docs/mcp
+# Grafbase GraphQL API platform integration
+mcp/load[grafbase]:
+  provider: 'grafbase'
+  icon: '@logo/grafbase.com'
+  name: Load Grafbase Tools
+  description: |
+    Dynamically load Model Context Protocol (MCP) tools for comprehensive Grafbase GraphQL management.
+
+    This ability provides access to advanced Grafbase capabilities including:
+    - Query and mutate data through GraphQL APIs
+    - Manage schema definitions and deployments
+    - Handle authentication and authorization rules
+    - Work with edge caching and performance optimization
+    - Access analytics and monitoring features
+
+    Note: Do not call this ability if Grafbase MCP tools are already loaded and available.
+  tags:
+    - mcp
+    - development
+  instruction: |
+    ```mcp/install
+    url: "https://api.grafbase.com/mcp"
+    prefix: grafbase
+    ```
+  secret: '@grafbase[mcp]'
+
+# @see https://developers.hubspot.com/docs/apps/developer-platform/build-apps/integrate-with-the-remote-hubspot-mcp-server
+# HubSpot CRM integration
+mcp/load[hubspot]:
+  provider: 'hubspot'
+  icon: '@logo/hubspot.com'
+  name: Load HubSpot Tools
+  description: |
+    Dynamically load Model Context Protocol (MCP) tools for HubSpot CRM management.
+
+    This ability provides access to HubSpot capabilities including:
+    - Manage contacts, companies, and deals
+    - Query CRM data with filters and sorting
+    - Manage marketing campaigns and workflows
+    - Handle tickets and customer service operations
+    - Access reporting and analytics features
+
+    Note: Do not call this ability if HubSpot MCP tools are already loaded and available.
+  tags:
+    - mcp
+    - crm
+  instruction: |
+    ```mcp/install
+    url: "https://mcp.hubspot.com"
+    prefix: hubspot
+    ```
+  secret: '@hubspot[mcp]'
+
+# @see https://docs.exa.ai/reference/mcp
+# Exa AI-powered search integration
+mcp/load[exa]:
+  provider: 'exa'
+  icon: '@logo/exa.ai'
+  name: Load Exa Tools
+  description: |
+    Dynamically load Model Context Protocol (MCP) tools for comprehensive Exa AI-powered search.
+
+    This ability provides access to advanced Exa capabilities including:
+    - Perform semantic and keyword web searches
+    - Extract and summarize content from web pages
+    - Find similar pages and content discovery
+    - Access real-time search results with filtering
+    - Work with Exa's neural search and content retrieval features
+
+    Note: Do not call this ability if Exa MCP tools are already loaded and available.
+  tags:
+    - mcp
+  instruction: |
+    ```mcp/install
+    url: "https://mcp.exa.ai/mcp"
+    prefix: exa
+    ```
+  secret: '@exa[mcp]'
+
+# @see https://developer.squareup.com/docs/mcp
+# Square payments integration
+mcp/load[square]:
+  provider: 'square'
+  icon: '@logo/squareup.com'
+  name: Load Square Tools
+  description: |
+    Dynamically load Model Context Protocol (MCP) tools for comprehensive Square payment management.
+
+    This ability provides access to advanced Square capabilities including:
+    - Create, update, and manage payments and transactions
+    - Query transaction history and financial reports
+    - Manage catalog items, inventory, and orders
+    - Handle customer profiles and loyalty programs
+    - Work with Square's invoicing and subscription features
+
+    Note: Do not call this ability if Square MCP tools are already loaded and available.
+  tags:
+    - mcp
+  instruction: |
+    ```mcp/install
+    url: "https://mcp.squareup.com/sse"
+    prefix: square
+    ```
+  secret: '@square[mcp]'
+
+# @see https://monday.com/developers/mcp
+# Monday.com project management integration
+mcp/load[monday]:
+  provider: 'monday'
+  icon: '@logo/monday.com'
+  name: Load Monday.com Tools
+  description: |
+    Dynamically load Model Context Protocol (MCP) tools for Monday.com project management.
+
+    This ability provides access to Monday.com capabilities including:
+    - Create, update, and manage boards, items, and groups
+    - Query board data with filters and sorting
+    - Manage workflows, automations, and integrations
+    - Handle updates, notifications, and collaboration
+    - Access reporting and dashboard features
+
+    Note: Do not call this ability if Monday.com MCP tools are already loaded and available.
+  tags:
+    - mcp
+    - project-management
+  instruction: |
+    ```mcp/install
+    url: "https://mcp.monday.com/sse"
+    prefix: monday
+    ```
+  secret: '@monday[mcp]'
+
+# @see https://developers.google.com/maps/ai/grounding-lite/reference/mcp
+# Google Maps API integration
+mcp/load[google-maps]:
+  provider: 'google'
+  icon: '@logo/google.com'
+  name: Load Google Maps Tools
+  description: |
+    Dynamically load Model Context Protocol (MCP) tools for comprehensive Google Maps integration.
+
+    This ability provides access to advanced Google Maps capabilities including:
+    - Geocoding and reverse geocoding
+    - Place search and place details
+    - Directions and route planning
+    - Distance matrix calculations
+    - Work with geospatial data and location-based features
+
+    Note: Do not call this ability if Google Maps MCP tools are already loaded and available.
+  tags:
+    - mcp
+  instruction: |
+    ```mcp/install
+    url: "https://mapstools.googleapis.com/mcp"
+    headers:
+      X-Goog-Api-Key: ${SECRET_DEFAULT}
+    prefix: google-maps
+    ```
+  secret: '@google-maps[key]'
+
+# @see https://docs.cloud.google.com/bigquery/docs/reference/mcp
+# Google BigQuery data analytics integration
+mcp/load[google-bigquery]:
+  provider: 'google'
+  icon: '@logo/google.com'
+  name: Load Google BigQuery Tools
+  description: |
+    Dynamically load Model Context Protocol (MCP) tools for comprehensive Google BigQuery data analytics.
+
+    This ability provides access to advanced BigQuery capabilities including:
+    - Execute SQL queries on large datasets
+    - Manage tables, datasets and schema definitions
+    - Handle data import and export operations
+    - Work with BigQuery's machine learning features
+    - Access query history and job management
+
+    Note: Do not call this ability if Google BigQuery MCP tools are already loaded and available.
+  tags:
+    - mcp
+    - database
+  instruction: |
+    ```mcp/install
+    url: "https://bigquery.googleapis.com/mcp"
+    headers:
+      X-Goog-Api-Key: ${SECRET_DEFAULT}
+    prefix: google-bigquery
+    ```
+  secret: '@google-bigquery[key]'
+
+# @see https://www.mongodb.com/docs/mcp/
+# MongoDB database integration
+mcp/load[mongodb]:
+  provider: 'mongodb'
+  icon: '@logo/mongodb.com'
+  name: Load MongoDB Tools
+  description: |
+    Dynamically load Model Context Protocol (MCP) tools for comprehensive MongoDB database management.
+
+    This ability provides access to advanced MongoDB capabilities including:
+    - Query and manage collections and documents
+    - Create and manage indexes
+    - Handle aggregation pipelines
+    - Work with MongoDB Atlas cloud features
+    - Access database monitoring and performance insights
+
+    Note: Do not call this ability if MongoDB MCP tools are already loaded and available.
+  tags:
+    - mcp
+    - database
+  instruction: |
+    ```mcp/install
+    url: ((url!|the mongodb mcp server url))
+    prefix: mongodb
+    ```
+  secret: '@mongodb[mcp]'
+
+# @see https://docs.ramp.com/reference/mcp
+# Ramp financial management integration
+mcp/load[ramp]:
+  provider: 'ramp'
+  icon: '@logo/ramp.com'
+  name: Load Ramp Tools
+  description: |
+    Dynamically load Model Context Protocol (MCP) tools for comprehensive Ramp financial management.
+
+    This ability provides access to advanced Ramp capabilities including:
+    - Query and analyze spend data and transactions
+    - Manage cards, limits, and policies
+    - Handle reimbursements and expense reports
+    - Work with vendor management and billing
+    - Access financial reporting and analytics features
+
+    Note: Do not call this ability if Ramp MCP tools are already loaded and available.
+  tags:
+    - mcp
+  instruction: |
+    ```mcp/install
+    url: "https://ramp-mcp-remote.ramp.com/mcp"
+    prefix: ramp
+    ```
+  secret: '@ramp[mcp]'
+
+# @see https://mcp.morningstar.com
+# MorningStar financial data integration
+mcp/load[morningstar]:
+  provider: 'morningstar'
+  icon: '@logo/morningstar.com'
+  name: Load MorningStar Tools
+  description: |
+    Dynamically load Model Context Protocol (MCP) tools for comprehensive MorningStar financial data analysis.
+
+    This ability provides access to advanced MorningStar capabilities including:
+    - Query investment research and fund data
+    - Analyze stock performance and ratings
+    - Access portfolio analytics and benchmarking
+    - Handle market data and economic indicators
+    - Work with MorningStar's reporting and screening features
+
+    Note: Do not call this ability if MorningStar MCP tools are already loaded and available.
+  tags:
+    - mcp
+  instruction: |
+    ```mcp/install
+    url: "https://mcp.morningstar.com/mcp"
+    prefix: morningstar
+    ```
+  secret: '@morningstar[mcp]'
+
+# @see https://stackoverflow.com/mcp
+# Stack Overflow developer knowledge integration
+mcp/load[stackoverflow]:
+  provider: 'stackoverflow'
+  icon: '@logo/stackoverflow.com'
+  name: Load Stack Overflow Tools
+  description: |
+    Dynamically load Model Context Protocol (MCP) tools for Stack Overflow integration.
+
+    This ability provides access to Stack Overflow capabilities including:
+    - Search questions and answers across topics
+    - Access developer knowledge and best practices
+    - Query tags, users, and community content
+    - Handle Stack Overflow for Teams content
+    - Access the API for structured data retrieval
+
+    Note: Do not call this ability if Stack Overflow MCP tools are already loaded.
+  tags:
+    - mcp
+  instruction: |
+    ```mcp/install
+    url: "https://mcp.stackoverflow.com"
+    prefix: stackoverflow
+    ```
+  secret: '@stackoverflow[mcp]'
+
+# @see https://twilio.com/docs/mcp
+# Twilio communications platform integration
+mcp/load[twilio]:
+  provider: 'twilio'
+  icon: '@logo/twilio.com'
+  name: Load Twilio Tools
+  description: |
+    Dynamically load Model Context Protocol (MCP) tools for comprehensive Twilio communications management.
+
+    This ability provides access to advanced Twilio capabilities including:
+    - Send and manage SMS and MMS messages
+    - Handle voice calls and conferencing
+    - Manage phone numbers and messaging services
+    - Work with Twilio's verification and authentication APIs
+    - Access communication logs and analytics
+
+    Note: Do not call this ability if Twilio MCP tools are already loaded and available.
+  tags:
+    - mcp
+  instruction: |
+    ```mcp/install
+    url: ((url!|the twilio mcp server url))
+    prefix: twilio
+    ```
+  secret: '@twilio[mcp]'
+
+# @see https://www.elastic.co/docs/reference/mcp
+# Elasticsearch search and analytics integration
+mcp/load[elasticsearch]:
+  provider: 'elasticsearch'
+  icon: '@logo/elastic.co'
+  name: Load Elasticsearch Tools
+  description: |
+    Dynamically load Model Context Protocol (MCP) tools for Elasticsearch search and analytics.
+
+    This ability provides access to Elasticsearch capabilities including:
+    - Execute search queries with filters and aggregations
+    - Manage indices, mappings, and templates
+    - Handle data ingestion and bulk operations
+    - Access analytics and visualization features
+    - Monitor cluster health and performance
+
+    Note: Do not call this ability if Elasticsearch MCP tools are already loaded.
+  tags:
+    - mcp
+    - database
+  instruction: |
+    ```mcp/install
+    url: ((url!|the elasticsearch mcp server url))
+    prefix: elasticsearch
+    ```
+  secret: '@elasticsearch[mcp]'
+
+# @see https://grafana.com/docs/grafana/latest/mcp
+# Grafana observability platform integration
+mcp/load[grafana]:
+  provider: 'grafana'
+  icon: '@logo/grafana.com'
+  name: Load Grafana Tools
+  description: |
+    Dynamically load Model Context Protocol (MCP) tools for comprehensive Grafana observability management.
+
+    This ability provides access to advanced Grafana capabilities including:
+    - Search and manage dashboards
+    - Query data sources and investigate incidents
+    - Handle alerting rules and notifications
+    - Work with Grafana's reporting and analytics features
+    - Access logs, metrics, and traces
+
+    Note: Do not call this ability if Grafana MCP tools are already loaded and available.
+  tags:
+    - mcp
+  instruction: |
+    ```mcp/install
+    url: ((url!|the grafana mcp server url))
+    prefix: grafana
+    ```
+  secret: '@grafana[mcp]'
+
+# @see https://docs.gitlab.com/user/gitlab_duo/model_context_protocol/mcp_server/
+# GitLab DevOps platform integration
+mcp/load[gitlab]:
+  provider: 'gitlab'
+  icon: '@logo/gitlab.com'
+  name: Load GitLab Tools
+  description: |
+    Dynamically load Model Context Protocol (MCP) tools for comprehensive GitLab DevOps management.
+
+    This ability provides access to advanced GitLab capabilities including:
+    - Create, update, and manage repositories and merge requests
+    - Query issues, milestones, and project boards
+    - Manage CI/CD pipelines and deployments
+    - Handle code review workflows and approvals
+    - Work with GitLab's registry, wiki, and snippets features
+
+    Note: Do not call this ability if GitLab MCP tools are already loaded and available.
+  tags:
+    - mcp
+    - development
+  instruction: |
+    ```mcp/install
+    url: ((url!|the gitlab mcp server url))
+    prefix: gitlab
+    ```
+  secret: '@gitlab[mcp]'
+
+# @see https://www.heroku.com/mcp
+# Heroku cloud platform integration
+mcp/load[heroku]:
+  provider: 'heroku'
+  icon: '@logo/heroku.com'
+  name: Load Heroku Tools
+  description: |
+    Dynamically load Model Context Protocol (MCP) tools for comprehensive Heroku platform management.
+
+    This ability provides access to advanced Heroku capabilities including:
+    - Manage apps, dynos, and add-ons
+    - Query logs, metrics, and build information
+    - Handle database operations and scaling
+    - Work with deployment pipelines and review apps
+    - Access Heroku's monitoring and alerting features
+
+    Note: Do not call this ability if Heroku MCP tools are already loaded and available.
+  tags:
+    - mcp
+    - development
+  instruction: |
+    ```mcp/install
+    url: ((url!|the heroku mcp server url))
+    prefix: heroku
+    ```
+  secret: '@heroku[mcp]'
+
+# @see https://api.slack.com/mcp
+# Slack messaging platform integration
+mcp/load[slack]:
+  provider: 'slack'
+  icon: '@logo/slack.com'
+  name: Load Slack Tools
+  description: |
+    Dynamically load Model Context Protocol (MCP) tools for comprehensive Slack workspace management.
+
+    This ability provides access to advanced Slack capabilities including:
+    - Send and read messages across channels and DMs
+    - Manage channels, workspaces, and members
+    - Search messages and files across the workspace
+    - Handle notifications and reactions
+    - Access user profiles and workspace settings
+
+    Note: Do not call this ability if Slack MCP tools are already loaded and available.
+  tags:
+    - mcp
+    - communication
+  instruction: |
+    ```mcp/install
+    url: https://mcp.slack.com/mcp
+    prefix: slack
+    ```
+  secret: '@slack[mcp]'
+
+# @see https://www.clay.com
+# Clay data enrichment and outreach integration
+mcp/load[clay]:
+  provider: 'clay'
+  icon: '@logo/clay.com'
+  name: Load Clay Tools
+  description: |
+    Dynamically load Model Context Protocol (MCP) tools for comprehensive Clay data enrichment and outreach management.
+
+    This ability provides access to Clay capabilities including:
+    - Enrich contact and company data from multiple sources
+    - Build and manage outreach campaigns
+    - Query and filter tables and records
+    - Automate prospecting and lead generation workflows
+    - Access enrichment waterfalls and integrations
+
+    Note: Do not call this ability if Clay MCP tools are already loaded and available.
+  tags:
+    - mcp
+    - crm
+  instruction: |
+    ```mcp/install
+    url: https://api.clay.com/v3/mcp
+    prefix: clay
+    ```
+  secret: '@clay[mcp]'
+# ---
+# ---
+# ---
+
+# @see https://polar.sh/docs/integrate/mcp
+# Polar monetization platform integration
+mcp/load[polar]:
+  provider: 'polar'
+  icon: '@logo/polar.sh'
+  name: Load Polar Tools
+  description: |
+    Dynamically load Model Context Protocol (MCP) tools for Polar monetization and billing management.
+
+    This ability provides access to Polar capabilities including:
+    - Manage products, pricing, and subscriptions
+    - Query orders and customer data
+    - Handle billing and payment workflows
+    - Access revenue analytics and reporting
+    - Work with discounts, licenses, and entitlements
+
+    Note: Do not call this ability if Polar MCP tools are already loaded and available.
+  tags:
+    - mcp
+  instruction: |
+    ```mcp/install
+    url: "https://mcp.polar.sh/mcp/polar-mcp"
+    prefix: polar
+    ```
+  secret: '@polar[mcp]'
+
+# @see https://www.sanity.io/docs/ai/mcp-server
+# Sanity headless CMS integration
+mcp/load[sanity]:
+  provider: 'sanity'
+  icon: '@logo/sanity.io'
+  name: Load Sanity Tools
+  description: |
+    Dynamically load Model Context Protocol (MCP) tools for Sanity headless CMS management.
+
+    This ability provides access to Sanity capabilities including:
+    - Execute GROQ queries to search and retrieve content
+    - Create, patch, publish, and discard documents
+    - Manage schemas, datasets, and projects
+    - Handle releases and scheduled publishing workflows
+    - Access AI image generation and semantic search
+
+    Note: Do not call this ability if Sanity MCP tools are already loaded and available.
+  tags:
+    - mcp
+    - cms
+  instruction: |
+    ```mcp/install
+    url: "https://mcp.sanity.io"
+    prefix: sanity
+    ```
+  secret: '@sanity[mcp]'
+
+# @see https://docs.granola.ai/help-center/sharing/integrations/mcp
+# Granola AI meeting notes integration
+mcp/load[granola]:
+  provider: 'granola'
+  icon: '@logo/granola.ai'
+  name: Load Granola Tools
+  description: |
+    Dynamically load Model Context Protocol (MCP) tools for Granola AI meeting notes.
+
+    This ability provides access to Granola capabilities including:
+    - Search through past meeting notes and transcripts
+    - Find specific topics discussed in meetings
+    - Extract action items and decisions from notes
+    - Query meeting history and attendee information
+    - Access enhanced notes and raw transcripts
+
+    Note: Do not call this ability if Granola MCP tools are already loaded and available.
+  tags:
+    - mcp
+    - meetings
+  instruction: |
+    ```mcp/install
+    url: "https://mcp.granola.ai/mcp"
+    prefix: granola
+    ```
+  secret: '@granola[mcp]'
+# ---
+# ---
+# ---
+
+# @see https://incident.io/mcp
+# incident.io incident management platform integration
+mcp/load[incident-io]:
+  provider: 'incident-io'
+  icon: '@logo/incident.io'
+  name: Load incident.io Tools
+  description: |
+    Dynamically load Model Context Protocol (MCP) tools for incident.io incident management.
+
+    This ability provides access to incident.io capabilities including:
+    - Create, update, and manage incidents
+    - Manage on-call schedules and escalation policies
+    - Handle incident response workflows and postmortems
+    - Access incident analytics and reporting features
+
+    Note: Do not call this ability if incident.io MCP tools are already loaded and available.
+  tags:
+    - mcp
+  instruction: |
+    ```mcp/install
+    url: https://mcp.incident.io/mcp
+    prefix: incidentio
+    ```
+
+# ---
+# ---
+# ---
+
+# @see https://mcp.vapi.ai/mcp
+# Vapi voice AI and telephony integration
+mcp/load[vapi]:
+  provider: 'vapi'
+  icon: '@logo/vapi.ai'
+  name: Load Vapi Tools
+  description: |
+    Dynamically load Model Context Protocol (MCP) tools for comprehensive Vapi voice assistant and telephony management.
+
+    This ability provides access to Vapi capabilities including:
+    - Manage voice assistants and phone numbers
+    - Create and monitor inbound and outbound calls
+    - Work with call workflows, tools, and automations
+    - Access call logs, transcripts, and voice operation data
+
+    Note: Do not call this ability if Vapi MCP tools are already loaded and available.
+  tags:
+    - mcp
+    - voice
+  instruction: |
+    ```mcp/install
+    url: https://mcp.vapi.ai/mcp
+    headers:
+      Authorization: ${SECRET_DEFAULT}
+    prefix: vapi
+    ```
+  secret: '@vapi[mcp]'
+# ---
+# ---
+# ---
+
+# @see https://developers.asana.com/docs/using-asanas-mcp-server
+# Asana work management integration
+mcp/load[asana]:
+  provider: 'asana'
+  icon: '@logo/asana.com'
+  name: Load Asana Tools
+  description: |
+    Dynamically load Model Context Protocol (MCP) tools for comprehensive Asana work management.
+
+    This ability provides access to Asana capabilities including:
+    - Search, create, and manage tasks and subtasks
+    - Work with projects, sections, and workspaces
+    - Access team collaboration data and task context
+    - Use Asana work management tools through the MCP server
+
+    Note: Do not call this ability if Asana MCP tools are already loaded and available.
+  tags:
+    - mcp
+    - project-management
+  instruction: |
+    ```mcp/install
+    url: https://mcp.asana.com/v2/mcp
+    prefix: asana
+    ```
+  secret: '@asana[mcp]'
+# ---
+# ---
+# ---
+
+# @see https://developers.webflow.com/mcp/reference/getting-started
+# Webflow site and content management integration
+mcp/load[webflow]:
+  provider: 'webflow'
+  icon: '@logo/webflow.com'
+  name: Load Webflow Tools
+  description: |
+    Dynamically load Model Context Protocol (MCP) tools for comprehensive Webflow site management.
+
+    This ability provides access to Webflow capabilities including:
+    - Manage sites, pages, and CMS collections
+    - Create and edit design components and layouts
+    - Handle e-commerce products, orders, and inventory
+    - Interact with the Webflow Designer through the MCP Bridge App
+
+    Note: Do not call this ability if Webflow MCP tools are already loaded and available.
+  tags:
+    - mcp
+    - web-design
+  instruction: |
+    ```mcp/install
+    url: https://mcp.webflow.com/mcp
+    prefix: webflow
+    ```
+  secret: '@webflow[mcp]'
+# ---
+# ---
+# ---
+
+# @see https://developers.cloudflare.com/agents/model-context-protocol/mcp-servers-for-cloudflare/
+# Cloudflare connectivity cloud integration
+mcp/load[cloudflare]:
+  provider: 'cloudflare'
+  icon: '@logo/cloudflare.com'
+  name: Load Cloudflare Tools
+  description: |
+    Dynamically load Model Context Protocol (MCP) tools for comprehensive Cloudflare platform management.
+
+    This ability provides access to Cloudflare capabilities including:
+    - Manage DNS, zones, and account configuration
+    - Work with Workers, R2, and edge infrastructure
+    - Inspect security, performance, and networking services
+    - Query and execute Cloudflare API operations through the MCP server
+
+    Note: Do not call this ability if Cloudflare MCP tools are already loaded and available.
+  tags:
+    - mcp
+  instruction: |
+    ```mcp/install
+    url: https://mcp.cloudflare.com/mcp
+    prefix: cloudflare
+    ```
+  secret: '@cloudflare[mcp]'
+
+# @see https://app.tamarind.bio/api-docs/mcp-server
+# Tamarind Bio computational biology platform integration
+mcp/load[tamarind]:
+  provider: 'tamarind'
+  icon: '@logo/tamarind.bio'
+  name: Load Tamarind Tools
+  description: |
+    Dynamically load Model Context Protocol (MCP) tools for Tamarind Bio computational biology workflows.
+
+    This ability provides access to Tamarind capabilities including:
+    - Submit and manage computational biology jobs
+    - Run molecular design and structure prediction tools
+    - Work with uploaded files and generated job results
+    - Access pipeline and batch workflow operations
+
+    Note: Do not call this ability if Tamarind MCP tools are already loaded and available.
+  tags:
+    - mcp
+    - biology
+  instruction: |
+    ```mcp/install
+    url: https://mcp.tamarind.bio/mcp
+    headers:
+      x-api-key: ${SECRET_DEFAULT}
+    prefix: tamarind
+    ```
+  secret: '@tamarind[mcp]'

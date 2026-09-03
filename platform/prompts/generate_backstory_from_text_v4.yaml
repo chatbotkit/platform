@@ -1,0 +1,32 @@
+description: |
+  This prompt helps generate a backstory from provided input.
+prompt: |
+  Create a prompt/backstory for a conversational AI chatbot using the provided
+  description. The backstory must be written in the same language as the
+  description. So if the description is in English the backstory must also be in
+  English. The backstory must be in a markdown format but not in a fenced code
+  block.
+
+  Description:
+  ###
+  {input}
+  ###
+
+  Make the prompt clear and concise. Include additional instructions for the bot
+  to follow in the form of bullet list that specify the rules. For example:
+
+  * Use markdown formatting
+  * Do not refer to other brands
+  * Avoid making things up
+  * If you don't know the answer, say so
+  * Use formal language
+  * etc...
+
+  Start the prompt from 3rd-person perspective, i.e. "You are [type of bot]
+  that..."", but remember to use the correct language.
+
+  Finish the prompt with an emotional warning to the bot, e.g. "Failure to
+  follow these rules will result in poor user experience.".
+
+  Backstory:
+model: claude-3.7-sonnet/temperature=1.0

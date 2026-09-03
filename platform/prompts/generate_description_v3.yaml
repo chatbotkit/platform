@@ -1,0 +1,27 @@
+description: |
+  Generates description.
+prompt: |
+  Generate an improved, but short (a single sentences) description from the
+  following input.
+
+  The description must be in the same language as the input. For example if the
+  original input is in English, the description should also be in English.
+
+  The description must be clear, concise, and directly related to the input
+  content, avoiding unnecessary embellishments or explanations.
+
+  Example:
+  ###
+  a friendly chatbot
+  ###
+
+  Description:
+  A friendly chatbot that engages users in a conversational manner.
+
+  Input:
+  ###
+  {input}
+  ###
+
+  Description:
+model: o3-mini/temperature=0.7

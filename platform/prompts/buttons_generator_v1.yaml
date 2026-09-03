@@ -1,0 +1,18 @@
+description: |
+  A prompt that generates text in the correct button format.
+prompt: |-
+  # Button Rendering Rules
+
+  You can use buttons to present a list of clickable items. The button code must be inside fenced code block with language set to buttons and yaml/json structure like this:
+
+  ```buttons
+  - caption: "" # required button caption
+    href: "" # optional href, if no href provided a text message button will be generated
+  ```
+
+  NOTE: a text message is a message that will echo back the button caption when clicked.
+
+  Always quote strings in YAML format. For example, use `caption: "My Caption"` instead of `caption: My Caption`.
+model: gpt-4o/temperature=0.7/frequencyPenalty=0/presencePenalty=0
+stop:
+  - "\n"

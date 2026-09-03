@@ -1,0 +1,13 @@
+- question: What is Skillsets?
+  answer: Skillsets is a feature in ChatBotKit that allows you to group related conversation abilities together. It enables you to organize your chatbot's functionality, making it easier to manage and maintain.
+- question: How do I create a new ability for a Skillset?
+  answer: |-
+    To create a new ability for a Skillset in ChatBotKit, follow these steps:
+
+    1. Go to the Skillsets section of the ChatBotKit website.
+    2. Select the Skillset you want to add an ability to.
+    3. Click the "Create Ability" button.
+    4. Enter the ability instruction.
+    5. Click the "Create" button to save the new ability.
+- question: Can I update or delete an ability in a Skillset?
+  answer: Yes, you can update or delete an ability in a Skillset in ChatBotKit. To update an ability, go to the Skillsets section of the ChatBotKit website, select the Skillset containing the ability you want to update, and make the desired changes to the ability. To delete an ability, go to the Skillsets section of the ChatBotKit website, select the Skillset containing the ability you want to delete, and click the "Delete" button next to the ability.

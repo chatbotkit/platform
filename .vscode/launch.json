@@ -1,0 +1,13 @@
+{
+  "configurations": [
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Launch @chatbotkit/platform",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["-F", "@chatbotkit/platform", "dev"],
+      "restart": true,
+      "console": "integratedTerminal"
+    }
+  ]
+}

@@ -1,0 +1,1542 @@
+#
+# PROJECTS
+#
+# SDK code examples demonstrating ChatBotKit integration patterns across
+# different frameworks and environments.
+#
+# @note new items should be added on top of the list
+
+- slug: terraform-code-foundry
+  icon: 'lucide/code'
+  title: Terraform Code Foundry (Multi-Account)
+  description: |
+    An autonomous code foundry on a multi-account architecture: one shared
+    "tools" account holds the GitHub token-minter and an exported coding toolset,
+    and each customer gets a thin child User whose Coding Agent installs those
+    tools cross-account and works on the customer's own repo, scoped by context.
+  keywords:
+    - terraform
+    - infrastructure-as-code
+    - multi-account
+    - coding-agent
+    - github
+    - run-as
+    - cross-account-skillset
+    - context
+    - heartbeat
+    - autonomous
+  date: 2026-06-20
+  url: https://github.com/chatbotkit/terraform-provider-chatbotkit/tree/main/examples/code-foundry
+  commentary: |
+    This example shows how to productise an autonomous agent to many users without
+    duplicating the toolbox per user or scattering credentials. A single shared
+    "tools" account holds the expensive, sensitive machinery once: a GitHub bot that
+    mints repository-scoped GitHub App tokens (signed from a JWT secret), a Coding
+    Tools skillset exported account-wide as global-coding-tools, shared Design and
+    Coding spaces, and a Designs Manager that keeps designs synced. Each user gets a
+    thin, isolated child User whose Coding Agent installs the shared toolset
+    cross-account with an @shared@global-coding-tools reference.
+
+    Everything runs on one parent User token. Each account is selected with a provider
+    alias and run_as (the X-RunAs-UserId header), the same multi-account mechanism as
+    the multi-tenant examples. The shared account must carry the alias `shared` so the
+    cross-account skillset reference resolves.
+
+    The agent never holds the GitHub App key. To touch a repo it asks the shared
+    GitHub bot (via bot/apply) to mint a short-lived, repository-scoped token. Which
+    repository is decided by the child User's context, not hard-coded - hard-coding
+    would be a security risk because each agent belongs to a user who may interact
+    with it. That is why the user context API is exposed via GraphQL, and
+    why each child User is given a context with its repo and Vercel project. A
+    heartbeat trigger keeps each coding agent making the next step on a long task.
+  share: |-
+    Build an autonomous code foundry with Terraform on a multi-account architecture - a shared "tools" account mints GitHub tokens and exports a coding toolset, and each customer's child User installs it cross-account and works on their own repo, scoped by context. One parent User token, run_as per account.
+
+    https://chatbotkit.com/examples/terraform-code-foundry
+  files: []
+
+- slug: terraform-community-scout
+  icon: 'lucide/radar'
+  title: Terraform Community Scout
+  description: |
+    A product-led-growth agent that runs on a cycle to watch public conversations
+    (Reddit today) for threads where your product genuinely helps, drafts a useful
+    disclosed reply, and suggests it to the team on Slack for a human to post. It
+    earns attention by being helpful, not by being loud.
+  keywords:
+    - terraform
+    - infrastructure-as-code
+    - reddit
+    - slack
+    - social-listening
+    - product-led-growth
+    - community
+    - monitoring
+    - skills
+    - human-in-the-loop
+    - marketing
+  date: 2026-06-20
+  url: https://github.com/chatbotkit/terraform-provider-chatbotkit/tree/main/examples/community-scout
+  commentary: |
+    This example applies the monitor-on-a-cycle pattern to social listening: an
+    agent that watches public conversations for places where your product genuinely
+    helps, drafts a useful contribution, and suggests it to the team on Slack for a
+    human to post. It is built on ChatBotKit's first-class Reddit abilities for
+    reading (search and feeds work over RSS with no authentication) and the Slack
+    integration's start-conversation ability for the hand-off.
+
+    The boundaries stay clean. Finding threads and reading them are tool calls; a
+    small stdlib script dedups discovered threads so the same conversation is never
+    re-scored or re-suggested; and the judgment - whether a thread is worth engaging,
+    and what a genuinely helpful reply says - lives in SKILL.md playbooks the agent
+    reads and follows. A watchlist.md config holds the product, keywords,
+    subreddits, the team/Slack routing, and the engagement rules.
+
+    The gate is structural. Because this is an automated agent, the human-in-the-loop
+    is enforced by the toolset rather than a prompt: the scout has read-only Reddit
+    tools and a Slack-suggest tool, and no Reddit-post tool at all. It physically
+    cannot reply on Reddit - it can only suggest to the team, and a human posts. This
+    matters more here than almost anywhere, because auto-posting marketing to Reddit
+    is how accounts get banned and brands get burned.
+
+    The whole thing is built to be welcome rather than spammy - a high relevance
+    bar, one tailored reply per thread, affiliation disclosed every time, and
+    subreddit rules respected. Other sources (LinkedIn, a news API, or X via the X
+    API) can feed the same mention pipeline without changing the rest of it.
+  share: |-
+    Build a product-led-growth agent with Terraform - it watches Reddit on a cycle for conversations where your product genuinely helps, drafts a disclosed reply, and suggests it to the team on Slack for a human to post. The scout has no post tool, so the human-in-the-loop is structural, not just a prompt.
+
+    https://chatbotkit.com/examples/terraform-community-scout
+  files: []
+
+- slug: terraform-soc-investigator
+  icon: 'lucide/shield-alert'
+  title: Terraform SOC Investigator
+  description: |
+    An autonomous security-operations agent that runs on a cycle: pull SIEM
+    alerts, correlate them into cases, triage, investigate, enrich indicators,
+    and accumulate knowledge. It is built to show one boundary - deterministic
+    work lives in scripts the agent runs, judgment lives in SKILL.md playbooks
+    the agent reads and follows.
+  keywords:
+    - terraform
+    - infrastructure-as-code
+    - security
+    - soc
+    - siem
+    - alerts
+    - investigation
+    - skills
+    - scripts
+    - triggers
+    - knowledge-base
+    - approval-gate
+  date: 2026-06-20
+  url: https://github.com/chatbotkit/terraform-provider-chatbotkit/tree/main/examples/soc-investigator
+  commentary: |
+    This example models the agentic half of an open-source SOC platform: an
+    analyst agent that runs on a schedule to pull SIEM alerts, correlate them
+    into cases, triage, investigate the ones that matter, enrich indicators, and
+    capture what it learns. It frees human analysts from alert fatigue so they
+    spend their time on real threats and on the decisions that need a human.
+
+    The example exists to make one boundary concrete - what should be
+    deterministic code and what should be agent judgment. Pulling alerts,
+    normalizing them, correlating them into cases, and looking up threat intel are
+    high-volume and must be reliable, so they are stdlib Python scripts the agent
+    runs with the shell tools, with no model in the loop. Which cases deserve
+    attention, what actually happened, whether it is a real threat, and what to
+    recommend are judgment, so they are SKILL.md playbooks the agent reads and
+    follows. Skills are the unit of work either way: some wrap a deterministic
+    script, some are reasoning playbooks.
+
+    A real SOC ingests a stream of alerts; here that becomes a scheduled pull on a
+    cycle, which fits triggers cleanly. A correlation UID plus a time bucket makes
+    the pull idempotent, so re-polling the same window never duplicates a case or
+    an alert. Cases and accumulated knowledge live as files in a workspace, so the
+    example runs with no external dependencies, and the production seams - a real
+    SIEM, a SIRP case database, a dataset-backed knowledge base - are marked in
+    the code.
+
+    One invariant is enforced rather than requested: the analyst investigates and
+    recommends, but it never closes a case or executes remediation. Investigated
+    cases are left pending human review. That approval gate is the deterministic
+    guarantee around the agent's autonomy, and a SOC is exactly where it earns its
+    keep.
+
+    This is the pattern for any cyclic ingest, triage, investigate, and learn
+    pipeline where the high-volume mechanics must be deterministic and reliable
+    while the judgment stays agentic. It upgrades to the orchestrator-worker
+    pattern for investigating many cases in parallel.
+  share: |-
+    Build an autonomous SOC analyst with Terraform - it runs on a cycle to pull SIEM alerts, correlate them into cases, triage, investigate, and learn. Deterministic work lives in scripts; judgment lives in skills; and a human approval gate keeps the agent recommending, never acting on its own.
+
+    https://chatbotkit.com/examples/terraform-soc-investigator
+  files: []
+
+- slug: terraform-deep-researcher
+  icon: 'lucide/telescope'
+  title: Terraform Deep Researcher
+  description: |
+    An autonomous deep-research agent built as an orchestrator-worker team: a
+    big-brain orchestrator decomposes a question, fans out worker agents that
+    research in parallel, supervises and adapts as findings return, then
+    synthesizes a cited report. The fan-out, waiting, and joining are runtime
+    task operations the agents drive - the topology is declared, the
+    orchestration is lived.
+  keywords:
+    - terraform
+    - infrastructure-as-code
+    - deep-research
+    - research
+    - orchestrator-worker
+    - multi-agent
+    - tasks
+    - fan-out
+    - parallel
+    - synthesis
+  date: 2026-06-20
+  url: https://github.com/chatbotkit/terraform-provider-chatbotkit/tree/main/examples/deep-researcher
+  commentary: |
+    This example builds a deep-research agent in the shape of the modern
+    orchestrator-worker pattern - the same architecture as systems like
+    gpt-researcher. It deploys three roles, each authored as a small project of
+    instruction files: an intake agent that turns a request into a commissioned
+    job, a big-brain orchestrator that runs the research, and a worker that
+    answers a single sub-question with web search and fetch.
+
+    The key idea is that the orchestration lives in the orchestrator agent at
+    runtime - the agent decides how to break the work down, fan out, wait, and
+    recombine, rather than following a workflow graph baked into Terraform. The
+    orchestrator decomposes the question into focused sub-questions, creates and
+    runs a worker
+    task for each (they execute in parallel), introspects their status and result
+    summaries, adapts as findings arrive - going deeper on rich threads, pruning
+    dead ends - and then synthesizes everything into one report. The fan-out and
+    the join are ordinary task abilities the agent calls (create, run, list,
+    fetch). Terraform declares only the stable topology: the agents, their tools,
+    the shared workspace, and the entry surface. The research tasks themselves are
+    runtime artifacts the agents spawn on demand.
+
+    Results flow through a shared space used as a blackboard - workers write cited
+    findings, the orchestrator reads them back and writes the final report - plus
+    each task's generated summary and full final output. Each bot carries its own
+    model, so the team uses opus to orchestrate and synthesize and a lighter model
+    for the legwork, and per-task time and iteration limits keep "research until
+    satisfied" bounded.
+
+    This is the pattern for open-ended research where the plan should adapt to the
+    question and the agents themselves should own how the work is broken down and
+    recombined.
+  share: |-
+    Build a deep-research agent with Terraform - an orchestrator-worker team that decomposes a question, fans out workers to research in parallel, and synthesizes a cited report. The orchestration is agent-driven at runtime through tasks; Terraform declares the agents, tools, and shared workspace.
+
+    https://chatbotkit.com/examples/terraform-deep-researcher
+  files: []
+
+- slug: terraform-two-sided-marketplace
+  icon: 'lucide/handshake'
+  title: Terraform Two-Sided Marketplace
+  description: |
+    A two-sided market modelled the way a recruitment agency works: two agents,
+    one per side - a Talent Partner that works for candidates and a Client
+    Partner that works for hiring companies - over a shared external matching
+    engine they reach with the fetch action.
+  keywords:
+    - terraform
+    - infrastructure-as-code
+    - two-sided-marketplace
+    - marketplace
+    - multi-agent
+    - recruitment
+    - matching
+    - fetch
+    - on-behalf-of
+    - shared-secret
+  date: 2026-06-19
+  url: https://github.com/chatbotkit/terraform-provider-chatbotkit/tree/main/examples/two-sided-marketplace
+  commentary: |
+    This example models a two-sided market the way a recruitment agency works:
+    one side has people to place, the other has roles to fill, and the market
+    clears between them. It deploys two agents, one per side - a Talent Partner
+    that works for candidates, and a Client Partner that works for hiring
+    companies.
+
+    The matching engine stays out of the agents. The role index, talent pool,
+    submissions, and the placement fee live in your own marketplace service, and
+    both agents reach it with the fetch action. ChatBotKit is the conversational
+    and identity tier on each side; your API is the shared system of record. This
+    is the right division for a marketplace: the proprietary logic and the money
+    stay in a service you control, and the agents are thin clients over it.
+
+    The two agents never talk to each other. They have opposite loyalties, so
+    they meet only through shared state. The Talent Partner submits a candidate
+    into a role; that submission surfaces in the Client Partner's review queue;
+    the Client Partner advances it to interview, offer, or placement. The advance
+    is a deterministic server-side transaction - the agent requests it, the API
+    decides and records it - which keeps consent, auditability, and billing in
+    the core.
+
+    Identity uses one shared gateway token plus a personal OAuth secret per side.
+    Both desks present the same shared service token to get past the marketplace
+    gateway, so the core sees one stable caller. Each desk attributes actions to
+    a different human - the candidate on one side, the employer contact on the
+    other - through its own personal OAuth secret, so the core enforces what that
+    person may see and do.
+
+    This is the pattern for any two-sided product - hiring, freelance work,
+    lending, rentals, B2B procurement - where supply and demand each deserve
+    their own agent and the matching belongs to a service both sides share.
+  share: |-
+    Model a two-sided market with Terraform - a Talent Partner for candidates and a Client Partner for companies, each its own agent, meeting only through a shared marketplace API. The matching engine and the placement fee stay in your service; the agents are thin clients with per-side on-behalf identity.
+
+    https://chatbotkit.com/examples/terraform-two-sided-marketplace
+  files: []
+
+- slug: terraform-internal-services-fetch
+  icon: 'lucide/key-round'
+  title: Terraform Internal Services (Fetch + Secrets)
+  description: |
+    An agent that reaches your internal corporate services with the fetch action,
+    authenticated by two kinds of secret: a shared service token for
+    machine-to-machine calls, and a personal OAuth secret so the agent can act on
+    behalf of the signed-in employee.
+  keywords:
+    - terraform
+    - infrastructure-as-code
+    - fetch
+    - secrets
+    - oauth
+    - shared-secret
+    - personal-secret
+    - internal-api
+    - service-account
+    - on-behalf-of
+  date: 2026-06-19
+  url: https://github.com/chatbotkit/terraform-provider-chatbotkit/tree/main/examples/internal-services-fetch
+  commentary: |
+    This example shows the two ways an agent authenticates when it calls your
+    internal services with the fetch action, and when to reach for each.
+
+    A shared secret is the agent's own machine identity. It is one account-wide
+    bearer token the agent presents to internal systems that trust it as a
+    service account - no human in the loop, the same identity on every
+    conversation. Use it for read-only platform data that everyone may see, like
+    a service catalogue or health endpoint.
+
+    A personal OAuth secret represents the employee talking to the agent. The
+    first time someone triggers an ability that uses it, ChatBotKit asks them to
+    sign in through your SSO and stores their token; the agent then calls
+    permission-enforcing systems as that employee, so the backend applies its
+    normal access control. Use it for anything scoped to the person - their
+    tickets, their time-off balance, opening an incident in their name.
+
+    The abilities are written in the structured fetch format (a !fetch action tag
+    with !string parameters and !reference secret helpers). Secrets resolve to a
+    complete Authorization value including the Bearer scheme, so headers carry the
+    reference directly with no manual prefix. The open_incident ability uses both
+    secrets in one request: the shared service token authenticates the agent to
+    the internal API gateway, while the employee's forwarded OAuth token
+    attributes the incident to a real person.
+
+    This is the pattern for internal copilots and operations assistants that sit
+    in front of corporate APIs and must respect both service trust and per-user
+    permissions.
+  share: |-
+    Build an internal operations agent with Terraform - it reaches your corporate services with the fetch action using a shared service token for machine-to-machine calls and a personal OAuth secret to act on behalf of the signed-in employee.
+
+    https://chatbotkit.com/examples/terraform-internal-services-fetch
+  files: []
+
+- slug: terraform-multi-tenant-agents-shared
+  icon: 'lucide/users'
+  title: Terraform Multi-Tenant Agents (Shared)
+  description: |
+    Deploy the same agent for every customer, each isolated in their own
+    ChatBotKit child User. One parent User token plus the provider's run_as
+    attribute targets each child User through a provider alias - no per-customer tokens.
+  keywords:
+    - terraform
+    - infrastructure-as-code
+    - multi-tenant
+    - saas
+    - users
+    - partner
+    - white-label
+    - run-as
+    - provider-aliases
+    - isolation
+  date: 2026-06-18
+  url: https://github.com/chatbotkit/terraform-provider-chatbotkit/tree/main/examples/multi-tenant-agents-shared
+  commentary: |
+    This example runs a multi-tenant product on ChatBotKit where every customer
+    gets the same agent inside their own isolated child User with its own bots,
+    datasets, conversations, and settings.
+
+    Isolation comes from the provider's run_as attribute. You hold one
+    parent User token (CHATBOTKIT_API_KEY) and configure one provider alias
+    per customer, each with run_as set to that customer's child User ID, which
+    sends the X-RunAs-UserId header. There are no per-customer tokens - account
+    IDs are not secret. This is the standard Terraform multi-account pattern,
+    provider aliases, the same way the AWS provider uses assume_role.
+
+    The agent is defined once in a reusable module and deployed into each
+    child User via its alias - no for_each. Improve the agent once and it ships
+    to every customer on the next apply.
+
+    This is the foundation for white-label and B2B SaaS products where account
+    separation, per-tenant limits, and reproducible provisioning matter.
+  share: |-
+    Run a multi-tenant product on ChatBotKit with Terraform - the same agent in every customer's isolated child User, using one parent User token and the provider's run_as (X-RunAs-UserId), the way AWS uses assume_role.
+
+    https://chatbotkit.com/examples/terraform-multi-tenant-agents-shared
+  files: []
+
+- slug: terraform-multi-tenant-agents-per-customer
+  icon: 'lucide/users'
+  title: Terraform Multi-Tenant Agents (Per Customer)
+  description: |
+    Deploy a bespoke agent for each customer, each its own module/folder, composed
+    into one shared state and deployed in a single apply. One parent User token plus the
+    provider's run_as attribute targets each customer's child User.
+  keywords:
+    - terraform
+    - infrastructure-as-code
+    - multi-tenant
+    - saas
+    - users
+    - partner
+    - white-label
+    - run-as
+    - per-customer
+    - isolation
+  date: 2026-06-18
+  url: https://github.com/chatbotkit/terraform-provider-chatbotkit/tree/main/examples/multi-tenant-agents-per-customer
+  commentary: |
+    This example runs a multi-tenant product on ChatBotKit where every customer
+    gets their own bespoke agent inside their own isolated child User with its
+    own bots, datasets, conversations, and settings.
+
+    Each customer is its own module/folder, so agents can diverge freely - one
+    might be a support bot, another a research agent with a sandbox. A single
+    shared root composes them all and deploys every customer in one apply, with
+    one shared state. Isolation comes from the provider's run_as attribute: you
+    hold one parent User token (CHATBOTKIT_API_KEY) and each module is wired to
+    its customer's child User through a provider alias whose run_as sends the
+    X-RunAs-UserId header. No per-customer tokens, no for_each.
+
+    This is the foundation for agency and white-glove products where each customer
+    needs a genuinely different agent that evolves independently.
+  share: |-
+    Run a multi-tenant product on ChatBotKit with Terraform - a bespoke agent per customer (each its own module), composed into one shared state and deployed in a single apply, using one parent User token and the provider's run_as (X-RunAs-UserId).
+
+    https://chatbotkit.com/examples/terraform-multi-tenant-agents-per-customer
+  files: []
+
+- slug: terraform-agent-framework
+  icon: 'lucide/boxes'
+  title: Terraform Agent Framework
+  description: |
+    A reference architecture that defines an autonomous agent as a project of
+    files - instructions, skills, and a heartbeat - and provisions the whole
+    thing on ChatBotKit with Terraform: the agent, its ability packs, an
+    isolated workspace, file-based skills, a Slack channel, and schedules.
+  keywords:
+    - terraform
+    - infrastructure-as-code
+    - agent
+    - skills
+    - workspace
+    - abilities
+    - packs
+    - slack
+    - schedules
+    - heartbeat
+  date: 2026-06-18
+  url: https://github.com/chatbotkit/terraform-provider-chatbotkit/tree/main/examples/agent-framework
+  commentary: |
+    This example shows how far you can take ChatBotKit as a backend: an entire
+    agent framework, declared as code and stood up with a single terraform
+    apply. The agent is authored as a small project of files under agent/ -
+    instructions.md becomes the bot's backstory, skills/ holds on-demand
+    SKILL.md playbooks, and heartbeat.md drives a recurring tick.
+
+    Terraform wires the platform primitives together. The bot's toolset is built
+    from ability packs - pack/shell for running commands and editing files in an
+    isolated workspace, and pack/cbk/space/skills for discovering and reading the
+    uploaded skills - alongside web search and fetch. The skills/ tree is
+    uploaded into the workspace under .skills/ with fileset and for_each, so
+    adding a skill is just adding a folder.
+
+    Channels and schedules round it out. Slack is active out of the box, with
+    Discord, Teams, and WhatsApp ready to uncomment. Two kinds of schedules are
+    shown: ordinary timed triggers, and a heartbeat whose instructions come from
+    heartbeat.md and which reuses one conversation across each hour of ticks.
+
+    Because everything is infrastructure-as-code, the agent and all of its
+    surfaces can be reviewed, versioned, replicated across environments, and torn
+    down reproducibly.
+  share: |-
+    Build an entire agent framework on ChatBotKit with Terraform - an agent defined as a project of files (instructions, skills, heartbeat), with ability packs, an isolated workspace, a Slack channel, and schedules, all provisioned by a single terraform apply.
+
+    https://chatbotkit.com/examples/terraform-agent-framework
+  files: []
+
+- slug: template-nextjs-inbox-agent-js
+  icon: 'lucide/download'
+  title: Next.js Inbox Agent Template
+  description: |
+    An autonomous email inbox agent template with Google sign-in, connection
+    management, and scheduled task automation powered by ChatBotKit, Next.js,
+    and shadcn/ui.
+  keywords:
+    - nextjs
+    - app-router
+    - template
+    - inbox
+    - email
+    - automation
+    - tasks
+    - next-auth
+    - oauth
+    - shadcn
+    - tailwind
+  date: 2026-04-07
+  url: https://github.com/chatbotkit/template-nextjs-inbox-agent-js
+  commentary: |
+    This template provides a focused starting point for building autonomous
+    email workflow products on top of ChatBotKit. Users authenticate with
+    Google, connect the personal secrets required by the configured bot, and
+    then enable or disable a set of predefined inbox tasks from a clean
+    dashboard.
+
+    The architecture separates connection setup from ongoing task management.
+    The connections screen discovers the integrations required by the bot from
+    the platform and handles OAuth-based verification flows. Once all required
+    services are connected, the dashboard exposes scheduled tasks for drafting
+    replies, categorising messages, and generating a daily digest.
+
+    Server actions keep platform credentials off the client, while NextAuth is
+    used to map authenticated users to ChatBotKit contacts by email. The bot's
+    real behaviour stays on the ChatBotKit platform, so you can evolve the
+    agent's abilities, secret requirements, and automation logic without
+    reworking the application shell.
+
+    This is the recommended starting point for products that want to turn
+    inbox management into a supervised autonomous workflow rather than a manual
+    chat experience.
+  share: |-
+    A Next.js inbox agent template powered by ChatBotKit - sign in with Google, connect the services your bot needs, and automate drafting, categorisation, and daily inbox digests with scheduled tasks.
+
+    https://chatbotkit.com/examples/template-nextjs-inbox-agent-js
+  files: []
+
+- slug: template-nextjs-agentic-saas-js
+  icon: 'lucide/bot'
+  title: Next.js Agentic SaaS Template
+  description: |
+    A production-ready agentic SaaS template with Google OAuth, Stripe billing,
+    auto-discovered integrations, and a single-purpose ChatBotKit agent that
+    works for each customer continuously.
+  keywords:
+    - nextjs
+    - app-router
+    - template
+    - agentic
+    - saas
+    - chat
+    - stripe
+    - billing
+    - connections
+    - oauth
+    - next-auth
+    - shadcn
+    - tailwind
+  date: 2026-04-08
+  url: https://github.com/chatbotkit/template-nextjs-agentic-saas-js
+  commentary: |
+    This template provides the fastest path from idea to a working
+    subscription-based AI product. A single bot is configured once on
+    ChatBotKit with its backstory, model, skills, and abilities. Each
+    customer signs up, connects the integrations the agent needs through
+    auto-discovered OAuth flows, and starts chatting.
+
+    The architecture auto-discovers which connections (personal secrets) the
+    bot's abilities require by traversing the bot's skillset via GraphQL.
+    Customers see only the integrations relevant to their agent and can
+    authenticate each one independently. Conversation history is persisted
+    per contact and accessible through a slide-out sidebar.
+
+    Stripe billing is optional but built-in, supporting monthly and yearly
+    subscriptions with free trials and a self-serve billing portal. When
+    billing is enabled, chat access is gated behind an active subscription.
+
+    Server actions keep API keys off the client, and NextAuth maps each
+    authenticated user to a ChatBotKit contact by email. The bot's
+    capabilities are managed entirely on the platform, so you can add new
+    abilities or change models without touching application code.
+
+    This is the recommended starting point for SaaS products where each
+    customer gets a personal AI agent backed by their own connected services.
+  share: |-
+    A production-ready Next.js agentic SaaS template - Google OAuth, Stripe billing, auto-discovered integrations, and a ChatBotKit agent that works for each customer. The fastest path from idea to AI product.
+
+    https://chatbotkit.com/examples/template-nextjs-agentic-saas-js
+  files: []
+
+- slug: template-nextjs-orchestrator-js
+  icon: 'lucide/building-2'
+  title: Next.js Business Orchestrator Template
+  description: |
+    A multi-agent business orchestration template with company management,
+    agent creation, task scheduling, and real-time chat powered by ChatBotKit,
+    Next.js, and shadcn/ui.
+  keywords:
+    - nextjs
+    - app-router
+    - template
+    - orchestrator
+    - multi-agent
+    - chat
+    - shadcn
+    - tailwind
+    - next-auth
+    - task-scheduling
+    - business
+  date: 2026-03-28
+  url: https://github.com/chatbotkit/template-nextjs-orchestrator-js
+  commentary: |
+    This template provides a complete multi-agent orchestration interface for
+    business workflows. Users create companies, assign AI agents to each
+    company with configurable models and backstories, and interact with agents
+    through a real-time chat interface.
+
+    The architecture uses ChatBotKit blueprints as company containers and bots
+    as agents within those containers. A shared AgentForm component keeps
+    creation and settings views consistent. Task scheduling supports immediate
+    execution, one-off scheduled runs, and recurring intervals with
+    client-side persistence.
+
+    Authentication is handled via NextAuth with Google OAuth, and all server
+    actions use session guards to keep API keys off the client. The model list
+    is configurable through an AGENT_MODELS environment variable.
+
+    This is the recommended starting point for building multi-agent business
+    platforms where different teams or departments need their own set of
+    specialized AI agents.
+  share: |-
+    A Next.js multi-agent business orchestrator template - create companies, assign AI agents with custom models, schedule tasks, and chat in real-time, all powered by ChatBotKit.
+
+    https://chatbotkit.com/examples/template-nextjs-orchestrator-js
+  files: []
+
+- slug: template-nextjs-slack-agent-platform-js
+  icon: 'lucide/message-square'
+  title: Next.js Slack Agent Platform Template
+  description: |
+    A subscription-based Slack agent platform template with Google OAuth,
+    Stripe billing, blueprint-backed workspaces, per-agent tools, and
+    ChatBotKit Slack integrations.
+  keywords:
+    - nextjs
+    - app-router
+    - template
+    - slack
+    - stripe
+    - billing
+    - multi-agent
+    - blueprints
+    - skillsets
+    - tools
+    - next-auth
+    - shadcn
+    - tailwind
+  date: 2026-07-01
+  url: https://github.com/chatbotkit/template-nextjs-slack-agent-platform-js
+  commentary: |
+    This template provides a control plane for building Slack-native AI agent
+    products on top of ChatBotKit. Users authenticate with Google, start a
+    Stripe subscription, create workspaces backed by ChatBotKit blueprints, and
+    deploy one or more agents into those workspaces.
+
+    Each agent is created as a ChatBotKit bot with its own skillset. The
+    dashboard exposes a tools tab for adding skillset abilities, including
+    starter Slack messaging tools and fully custom instructions. Slack
+    connections are managed as ChatBotKit Slack integrations attached to the
+    same blueprint and bot, so events, commands, interactions, thread routing,
+    references, ratings, and visible message context stay aligned with the
+    agent resource.
+
+    Stripe billing gates the dashboard and server actions, while the
+    ChatBotKit-hosted Slack endpoints handle inbound event verification and
+    conversation execution. This keeps the application focused on customer
+    onboarding, subscription management, agent configuration, and Slack app
+    setup rather than low-level webhook infrastructure.
+
+    This is the recommended starting point for SaaS products where customers
+    need one or more configurable AI agents operating inside Slack workspaces.
+  share: |-
+    A Next.js Slack agent platform template powered by ChatBotKit - Google OAuth, Stripe subscriptions, blueprint workspaces, per-agent tools, and Slack integrations for multi-agent SaaS products.
+
+    https://chatbotkit.com/examples/template-nextjs-slack-agent-platform-js
+  files: []
+
+- slug: template-node-agent-cli-js
+  icon: 'lucide/bot'
+  title: Node.js AI Agent CLI Template
+  description: |
+    A standalone command-line AI agent template that uses the ChatBotKit Agent
+    SDK to run bespoke agents with built-in tools for file manipulation, code
+    editing, and shell command execution.
+  keywords:
+    - nodejs
+    - cli
+    - agent
+    - template
+    - tools
+    - file-manipulation
+    - shell
+    - streaming
+  date: 2026-03-25
+  url: https://github.com/chatbotkit/template-node-agent-cli-js
+  commentary: |
+    This template uses @chatbotkit/agent to provide a complete agentic
+    execution loop with built-in tools for reading, writing, and editing files
+    as well as executing shell commands. The agent runs in a multi-iteration
+    loop with automatic planning, progress tracking, and controlled exit.
+
+    Custom tools are defined in src/tools.js using zod schemas and merged
+    alongside the built-in tools. The CLI supports both interactive mode with
+    real-time token streaming and a pipe-friendly JSON output mode for
+    automation.
+
+    This is the recommended starting point for building standalone CLI agents
+    that need file system access and shell execution without a web interface.
+  share: |-
+    A standalone Node.js CLI agent template powered by the ChatBotKit Agent SDK - built-in file tools, shell execution, custom tool support, and a multi-iteration agentic loop out of the box.
+
+    https://chatbotkit.com/examples/template-node-agent-cli-js
+  files: []
+
+- slug: template-nextjs-chat-auth-stripe-js
+  icon: 'lucide/credit-card'
+  title: Next.js Chat + Auth + Stripe Template
+  description: |
+    A production-ready chat template with Google OAuth authentication,
+    conversation persistence, Stripe subscription billing, and full ChatBotKit
+    platform integration built with shadcn/ui.
+  keywords:
+    - nextjs
+    - app-router
+    - template
+    - authentication
+    - stripe
+    - billing
+    - saas
+    - chat
+    - shadcn
+    - tailwind
+    - next-auth
+  date: 2026-03-25
+  url: https://github.com/chatbotkit/template-nextjs-chat-auth-stripe-js
+  commentary: |
+    This template extends the chat + auth template with a complete Stripe SaaS
+    billing layer. Users must have an active subscription to access the chat,
+    with support for monthly and yearly plans, free trials, and a self-serve
+    billing portal.
+
+    The architecture adds subscription gating to the protected chat route via
+    middleware, with server actions for creating Stripe Checkout sessions and
+    portal links. A webhook handler keeps subscription state in sync with the
+    platform.
+
+    This is the recommended starting point for any SaaS product that wants to
+    monetise AI chat access while keeping all platform intelligence - skills,
+    datasets, guardrails, and model selection - managed through ChatBotKit
+    without touching application code.
+  share: |-
+    A production-ready Next.js chat template with Google OAuth, conversation persistence, Stripe subscription billing, and full ChatBotKit platform integration - the fastest path to a monetised AI chat product.
+
+    https://chatbotkit.com/examples/template-nextjs-chat-auth-stripe-js
+  files: []
+
+- slug: template-nextjs-chat-auth-js
+  icon: 'lucide/lock'
+  title: Next.js Chat + Auth Template
+  description: |
+    A production-ready chat template with Google OAuth authentication,
+    conversation persistence, and full ChatBotKit platform agent integration
+    built with Next.js, shadcn/ui, and next-auth.
+  keywords:
+    - nextjs
+    - app-router
+    - template
+    - authentication
+    - chat
+    - shadcn
+    - tailwind
+    - next-auth
+    - contacts
+    - streaming
+  date: 2026-03-25
+  url: https://github.com/chatbotkit/template-nextjs-chat-auth-js
+  commentary: |
+    This template connects your Next.js application to ChatBotKit platform
+    agents rather than raw LLM calls. Selecting an agent gives you its full
+    configured capability set - skills, datasets, guardrails, model choice,
+    and third-party service auth - without any additional application code.
+
+    The architecture uses Next.js server actions so API keys never reach the
+    client. Authenticated users are automatically mapped to ChatBotKit contacts
+    by email, giving you full conversation history and persistence. A slide-out
+    sidebar exposes previous conversations.
+
+    This is the recommended starting point for any authenticated chat product
+    that wants to delegate intelligence and configuration to the ChatBotKit
+    platform.
+  share: |-
+    A production-ready Next.js chat template with Google OAuth, conversation persistence, and full ChatBotKit platform agent integration - authenticate users, pick an agent, and let the platform handle the rest.
+
+    https://chatbotkit.com/examples/template-nextjs-chat-auth-js
+  files: []
+
+- slug: template-nextjs-generative-ui-js
+  icon: 'lucide/palette'
+  title: Next.js Generative UI Template
+  description: |
+    A starter template for building Generative UI applications with ChatBotKit
+    and Next.js, where the AI renders interactive React components inline in
+    the conversation.
+  keywords:
+    - nextjs
+    - app-router
+    - template
+    - generative-ui
+    - chat
+    - streaming
+    - react
+    - components
+  date: 2026-03-25
+  url: https://github.com/chatbotkit/template-nextjs-generative-ui-js
+  commentary: |
+    This template demonstrates Generative UI, where the AI response is not
+    just streamed text but can include fully interactive React components
+    rendered directly in the chat. This enables experiences like appointment
+    pickers, confirmation dialogs, and data forms appearing inline.
+
+    The architecture uses ChatBotKit's streaming primitives to intersperse
+    structured component payloads with text, which the client maps to real
+    React components. The server action pattern keeps credentials server-side
+    while the UI stays reactive.
+
+    This is the recommended starting point for products that want AI responses
+    to feel like a native part of the UI rather than a text buffer.
+  share: |-
+    A Next.js starter template where AI responses are not just text but fully interactive React components rendered inline in the chat - appointment pickers, forms, and confirmations powered by ChatBotKit.
+
+    https://chatbotkit.com/examples/template-nextjs-generative-ui-js
+  files: []
+
+- slug: template-nextjs-dashboard-js
+  icon: 'lucide/chart-column'
+  title: Next.js Dashboard Template
+  description: |
+    A minimal Next.js starter template for building ChatBotKit-powered
+    dashboard applications with a clean App Router foundation.
+  keywords:
+    - nextjs
+    - app-router
+    - template
+    - dashboard
+    - minimal
+    - starter
+  date: 2026-03-25
+  url: https://github.com/chatbotkit/template-nextjs-dashboard-js
+  commentary: |
+    This template provides a lean foundation for building dashboard-style
+    applications with ChatBotKit. It intentionally has minimal dependencies
+    so you can add only the UI libraries and data layers your product needs.
+
+    The architecture uses the Next.js App Router with the ChatBotKit SDK wired
+    in from the start. Tailwind CSS and the typography plugin are included for
+    rapid styling without locking you into a component system.
+
+    This is the recommended starting point when you want full control over
+    the UI layer and do not need authentication or billing out of the box.
+  share: |-
+    A minimal Next.js App Router starter with ChatBotKit wired in from the start - full control over the UI, no opinions on auth or billing, just a clean foundation for dashboard-style AI apps.
+
+    https://chatbotkit.com/examples/template-nextjs-dashboard-js
+  files: []
+
+- slug: nextjs-app-graphql-codegen
+  icon: 'lucide/diamond'
+  title: Next.js GraphQL Code Generator
+  description: |
+    Demonstrates GraphQL Code Generator integration with ChatBotKit's GraphQL
+    API for type-safe queries using Next.js server components.
+  keywords:
+    - nextjs
+    - app-router
+    - graphql
+    - codegen
+    - type-safety
+    - server-components
+    - typescript
+  date: 2025-11-26
+  url: https://github.com/chatbotkit/node-sdk/tree/main/examples/nextjs/app/graphql-codegen
+  commentary: |
+    This example demonstrates how to use GraphQL Code Generator with
+    ChatBotKit's GraphQL API to create type-safe queries and mutations. It
+    showcases the TypeScript plugins approach that generates a complete SDK
+    with full type safety for all GraphQL operations.
+
+    The architecture uses separate .graphql files for defining operations,
+    which are processed by GraphQL Code Generator to create TypeScript types
+    and a type-safe SDK using graphql-request. The generated SDK provides
+    methods like sdk.ListBots() with complete type safety for variables and
+    responses.
+
+    Unlike the client preset approach, this uses TypeScript plugins
+    (typescript, typescript-operations, typescript-graphql-request) which
+    generate a single comprehensive file with getSdk() function. This matches
+    the pattern used in the main ChatBotKit platform for consistency.
+
+    The example features Next.js server components that fetch data directly
+    on the server using the generated SDK, eliminating the need for API routes
+    and providing optimal performance with server-side rendering.
+
+    This pattern is essential for applications that want compile-time type
+    checking, IDE autocompletion, and confidence that their GraphQL queries
+    match the API schema. It's particularly valuable for teams working with
+    complex GraphQL APIs or building production applications where type safety
+    reduces bugs and improves maintainability.
+  files: []
+
+- slug: nextjs-pages-auth-chat
+  icon: 'lucide/user'
+  title: Next.js Authenticated Chat with Contacts
+  description: |
+    Demonstrates ChatBotKit Contacts for managing end-users in authenticated
+    conversations with NextAuth.js integration and UUID-based fingerprinting.
+  keywords:
+    - nextjs
+    - pages-router
+    - authentication
+    - contacts
+    - nextauth
+    - user-management
+    - fingerprinting
+  date: 2025-11-21
+  url: https://github.com/chatbotkit/node-sdk/tree/main/examples/nextjs/pages/auth-chat
+  commentary: |
+    This example showcases ChatBotKit Contacts, a powerful feature for managing
+    end-users who interact with your AI agents. Contacts enable conversation
+    tracking, personalized experiences, and authentication management that
+    allows users to connect 3rd-party systems like Google or Microsoft.
+
+    The architecture uses NextAuth.js for session management and generates
+    UUID v5 fingerprints to uniquely identify users. When a conversation starts,
+    ChatBotKit automatically creates or retrieves the contact based on the
+    fingerprint, ensuring all conversations are properly associated with users.
+
+    This pattern is essential for production applications that need user
+    management, conversation history, personalization, and the ability to
+    authenticate users with external services. Contacts unlock advanced features
+    like allowing AI agents to access Google Calendar, Gmail, or other
+    integrations on behalf of authenticated users.
+  files: []
+
+- slug: vite-react-stateless-chat
+  icon: 'lucide/zap'
+  title: Vite React Stateless Chat
+  description: |
+    A lightweight stateless AI chat application built with Vite and React,
+    featuring an Express backend for conversation handling.
+  keywords:
+    - vite
+    - react
+    - express
+    - stateless
+    - chat
+    - frontend
+  date: 2025-11-19
+  url: https://github.com/chatbotkit/node-sdk/tree/main/examples/vite/react/stateless-chat
+  commentary: |
+    This example demonstrates ChatBotKit integration with Vite, a fast modern
+    build tool. The setup uses React for the frontend and Express for the
+    backend, providing a simple full-stack architecture.
+
+    The architecture separates concerns with a Vite dev server for the frontend
+    and an Express server for backend API calls to ChatBotKit. This separation
+    allows independent scaling and deployment of frontend and backend
+    components.
+
+    This pattern is ideal for teams who prefer Vite's speed and simplicity or
+    want more control over their backend implementation beyond what Next.js
+    offers.
+  files: []
+
+- slug: nextjs-app-stateless-chat
+  icon: 'lucide/atom'
+  title: Next.js Stateless Chat
+  description: |
+    A stateless chat interface using Next.js App Router with API routes for
+    conversation completion and streaming responses.
+  keywords:
+    - nextjs
+    - app-router
+    - react
+    - stateless
+    - chat
+    - streaming
+  date: 2024-03-21
+  url: https://github.com/chatbotkit/node-sdk/tree/main/examples/nextjs/app/stateless-chat
+  commentary: |
+    This example demonstrates the fundamentals of integrating ChatBotKit with
+    Next.js App Router. It uses a dedicated API route to handle incoming
+    messages and automatically streams responses back to the client.
+
+    The architecture is straightforward: an API endpoint receives user messages,
+    forwards them to ChatBotKit's conversation completion API, and streams the
+    AI response back through the same connection. On the client side, a React
+    component provides the chat interface and handles the streamed responses.
+
+    This pattern is ideal for building basic chat applications where
+    conversation state is managed client-side, making it simple to understand
+    and extend.
+  files: []
+
+- slug: nextjs-app-stateless-chat-rsc
+  icon: 'lucide/rocket'
+  title: Next.js Stateless Chat with Server Actions
+  description: |
+    A stateless chat interface leveraging Next.js Server Actions for direct
+    server-side conversation handling without API routes.
+  keywords:
+    - nextjs
+    - app-router
+    - react
+    - server-actions
+    - rsc
+    - stateless
+    - chat
+  date: 2024-03-21
+  url: https://github.com/chatbotkit/node-sdk/tree/main/examples/nextjs/app/stateless-chat-rsc
+  commentary: |
+    This example showcases the power of Next.js Server Actions combined with
+    ChatBotKit. Instead of creating separate API routes, Server Actions allow
+    you to handle conversation logic directly in your server components,
+    reducing boilerplate and improving code organization.
+
+    The architecture uses Next.js's built-in Server Actions to process messages
+    and stream responses. This approach eliminates the need for API routes
+    while maintaining the benefits of server-side processing and streaming
+    responses.
+
+    This pattern is particularly useful for applications that want to keep
+    server and client logic closely integrated while taking advantage of
+    React Server Components.
+  files: []
+
+- slug: nextjs-app-stateless-chat-rsc-functions
+  icon: 'lucide/wrench'
+  title: Next.js Chat with Function Calling
+  description: |
+    An advanced chat interface demonstrating ChatBotKit function calling with
+    Next.js Server Actions for interactive AI capabilities.
+  keywords:
+    - nextjs
+    - app-router
+    - react
+    - server-actions
+    - functions
+    - function-calling
+    - rsc
+  date: 2024-03-26
+  url: https://github.com/chatbotkit/node-sdk/tree/main/examples/nextjs/app/stateless-chat-rsc-functions
+  commentary: |
+    This example pushes the boundaries of what's possible with ChatBotKit and
+    Next.js by demonstrating function calling capabilities. The AI can invoke
+    predefined functions during the conversation, enabling interactive features
+    like retrieving data, performing calculations, or triggering actions.
+
+    The architecture combines Server Actions with ChatBotKit's function calling
+    API, allowing the AI to intelligently decide when to call functions based
+    on user input. Function results are seamlessly integrated back into the
+    conversation flow.
+
+    This pattern is ideal for building sophisticated AI assistants that need to
+    interact with external systems, databases, or APIs during conversations.
+  files: []
+
+- slug: nextjs-app-stateless-chat-rsc-functions-request
+  icon: 'lucide/target'
+  title: Next.js Chat with Interactive Function Requests
+  description: |
+    A chat interface with interactive function calling that requests user
+    confirmation before executing actions, demonstrating advanced control flow.
+  keywords:
+    - nextjs
+    - app-router
+    - react
+    - server-actions
+    - functions
+    - interactive
+    - function-calling
+  date: 2024-03-28
+  url: https://github.com/chatbotkit/node-sdk/tree/main/examples/nextjs/app/stateless-chat-rsc-functions-request
+  commentary: |
+    This example demonstrates a more sophisticated approach to function calling
+    where the AI can request user confirmation before executing functions. This
+    adds an important layer of control and transparency, allowing users to
+    approve or reject actions before they're performed.
+
+    The architecture extends the basic function calling pattern with interactive
+    triggers. When the AI wants to execute a function, it presents the request
+    to the user with context about what will happen. The user can then approve
+    or deny the action through interactive UI elements.
+
+    This pattern is essential for applications where AI actions have
+    consequences, such as making purchases, sending emails, or modifying data.
+    It provides users with oversight and control while maintaining the
+    convenience of AI-driven interactions.
+  files: []
+
+- slug: nextjs-app-stateless-chat-rsc-functions-request-ts
+  icon: 'lucide/book'
+  title: Next.js Chat with Interactive Functions - TypeScript
+  description: |
+    TypeScript version of the interactive function calling example with full
+    type safety and enhanced developer experience.
+  keywords:
+    - nextjs
+    - app-router
+    - react
+    - typescript
+    - server-actions
+    - functions
+    - interactive
+  date: 2024-03-29
+  url: https://github.com/chatbotkit/node-sdk/tree/main/examples/nextjs/app/stateless-chat-rsc-functions-request-ts
+  commentary: |
+    This TypeScript variant provides all the functionality of the interactive
+    function calling example with the added benefits of type safety and
+    enhanced IDE support. All function definitions, parameters, and responses
+    are fully typed, reducing runtime errors and improving developer experience.
+
+    The typed architecture ensures that function calls match their definitions,
+    parameters are validated at compile time, and responses are handled
+    correctly. This makes the codebase more maintainable and easier to refactor.
+
+    This pattern is recommended for production applications where type safety
+    and code quality are priorities.
+  files: []
+
+- slug: nextjs-app-stateless-rag
+  icon: 'lucide/library'
+  title: Next.js Stateless RAG
+  description: |
+    A RAG implementation using Next.js App Router that combines AI conversation
+    with knowledge retrieval from ChatBotKit datasets.
+  keywords:
+    - nextjs
+    - app-router
+    - rag
+    - retrieval
+    - datasets
+    - knowledge-base
+    - search
+  date: 2024-03-31
+  url: https://github.com/chatbotkit/node-sdk/tree/main/examples/nextjs/app/stateless-rag
+  commentary: |
+    This example demonstrates Retrieval-Augmented Generation (RAG) with
+    ChatBotKit datasets. RAG enhances AI responses by retrieving relevant
+    information from a knowledge base before generating answers, improving
+    accuracy and reducing hallucinations.
+
+    The architecture integrates ChatBotKit's dataset search capabilities with
+    conversation completion. When a user asks a question, the system first
+    searches the dataset for relevant information, then includes that context
+    in the AI prompt to generate more informed responses.
+
+    This pattern is crucial for building AI applications that need to answer
+    questions based on specific knowledge domains, documentation, or proprietary
+    information.
+  files: []
+
+- slug: nextjs-app-streaming-objects
+  icon: 'lucide/waves'
+  title: Next.js Streaming Objects
+  description: |
+    Demonstrates server-side object streaming using ChatBotKit React primitives
+    for real-time data updates in Next.js applications.
+  keywords:
+    - nextjs
+    - app-router
+    - streaming
+    - objects
+    - real-time
+    - react
+  date: 2024-12-31
+  url: https://github.com/chatbotkit/node-sdk/tree/main/examples/nextjs/app/streaming-objects
+  commentary: |
+    This example showcases how to stream structured objects from server to
+    client using ChatBotKit's streaming primitives. Unlike streaming text,
+    this pattern allows you to send complex data structures in real-time,
+    enabling richer interactive experiences.
+
+    The architecture uses async generators on the server to yield objects that
+    are automatically serialized and streamed to the client. The client consumes
+    these objects using ChatBotKit's helper functions, making it easy to build
+    dynamic interfaces that update as data arrives.
+
+    This pattern is valuable for building dashboards, real-time analytics, or
+    any application that needs to display streaming structured data.
+  files: []
+
+- slug: nextjs-pages-stateless-chat
+  icon: 'lucide/file-text'
+  title: Next.js Stateless Chat
+  description: |
+    A stateless chat interface using Next.js Pages Router with API routes,
+    demonstrating the classic Next.js architecture pattern.
+  keywords:
+    - nextjs
+    - pages-router
+    - react
+    - stateless
+    - chat
+    - streaming
+  date: 2024-03-21
+  url: https://github.com/chatbotkit/node-sdk/tree/main/examples/nextjs/pages/stateless-chat
+  commentary: |
+    This example provides the same chat functionality as the App Router version
+    but uses Next.js Pages Router architecture. It's ideal for existing
+    applications using Pages Router or developers who prefer this more
+    traditional approach.
+
+    The architecture uses API routes in the pages/api directory to handle
+    conversation requests and stream responses. The client-side chat interface
+    is built with React and communicates with the API routes through fetch
+    requests.
+
+    This pattern is well-suited for applications already using Pages Router
+    or teams who want to stick with a proven, stable architecture.
+  files: []
+
+- slug: nextjs-pages-stateful-chat
+  icon: 'lucide/save'
+  title: Next.js Stateful Chat
+  description: |
+    A stateful chat interface that persists conversation history on the
+    ChatBotKit platform using conversation IDs.
+  keywords:
+    - nextjs
+    - pages-router
+    - react
+    - stateful
+    - chat
+    - persistence
+    - conversation-history
+  date: 2025-11-19
+  url: https://github.com/chatbotkit/node-sdk/tree/main/examples/nextjs/pages/stateful-chat
+  commentary: |
+    This example demonstrates stateful conversations where chat history is
+    stored on ChatBotKit's servers. Each conversation receives a unique ID,
+    allowing users to resume conversations across sessions or from different
+    devices.
+
+    The architecture uses ChatBotKit's conversation API to create and manage
+    persistent conversations. Messages are stored server-side, and the
+    conversation context is automatically maintained across multiple
+    interactions.
+
+    This pattern is essential for applications that need conversation history,
+    multi-device support, or analytics on conversation data.
+  files: []
+
+- slug: nextjs-pages-user-auth
+  icon: 'lucide/lock'
+  title: Next.js User Authentication
+  description: |
+    Demonstrates passwordless authentication with automatic ChatBotKit
+    user provisioning through the User API.
+  keywords:
+    - nextjs
+    - pages-router
+    - authentication
+    - user
+    - multi-tenant
+    - integration
+  date: 2025-11-19
+  url: https://github.com/chatbotkit/node-sdk/tree/main/examples/nextjs/pages/user-auth
+  commentary: |
+    This example shows how to connect NextAuth authentication to isolated
+    ChatBotKit users managed by your application.
+
+    The architecture uses parent User tokens to authenticate users with ChatBotKit
+    on behalf of your application. This allows you to manage user access and
+    permissions through your own system while leveraging ChatBotKit's AI
+    capabilities.
+
+    This pattern is crucial for SaaS platforms, enterprise applications, or
+    any service that wants to embed AI features while maintaining control over
+    user management and billing.
+  files: []
+
+- slug: nextjs-hybrid-basic-chat
+  icon: 'lucide/refresh-cw'
+  title: Next.js Hybrid Basic Chat
+  description: |
+    A chat application demonstrating hybrid Next.js architecture that works
+    with both App Router and Pages Router.
+  keywords:
+    - nextjs
+    - hybrid
+    - app-router
+    - pages-router
+    - chat
+    - react
+  date: 2025-01-03
+  url: https://github.com/chatbotkit/node-sdk/tree/main/examples/nextjs/hybrid/basic-chat
+  commentary: |
+    This example demonstrates a hybrid approach that works with both Next.js
+    App Router and Pages Router, making it useful for applications in
+    transition or teams that want maximum flexibility.
+
+    The architecture is designed to be router-agnostic, with shared components
+    and utilities that work in both contexts. This allows gradual migration
+    from Pages Router to App Router without rewriting your entire application.
+
+    This pattern is valuable for large applications undergoing migration or
+    teams who want to experiment with App Router while maintaining Pages
+    Router compatibility.
+  files: []
+
+- slug: cloudflare-gpt4-stream
+  icon: 'lucide/cloud'
+  title: Cloudflare Workers GPT-4 Stream
+  description: |
+    A serverless ChatBotKit implementation using Cloudflare Workers for
+    edge-deployed AI conversations with streaming responses.
+  keywords:
+    - cloudflare
+    - workers
+    - serverless
+    - edge
+    - gpt-4
+    - streaming
+  date: 2023-05-20
+  url: https://github.com/chatbotkit/node-sdk/tree/main/examples/cloudflare/gpt4-stream
+  commentary: |
+    This example showcases ChatBotKit deployment on Cloudflare Workers, enabling
+    serverless AI conversations at the edge. Workers run close to users
+    globally, providing low-latency responses without managing servers.
+
+    The architecture uses Cloudflare Workers as the runtime environment,
+    handling requests and streaming ChatBotKit responses. The edge deployment
+    ensures fast response times regardless of user location.
+
+    This pattern is perfect for global applications that need low latency,
+    automatic scaling, or want to minimize infrastructure management.
+  files: []
+
+- slug: sdk-esm-gpt4-chatbot-stream
+  icon: 'lucide/message-circle'
+  title: GPT-4 Chatbot with Streaming
+  description: |
+    A command-line chatbot using GPT-4 with streaming responses, demonstrating
+    the core ChatBotKit SDK conversation API.
+  keywords:
+    - sdk
+    - esm
+    - cli
+    - gpt-4
+    - streaming
+    - conversation
+    - node
+  date: 2023-06-15
+  url: https://github.com/chatbotkit/node-sdk/tree/main/examples/sdk/esm
+  commentary: |
+    This command-line example demonstrates the fundamentals of the ChatBotKit
+    SDK's conversation API. It's a minimal implementation that shows how to
+    build a basic conversational interface with streaming responses.
+
+    The architecture is straightforward: read user input, send to ChatBotKit's
+    conversation completion API, and stream the response back to the terminal.
+    The SDK automatically handles message history and context management.
+
+    This pattern is useful for understanding the core SDK mechanics, building
+    CLI tools, or creating backend services without a web interface.
+  files: []
+
+- slug: sdk-esm-list-conversations
+  icon: 'lucide/clipboard'
+  title: List Conversations
+  description: |
+    A simple script demonstrating how to list and iterate through conversations
+    using the ChatBotKit SDK.
+  keywords:
+    - sdk
+    - esm
+    - cli
+    - conversations
+    - list
+    - api
+    - node
+  date: 2023-06-15
+  url: https://github.com/chatbotkit/node-sdk/tree/main/examples/sdk/esm
+  commentary: |
+    This script shows how to retrieve and iterate through conversations using
+    the ChatBotKit SDK's list API. It's a basic but essential pattern for
+    building admin interfaces or analytics tools.
+
+    The architecture uses the ConversationClient to fetch conversations and
+    displays their IDs and backstories. This demonstrates pagination handling
+    and data access patterns.
+
+    This pattern is fundamental for building dashboards, reporting tools, or
+    any feature that needs to display or analyze conversation data.
+  files: []
+
+- slug: sdk-esm-generate-json
+  icon: 'lucide/dices'
+  title: Generate JSON with Magic API
+  description: |
+    Demonstrates ChatBotKit's Magic API for generating structured JSON output
+    from natural language prompts.
+  keywords:
+    - sdk
+    - esm
+    - magic
+    - json
+    - structured-output
+    - generation
+  date: 2023-06-15
+  url: https://github.com/chatbotkit/node-sdk/tree/main/examples/sdk/esm
+  commentary: |
+    This example showcases ChatBotKit's Magic API, which can generate
+    structured JSON from natural language descriptions. This is incredibly
+    useful for extracting structured data from unstructured text or generating
+    mock data.
+
+    The architecture uses the MagicClient with the @json template to convert
+    natural language prompts into valid JSON objects. The AI understands the
+    desired structure and generates appropriate data.
+
+    This pattern is valuable for data extraction, form filling, API response
+    generation, or any scenario where you need to convert natural language
+    into structured data.
+  files: []
+
+- slug: sdk-esm-create-dataset
+  icon: 'lucide/chart-column'
+  title: Create Dataset
+  description: |
+    Shows how to programmatically create and populate ChatBotKit datasets for
+    RAG and knowledge base applications.
+  keywords:
+    - sdk
+    - esm
+    - datasets
+    - rag
+    - knowledge-base
+    - data-management
+  date: 2023-06-15
+  url: https://github.com/chatbotkit/node-sdk/tree/main/examples/sdk/esm
+  commentary: |
+    This script demonstrates how to create and populate datasets using the
+    ChatBotKit SDK. Datasets are essential for RAG applications, allowing you
+    to store and search domain-specific knowledge.
+
+    The architecture uses the DatasetClient to create datasets and add records.
+    Records can include text, metadata, and embeddings for semantic search.
+
+    This pattern is crucial for building knowledge bases, document search
+    systems, or any application that needs to augment AI responses with
+    specific information.
+  files: []
+
+- slug: sdk-esm-upload-and-download
+  icon: 'lucide/upload'
+  title: Upload and Download Files
+  description: |
+    Demonstrates file upload and download capabilities for managing documents
+    and assets with ChatBotKit.
+  keywords:
+    - sdk
+    - esm
+    - files
+    - upload
+    - download
+    - storage
+  date: 2023-06-15
+  url: https://github.com/chatbotkit/node-sdk/tree/main/examples/sdk/esm
+  commentary: |
+    This example shows how to upload files to ChatBotKit and download them
+    later. This is useful for document processing, image handling, or storing
+    conversation artifacts.
+
+    The architecture uses the FileClient to handle file operations, managing
+    uploads and downloads through the ChatBotKit API. Files can be associated
+    with datasets, conversations, or used independently.
+
+    This pattern is important for applications that need to process documents,
+    handle user-uploaded content, or store conversation-related files.
+  files: []
+
+- slug: sdk-ts-gpt4-chatbot-stream
+  icon: 'lucide/book'
+  title: GPT-4 Chatbot with Streaming - TypeScript
+  description: |
+    TypeScript version of the command-line chatbot with full type safety and
+    enhanced developer experience.
+  keywords:
+    - sdk
+    - typescript
+    - cli
+    - gpt-4
+    - streaming
+    - conversation
+  date: 2023-11-17
+  url: https://github.com/chatbotkit/node-sdk/tree/main/examples/sdk/ts
+  commentary: |
+    This TypeScript variant provides the same functionality as the JavaScript
+    chatbot example with added type safety. All API calls, responses, and data
+    structures are fully typed.
+
+    The typed architecture ensures compile-time validation of API interactions,
+    reducing runtime errors and improving IDE support with autocomplete and
+    inline documentation.
+
+    This pattern is recommended for production applications where type safety
+    and code quality are priorities.
+  files: []
+
+- slug: sdk-cjs-examples
+  icon: 'lucide/package'
+  title: SDK CommonJS Examples
+  description: |
+    Collection of CommonJS examples for environments that don't support ES
+    modules, maintaining compatibility with older Node.js setups.
+  keywords:
+    - sdk
+    - commonjs
+    - cjs
+    - node
+    - compatibility
+    - legacy
+  date: 2023-06-15
+  url: https://github.com/chatbotkit/node-sdk/tree/main/examples/sdk/cjs
+  commentary: |
+    These examples demonstrate ChatBotKit SDK usage with CommonJS modules for
+    compatibility with older Node.js environments or projects that haven't
+    migrated to ES modules.
+
+    The architecture uses require() instead of import, making these examples
+    work in environments where ES modules aren't available or preferred.
+
+    This pattern is important for maintaining compatibility with legacy systems
+    or projects that need to support older Node.js versions.
+  files: []

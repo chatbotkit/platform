@@ -1,0 +1,8 @@
+- question: How do I interact with the chatbot?
+  answer: To interact with the chatbot, enter your messages or questions in the chat window and send. The chatbot will respond with a message.
+- question: Can I customize the chatbot?
+  answer: Yes, you can customize the chatbot by providing it with a custom dataset or by modifying its behaviors through the backstory.
+- question: How can I see the chat history for a specific user?
+  answer: The [Conversations](https://chatbotkit.com/docs/conversations) page in your ChatBotKit dashboard allows you to see the conversation history with individual users.
+- question: How can I prevent model hallucinations?
+  answer: Have written extensibly on this subject please review our latest tutorial on "[**How to Prevent AI Model Hallucinations**](https://chatbotkit.com/tutorials/how-to-prevent-ai-model-hallucinations)**".**

@@ -1,0 +1,225 @@
+# @see https://www.barcodelookup.com/api-documentation
+# @note this is a barebone OpenAPI spec for Barcode Lookup API
+# @todo replace with official spec when available
+openapi: 3.0.3
+info:
+  title: Barcode Lookup API
+  version: '3.0'
+  description: 'Barcode Lookup API for retrieving product information by barcode or search parameters'
+servers:
+  - url: https://api.barcodelookup.com
+paths:
+  /v3/products:
+    get:
+      operationId: getProducts
+      summary: Get products by barcode or search parameters
+      parameters:
+        - name: key
+          in: query
+          required: true
+          schema:
+            type: string
+          description: API key for authentication
+        - name: barcode
+          in: query
+          schema:
+            type: string
+          description: Barcode number to search (7-14 digits, can use * for partial)
+        - name: search
+          in: query
+          schema:
+            type: string
+          description: General search query across all fields
+        - name: title
+          in: query
+          schema:
+            type: string
+          description: Product title or name
+        - name: brand
+          in: query
+          schema:
+            type: string
+          description: Brand name (use quotes for exact match)
+        - name: category
+          in: query
+          schema:
+            type: string
+          description: Product category
+        - name: manufacturer
+          in: query
+          schema:
+            type: string
+          description: Manufacturer name (use quotes for exact match)
+        - name: mpn
+          in: query
+          schema:
+            type: string
+          description: Manufacturer part number
+        - name: asin
+          in: query
+          schema:
+            type: string
+          description: Amazon standard identification number
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductsResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: Too Many Requests
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /v3/rate-limits:
+    get:
+      operationId: getRateLimits
+      summary: Get current API rate limit status
+      parameters:
+        - name: key
+          in: query
+          required: true
+          schema:
+            type: string
+          description: API key for authentication
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RateLimitsResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+components:
+  schemas:
+    Product:
+      type: object
+      properties:
+        barcode_number:
+          type: string
+        barcode_type:
+          type: string
+        barcode_formats:
+          type: string
+        mpn:
+          type: string
+        model:
+          type: string
+        asin:
+          type: string
+        product_name:
+          type: string
+        title:
+          type: string
+        category:
+          type: string
+        manufacturer:
+          type: string
+        brand:
+          type: string
+        label:
+          type: string
+        author:
+          type: string
+        publisher:
+          type: string
+        artist:
+          type: string
+        actor:
+          type: string
+        director:
+          type: string
+        studio:
+          type: string
+        genre:
+          type: string
+        audience_rating:
+          type: string
+        ingredients:
+          type: string
+        nutrition_facts:
+          type: string
+        color:
+          type: string
+        format:
+          type: string
+        package_quantity:
+          type: string
+        size:
+          type: string
+        length:
+          type: string
+        width:
+          type: string
+        height:
+          type: string
+        weight:
+          type: string
+        release_date:
+          type: string
+        description:
+          type: string
+        features:
+          type: array
+          items:
+            type: string
+        images:
+          type: array
+          items:
+            type: string
+        stores:
+          type: array
+          items:
+            type: object
+        reviews:
+          type: array
+          items:
+            type: object
+    ProductsResponse:
+      type: object
+      properties:
+        products:
+          type: array
+          items:
+            $ref: '#/components/schemas/Product'
+    RateLimitsResponse:
+      type: object
+      properties:
+        allowed:
+          type: integer
+          description: Number of API calls allowed per month
+        used:
+          type: integer
+          description: Number of API calls used this month
+        remaining:
+          type: integer
+          description: Number of API calls remaining this month
+        reset_date:
+          type: string
+          description: Date when the rate limit resets
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string

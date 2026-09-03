@@ -1,0 +1,9 @@
+{
+  "start": "/apps/task",
+  "name": "Task",
+  "description": "Automate a wide range of tasks using conversational AI that seamlessly integrates with your workflow.",
+  "icon": "@lucide/badge-check",
+  "order": 10,
+  "category": "main",
+  "config": {}
+}

@@ -1,0 +1,9 @@
+{
+  "start": "/apps/95ca8b4c",
+  "name": "Note Stream",
+  "description": "Capture live notes from in-person meetings, keep a running transcript, and ask your agents questions about what is being said as it happens.",
+  "icon": "@lucide/audio-lines",
+  "order": 1000,
+  "category": "lab",
+  "config": {}
+}

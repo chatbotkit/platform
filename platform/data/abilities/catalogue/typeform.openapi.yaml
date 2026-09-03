@@ -1,0 +1,213 @@
+# @see https://developer.typeform.com/reference/
+# @note this is a barebone OpenAPI spec for Typeform API
+# @todo replace with official spec when available
+openapi: 3.0.3
+info:
+  title: Typeform API
+  version: '1.0'
+servers:
+  - url: https://api.typeform.com
+paths:
+  /forms:
+    get:
+      operationId: listForms
+      summary: List all forms
+      parameters:
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: page_size
+          in: query
+          schema:
+            type: integer
+            default: 10
+        - name: workspace_id
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FormsList'
+              example:
+                total_items: 2
+                page_count: 1
+                items:
+                  - id: form123
+                    title: Customer Feedback Form
+                    created_at: '2024-01-01T00:00:00Z'
+                    last_updated_at: '2024-01-15T00:00:00Z'
+    post:
+      operationId: createForm
+      summary: Create a new form
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                workspace:
+                  type: string
+              required:
+                - title
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Form'
+  /forms/{formId}:
+    get:
+      operationId: getForm
+      summary: Get a specific form
+      parameters:
+        - name: formId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Form'
+    delete:
+      operationId: deleteForm
+      summary: Delete a form
+      parameters:
+        - name: formId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: No Content
+  /forms/{formId}/responses:
+    get:
+      operationId: listResponses
+      summary: Get responses for a form
+      parameters:
+        - name: formId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: page_size
+          in: query
+          schema:
+            type: integer
+            default: 25
+        - name: since
+          in: query
+          schema:
+            type: string
+        - name: until
+          in: query
+          schema:
+            type: string
+        - name: completed
+          in: query
+          schema:
+            type: boolean
+        - name: query
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponsesList'
+              example:
+                total_items: 10
+                page_count: 1
+                items:
+                  - token: resp123
+                    submitted_at: '2024-01-15T10:30:00Z'
+                    answers:
+                      - field:
+                          id: field1
+                          type: short_text
+                        text: Sample answer
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+  schemas:
+    Form:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        created_at:
+          type: string
+        last_updated_at:
+          type: string
+    FormsList:
+      type: object
+      properties:
+        total_items:
+          type: integer
+        page_count:
+          type: integer
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Form'
+    ResponseAnswer:
+      type: object
+      properties:
+        field:
+          type: object
+          properties:
+            id:
+              type: string
+            type:
+              type: string
+        text:
+          type: string
+    Response:
+      type: object
+      properties:
+        token:
+          type: string
+        submitted_at:
+          type: string
+        answers:
+          type: array
+          items:
+            $ref: '#/components/schemas/ResponseAnswer'
+    ResponsesList:
+      type: object
+      properties:
+        total_items:
+          type: integer
+        page_count:
+          type: integer
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Response'
+security:
+  - bearerAuth: []

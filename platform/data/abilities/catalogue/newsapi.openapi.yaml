@@ -1,0 +1,180 @@
+# @see https://newsapi.org/docs
+# @todo find externally maintained OpenAPI spec
+openapi: 3.0.3
+info:
+  title: NewsAPI
+  version: '2.0'
+  description: Search through millions of articles from over 150,000 worldwide sources
+servers:
+  - url: https://newsapi.org/v2
+paths:
+  /everything:
+    get:
+      operationId: getEverything
+      summary: Search through millions of articles
+      parameters:
+        - name: q
+          in: query
+          required: true
+          description: Keywords or phrases to search for
+          schema:
+            type: string
+        - name: apiKey
+          in: query
+          required: true
+          description: Your API key
+          schema:
+            type: string
+        - name: from
+          in: query
+          description: A date for the oldest article allowed (ISO 8601 format)
+          schema:
+            type: string
+            format: date
+        - name: to
+          in: query
+          description: A date for the newest article allowed (ISO 8601 format)
+          schema:
+            type: string
+            format: date
+        - name: sortBy
+          in: query
+          description: The order to sort the articles in
+          schema:
+            type: string
+            enum: [relevancy, popularity, publishedAt]
+        - name: language
+          in: query
+          description: The 2-letter ISO-639-1 code of the language
+          schema:
+            type: string
+        - name: pageSize
+          in: query
+          description: The number of results to return per page
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+        - name: page
+          in: query
+          description: Page number to return
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EverythingResponse'
+  /top-headlines:
+    get:
+      operationId: getTopHeadlines
+      summary: Get breaking news headlines
+      parameters:
+        - name: apiKey
+          in: query
+          required: true
+          description: Your API key
+          schema:
+            type: string
+        - name: country
+          in: query
+          description: The 2-letter ISO 3166-1 code of the country
+          schema:
+            type: string
+        - name: category
+          in: query
+          description: The category you want to get headlines for
+          schema:
+            type: string
+            enum:
+              [
+                business,
+                entertainment,
+                general,
+                health,
+                science,
+                sports,
+                technology,
+              ]
+        - name: q
+          in: query
+          description: Keywords or phrases to search for
+          schema:
+            type: string
+        - name: pageSize
+          in: query
+          description: The number of results to return per page
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+        - name: page
+          in: query
+          description: Page number to return
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TopHeadlinesResponse'
+components:
+  schemas:
+    Article:
+      type: object
+      properties:
+        source:
+          type: object
+          properties:
+            id:
+              type: string
+              nullable: true
+            name:
+              type: string
+        author:
+          type: string
+          nullable: true
+        title:
+          type: string
+        description:
+          type: string
+          nullable: true
+        url:
+          type: string
+        urlToImage:
+          type: string
+          nullable: true
+        publishedAt:
+          type: string
+          format: date-time
+        content:
+          type: string
+          nullable: true
+    EverythingResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: ok
+        totalResults:
+          type: integer
+        articles:
+          type: array
+          items:
+            $ref: '#/components/schemas/Article'
+    TopHeadlinesResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: ok
+        totalResults:
+          type: integer
+        articles:
+          type: array
+          items:
+            $ref: '#/components/schemas/Article'

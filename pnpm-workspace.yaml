@@ -1,0 +1,431 @@
+# Installation policy
+engineStrict: true
+enablePrePostScripts: false
+minimumReleaseAge: 43200
+strictDepBuilds: true
+
+# Supply-chain exceptions
+# @note ESLint 10 cannot lint TypeScript until typescript-eslint implements
+# ScopeManager.addGlobals. Keep the last ESLint 9 release explicit meanwhile.
+allowedDeprecatedVersions:
+  eslint: 9.39.5
+
+# These exact versions predate this policy in the committed lockfile. New
+# versions remain subject to the 30-day minimum release age.
+minimumReleaseAgeExclude:
+  - '@aws-sdk/checksums@3.1000.29'
+  - '@aws-sdk/client-s3@3.1116.0'
+  - '@aws-sdk/client-sts@3.1116.0'
+  - '@aws-sdk/core@3.977.9'
+  - '@aws-sdk/credential-provider-env@3.972.70'
+  - '@aws-sdk/credential-provider-http@3.972.72'
+  - '@aws-sdk/credential-provider-ini@3.973.15'
+  - '@aws-sdk/credential-provider-login@3.972.77'
+  - '@aws-sdk/credential-provider-node@3.972.81'
+  - '@aws-sdk/credential-provider-process@3.972.70'
+  - '@aws-sdk/credential-provider-sso@3.973.14'
+  - '@aws-sdk/credential-provider-web-identity@3.972.76'
+  - '@aws-sdk/middleware-sdk-s3@3.972.75'
+  - '@aws-sdk/nested-clients@3.997.44'
+  - '@aws-sdk/s3-request-presigner@3.1116.0'
+  - '@aws-sdk/signature-v4-multi-region@3.996.46'
+  - '@aws-sdk/token-providers@3.1116.0'
+  - '@aws-sdk/types@3.974.5'
+  - '@aws-sdk/xml-builder@3.972.40'
+  - '@babel/generator@7.29.8'
+  - '@babel/parser@7.29.8'
+  - '@babel/plugin-transform-modules-systemjs@7.29.8'
+  - '@babel/plugin-transform-regenerator@7.29.8'
+  - '@babel/plugin-transform-spread@7.29.8'
+  - '@babel/traverse@7.29.8'
+  - '@babel/types@7.29.8'
+  - '@chatbotkit/react@1.39.0'
+  - '@chatbotkit/sdk@1.39.0'
+  - '@esbuild/aix-ppc64@0.28.2'
+  - '@esbuild/android-arm@0.28.2'
+  - '@esbuild/android-arm64@0.28.2'
+  - '@esbuild/android-x64@0.28.2'
+  - '@esbuild/darwin-arm64@0.28.2'
+  - '@esbuild/darwin-x64@0.28.2'
+  - '@esbuild/freebsd-arm64@0.28.2'
+  - '@esbuild/freebsd-x64@0.28.2'
+  - '@esbuild/linux-arm@0.28.2'
+  - '@esbuild/linux-arm64@0.28.2'
+  - '@esbuild/linux-ia32@0.28.2'
+  - '@esbuild/linux-loong64@0.28.2'
+  - '@esbuild/linux-mips64el@0.28.2'
+  - '@esbuild/linux-ppc64@0.28.2'
+  - '@esbuild/linux-riscv64@0.28.2'
+  - '@esbuild/linux-s390x@0.28.2'
+  - '@esbuild/linux-x64@0.28.2'
+  - '@esbuild/netbsd-arm64@0.28.2'
+  - '@esbuild/netbsd-x64@0.28.2'
+  - '@esbuild/openbsd-arm64@0.28.2'
+  - '@esbuild/openbsd-x64@0.28.2'
+  - '@esbuild/openharmony-arm64@0.28.2'
+  - '@esbuild/sunos-x64@0.28.2'
+  - '@esbuild/win32-arm64@0.28.2'
+  - '@esbuild/win32-ia32@0.28.2'
+  - '@esbuild/win32-x64@0.28.2'
+  - '@fastify/busboy@3.2.1'
+  - '@graphql-tools/apollo-engine-loader@8.0.35'
+  - '@graphql-tools/code-file-loader@8.1.37'
+  - '@graphql-tools/executor-legacy-ws@1.1.33'
+  - '@graphql-tools/git-loader@8.0.41'
+  - '@graphql-tools/graphql-file-loader@8.1.19'
+  - '@graphql-tools/graphql-tag-pluck@8.3.36'
+  - '@graphql-tools/import@7.1.19'
+  - '@graphql-tools/json-file-loader@8.0.33'
+  - '@graphql-tools/load@8.1.16'
+  - '@graphql-tools/merge@9.2.3'
+  - '@graphql-tools/relay-operation-optimizer@7.1.9'
+  - '@graphql-tools/schema@10.1.0'
+  - '@graphql-tools/url-loader@9.1.7'
+  - '@graphql-tools/utils@12.0.0'
+  - '@img/sharp-darwin-arm64@0.35.4'
+  - '@img/sharp-darwin-x64@0.35.4'
+  - '@img/sharp-freebsd-wasm32@0.35.4'
+  - '@img/sharp-libvips-darwin-arm64@1.3.3'
+  - '@img/sharp-libvips-darwin-x64@1.3.3'
+  - '@img/sharp-libvips-linux-arm@1.3.3'
+  - '@img/sharp-libvips-linux-arm64@1.3.3'
+  - '@img/sharp-libvips-linux-ppc64@1.3.3'
+  - '@img/sharp-libvips-linux-riscv64@1.3.3'
+  - '@img/sharp-libvips-linux-s390x@1.3.3'
+  - '@img/sharp-libvips-linux-x64@1.3.3'
+  - '@img/sharp-libvips-linuxmusl-arm64@1.3.3'
+  - '@img/sharp-libvips-linuxmusl-x64@1.3.3'
+  - '@img/sharp-linux-arm@0.35.4'
+  - '@img/sharp-linux-arm64@0.35.4'
+  - '@img/sharp-linux-ppc64@0.35.4'
+  - '@img/sharp-linux-riscv64@0.35.4'
+  - '@img/sharp-linux-s390x@0.35.4'
+  - '@img/sharp-linux-x64@0.35.4'
+  - '@img/sharp-linuxmusl-arm64@0.35.4'
+  - '@img/sharp-linuxmusl-x64@0.35.4'
+  - '@img/sharp-wasm32@0.35.4'
+  - '@img/sharp-webcontainers-wasm32@0.35.4'
+  - '@img/sharp-win32-arm64@0.35.4'
+  - '@img/sharp-win32-ia32@0.35.4'
+  - '@img/sharp-win32-x64@0.35.4'
+  - '@internationalized/date@3.12.3'
+  - '@internationalized/string@3.2.10'
+  - '@keyvhq/core@2.2.7'
+  - '@keyvhq/memoize@2.2.7'
+  - '@metascraper/helpers@5.55.2'
+  - '@napi-rs/wasm-runtime@1.2.3'
+  - '@next/bundle-analyzer@16.3.3'
+  - '@next/env@16.3.3'
+  - '@next/eslint-plugin-next@16.3.3'
+  - '@next/swc-darwin-arm64@16.3.3'
+  - '@next/swc-darwin-x64@16.3.3'
+  - '@next/swc-linux-arm64-gnu@16.3.3'
+  - '@next/swc-linux-arm64-musl@16.3.3'
+  - '@next/swc-linux-x64-gnu@16.3.3'
+  - '@next/swc-linux-x64-musl@16.3.3'
+  - '@next/swc-win32-arm64-msvc@16.3.3'
+  - '@next/swc-win32-x64-msvc@16.3.3'
+  - '@next/third-parties@16.3.3'
+  - '@react-types/shared@3.36.1'
+  - '@rollup/rollup-android-arm-eabi@4.62.4'
+  - '@rollup/rollup-android-arm64@4.62.4'
+  - '@rollup/rollup-darwin-arm64@4.62.4'
+  - '@rollup/rollup-darwin-x64@4.62.4'
+  - '@rollup/rollup-freebsd-arm64@4.62.4'
+  - '@rollup/rollup-freebsd-x64@4.62.4'
+  - '@rollup/rollup-linux-arm-gnueabihf@4.62.4'
+  - '@rollup/rollup-linux-arm-musleabihf@4.62.4'
+  - '@rollup/rollup-linux-arm64-gnu@4.62.4'
+  - '@rollup/rollup-linux-arm64-musl@4.62.4'
+  - '@rollup/rollup-linux-loong64-gnu@4.62.4'
+  - '@rollup/rollup-linux-loong64-musl@4.62.4'
+  - '@rollup/rollup-linux-ppc64-gnu@4.62.4'
+  - '@rollup/rollup-linux-ppc64-musl@4.62.4'
+  - '@rollup/rollup-linux-riscv64-gnu@4.62.4'
+  - '@rollup/rollup-linux-riscv64-musl@4.62.4'
+  - '@rollup/rollup-linux-s390x-gnu@4.62.4'
+  - '@rollup/rollup-linux-x64-gnu@4.62.4'
+  - '@rollup/rollup-linux-x64-musl@4.62.4'
+  - '@rollup/rollup-openbsd-x64@4.62.4'
+  - '@rollup/rollup-openharmony-arm64@4.62.4'
+  - '@rollup/rollup-win32-arm64-msvc@4.62.4'
+  - '@rollup/rollup-win32-ia32-msvc@4.62.4'
+  - '@rollup/rollup-win32-x64-gnu@4.62.4'
+  - '@rollup/rollup-win32-x64-msvc@4.62.4'
+  - '@shikijs/core@4.4.3'
+  - '@shikijs/engine-javascript@4.4.3'
+  - '@shikijs/engine-oniguruma@4.4.3'
+  - '@shikijs/langs@4.4.3'
+  - '@shikijs/primitive@4.4.3'
+  - '@shikijs/themes@4.4.3'
+  - '@shikijs/types@4.4.3'
+  - '@smithy/core@3.33.3'
+  - '@smithy/credential-provider-imds@4.5.2'
+  - '@smithy/fetch-http-handler@5.7.2'
+  - '@smithy/node-http-handler@4.11.3'
+  - '@smithy/signature-v4@5.7.3'
+  - '@smithy/types@4.17.2'
+  - '@swagger-api/apidom-ast@1.12.0'
+  - '@swagger-api/apidom-core@1.12.0'
+  - '@swagger-api/apidom-error@1.12.0'
+  - '@swagger-api/apidom-json-pointer@1.12.0'
+  - '@swagger-api/apidom-ns-a2a-1@1.12.0'
+  - '@swagger-api/apidom-ns-api-design-systems@1.12.0'
+  - '@swagger-api/apidom-ns-arazzo-1@1.12.0'
+  - '@swagger-api/apidom-ns-asyncapi-2@1.12.0'
+  - '@swagger-api/apidom-ns-asyncapi-3@1.12.0'
+  - '@swagger-api/apidom-ns-json-schema-2019-09@1.12.0'
+  - '@swagger-api/apidom-ns-json-schema-2020-12@1.12.0'
+  - '@swagger-api/apidom-ns-json-schema-draft-4@1.12.0'
+  - '@swagger-api/apidom-ns-json-schema-draft-6@1.12.0'
+  - '@swagger-api/apidom-ns-json-schema-draft-7@1.12.0'
+  - '@swagger-api/apidom-ns-openapi-2@1.12.0'
+  - '@swagger-api/apidom-ns-openapi-3-0@1.12.0'
+  - '@swagger-api/apidom-ns-openapi-3-1@1.12.0'
+  - '@swagger-api/apidom-ns-openapi-3-2@1.12.0'
+  - '@swagger-api/apidom-parser-adapter-a2a-json-1@1.12.0'
+  - '@swagger-api/apidom-parser-adapter-a2a-yaml-1@1.12.0'
+  - '@swagger-api/apidom-parser-adapter-api-design-systems-json@1.12.0'
+  - '@swagger-api/apidom-parser-adapter-api-design-systems-yaml@1.12.0'
+  - '@swagger-api/apidom-parser-adapter-arazzo-json-1@1.12.0'
+  - '@swagger-api/apidom-parser-adapter-arazzo-yaml-1@1.12.0'
+  - '@swagger-api/apidom-parser-adapter-asyncapi-json-2@1.12.0'
+  - '@swagger-api/apidom-parser-adapter-asyncapi-json-3@1.12.0'
+  - '@swagger-api/apidom-parser-adapter-asyncapi-yaml-2@1.12.0'
+  - '@swagger-api/apidom-parser-adapter-asyncapi-yaml-3@1.12.0'
+  - '@swagger-api/apidom-parser-adapter-json@1.12.0'
+  - '@swagger-api/apidom-parser-adapter-openapi-json-2@1.12.0'
+  - '@swagger-api/apidom-parser-adapter-openapi-json-3-0@1.12.0'
+  - '@swagger-api/apidom-parser-adapter-openapi-json-3-1@1.12.0'
+  - '@swagger-api/apidom-parser-adapter-openapi-json-3-2@1.12.0'
+  - '@swagger-api/apidom-parser-adapter-openapi-yaml-2@1.12.0'
+  - '@swagger-api/apidom-parser-adapter-openapi-yaml-3-0@1.12.0'
+  - '@swagger-api/apidom-parser-adapter-openapi-yaml-3-1@1.12.0'
+  - '@swagger-api/apidom-parser-adapter-openapi-yaml-3-2@1.12.0'
+  - '@swagger-api/apidom-parser-adapter-yaml-1-2@1.12.0'
+  - '@swagger-api/apidom-reference@1.12.0'
+  - '@tsconfig/node10@1.0.13'
+  - '@turbo/darwin-64@2.10.12'
+  - '@turbo/darwin-arm64@2.10.12'
+  - '@turbo/linux-64@2.10.12'
+  - '@turbo/linux-arm64@2.10.12'
+  - '@turbo/windows-64@2.10.12'
+  - '@turbo/windows-arm64@2.10.12'
+  - '@types/d3-geo@3.1.1'
+  - '@types/express-serve-static-core@5.1.3'
+  - '@types/react-dom@19.2.5'
+  - '@types/react@19.2.18'
+  - '@types/semver@7.8.0'
+  - '@typescript-eslint/eslint-plugin@8.67.0'
+  - '@typescript-eslint/parser@8.67.0'
+  - '@typescript-eslint/project-service@8.67.0'
+  - '@typescript-eslint/scope-manager@8.67.0'
+  - '@typescript-eslint/tsconfig-utils@8.67.0'
+  - '@typescript-eslint/type-utils@8.67.0'
+  - '@typescript-eslint/types@8.67.0'
+  - '@typescript-eslint/typescript-estree@8.67.0'
+  - '@typescript-eslint/utils@8.67.0'
+  - '@typescript-eslint/visitor-keys@8.67.0'
+  - '@xmldom/xmldom@0.9.12'
+  - '@xyflow/react@12.11.3'
+  - '@xyflow/system@0.0.80'
+  - '@zone-eu/mailsplit@5.4.15'
+  - 'ansi-regex@6.3.0'
+  - 'axe-core@4.13.0'
+  - 'axios@1.19.0'
+  - 'baseline-browser-mapping@2.11.14'
+  - 'brace-expansion@1.1.18 || 2.1.4 || 5.0.9'
+  - 'browserslist@4.28.8'
+  - 'caniuse-lite@1.0.30001809'
+  - 'content-type@2.1.0'
+  - 'core-js-compat@3.50.0'
+  - 'core-js-pure@3.50.0'
+  - 'core-js@3.50.0'
+  - 'csv-stringify@6.8.3'
+  - 'cytoscape@3.34.1'
+  - 'debug-logfmt@1.4.15'
+  - 'deepmerge-ts@8.0.2'
+  - 'dompurify@3.4.13'
+  - 'electron-to-chromium@1.5.407'
+  - 'enhanced-resolve@5.24.5'
+  - 'esbuild@0.28.2'
+  - 'eventsource-parser@3.1.1'
+  - 'eslint-config-next@16.3.3'
+  - 'fast-uri@3.1.5'
+  - 'fast-xml-builder@1.3.1'
+  - 'file-type@22.0.2'
+  - 'flatted@3.4.4'
+  - 'get-tsconfig@4.14.2'
+  - 'graphql-scalars@1.26.0'
+  - 'graphql-ws@6.2.1'
+  - 'hono@4.13.2'
+  - 'isomorphic-git@1.41.4'
+  - 'js-yaml@3.15.1 || 4.3.1'
+  - 'just-bash@3.3.0'
+  - 'libmime@5.4.2'
+  - 'libphonenumber-js@1.13.11'
+  - 'mailparser@3.9.15'
+  - 'mermaid@11.16.1'
+  - 'metascraper-amazon@5.55.2'
+  - 'metascraper-author@5.55.2'
+  - 'metascraper-date@5.55.2'
+  - 'metascraper-description@5.55.2'
+  - 'metascraper-image@5.55.2'
+  - 'metascraper-instagram@5.55.2'
+  - 'metascraper-lang@5.55.2'
+  - 'metascraper-logo-favicon@5.55.2'
+  - 'metascraper-logo@5.55.2'
+  - 'metascraper-publisher@5.55.2'
+  - 'metascraper-title@5.55.2'
+  - 'metascraper-url@5.55.2'
+  - 'metascraper-video@5.55.2'
+  - 'metascraper-youtube@5.55.2'
+  - 'metascraper@5.55.2'
+  - 'ml-distance@4.1.0'
+  - 'nanoid@3.3.18'
+  - 'next@16.3.3'
+  - 'node-addon-api@8.9.2'
+  - 'node-releases@2.0.53'
+  - 'nodemailer@9.0.5'
+  - 'officeparser@7.8.0'
+  - 'ohash@2.0.12'
+  - 'papaparse@5.6.0'
+  - 'parse-domain@8.4.0'
+  - 'postcss-selector-parser@7.1.5'
+  - 'postcss@8.5.26'
+  - 'preact@10.29.8'
+  - 'prosemirror-commands@1.7.2'
+  - 'reachable-url@2.1.2'
+  - 'react-aria@3.51.0'
+  - 'react-stately@3.49.0'
+  - 'readdirp@5.1.1'
+  - 'recast@0.23.21'
+  - 'rollup@4.62.4'
+  - 'sharp@0.35.4'
+  - 'shiki@4.4.3'
+  - 'smol-toml@1.8.0'
+  - 'sql.js@1.14.2'
+  - 'strnum@2.4.2'
+  - 'swagger-client@3.38.0'
+  - 'swagger-ui-react@5.32.13'
+  - 'terser@5.50.0'
+  - 'tinyexec@1.3.0'
+  - 'tldts-core@7.4.10'
+  - 'tldts@7.4.10'
+  - 'tsx@4.23.12'
+  - 'turbo@2.10.12'
+  - 'unpdf@1.8.1'
+  - 'update-browserslist-db@1.3.1'
+  - 'wasm-feature-detect@1.9.0'
+  - 'whoops@5.1.4'
+  - 'ws@8.21.3'
+minimumReleaseAgeExcludePrune: true
+
+# Audit exceptions
+# @todo upgrade tiptap to >=3.30.4 (v3 major, only app/apps/chat/components/
+# ChatArea.jsx + Selector.jsx) once 3.31.0 clears the release age (Oct 1 2026),
+# then drop the tiptap entry. qs >=6.16.0 clears on Sep 28 2026; drop the qs
+# entries after `pnpm update -r qs`. None is reachable: qs only sits under
+# codegen/outbound-encoding paths, tiptap attrs are never attacker-controlled.
+# @todo fast-uri >=3.1.6 clears the release age on Sep 22 2026; run
+# `pnpm update -r fast-uri` then drop the four fast-uri entries. Not reachable:
+# fast-uri only backs ajv `format: uri` checks under prisma-zod-generator
+# (codegen) and @modelcontextprotocol/sdk; nothing resolves or fetches with it.
+auditConfig:
+  ignoreGhsas:
+    - GHSA-x5fp-wj9c-mxmx # qs array-limit bypass
+    - GHSA-4mjr-xmp4-gh2g # qs isBuffer DoS
+    - GHSA-cp6q-959q-f8rh # @tiptap/core mergeAttributes __proto__
+    - GHSA-5jgf-p345-68v8 # fast-uri IDN host confusion
+    - GHSA-f65p-4m7j-42xc # fast-uri IPv6 normalization SSRF
+    - GHSA-fph4-wmhf-6fwf # fast-uri hostname percent-decoding SSRF
+    - GHSA-jqff-g426-hqxp # fast-uri percent-encoded scheme host confusion
+
+# Dependency installation
+autoInstallPeers: false
+publicHoistPattern:
+  - '*eslint-plugin-*'
+  - '@typescript-eslint/eslint-plugin'
+  - better-sqlite3
+
+# Workspace packages
+packages:
+  - 'packages/*'
+  - 'platform'
+
+# Dependency overrides
+overrides:
+  react: 19.2.8
+  react-dom: 19.2.8
+  # Keep shared type-system dependencies on the versions validated together.
+  'zod@>=3.0.0 <4.0.0': 3.25.67
+  '@modelcontextprotocol/sdk': 1.26.0
+  '@hono/node-server': 1.19.15
+  effect: 3.20.0
+  hono: 4.13.2
+  lodash: 4.18.1
+  valibot: 1.4.2
+  '@pothos/core': 4.8.1
+  '@pothos/plugin-prisma': 4.10.0
+  '@pothos/plugin-relay': 4.6.2
+  '@pothos/plugin-simple-objects': 4.1.3
+  '@prisma/adapter-better-sqlite3': 7.3.0
+  '@prisma/client': 7.3.0
+  # GHSA-3f6p-5ww8-9rcr: prisma pins mysql2 3.15.3; patched >=3.22.0
+  mysql2: 3.23.2
+  graphql: 16.11.0
+  graphql-yoga: 5.15.1
+  openai: 6.21.0
+  prisma: 7.3.0
+  prisma-json-types-generator: 3.4.2
+  prisma-zod-generator: 2.1.2
+  '@metascraper/helpers>jsdom': 29.1.1
+  '@chatbotkit/sdk': 1.39.0
+  '@chatbotkit/react': 1.39.0
+  '@chatbotkit/next': 1.30.0
+  '@chatbotkit/fetch': 1.30.0
+  '@chatbotkit/widget': 1.30.0
+  react-icons: 5.5.0
+  # @note colorthief is only used through its browser build; its node-side
+  # sharp dependency is dead weight that drags libvips advisories in
+  'colorthief>sharp': '-'
+  'ndarray-pixels>sharp': '-'
+  'colorthief>file-type': '-'
+  # @note swagger-jsdoc pins deprecated glob 11 although its glob usage remains
+  # compatible with the maintained release
+  'swagger-jsdoc>glob': ^13.0.6
+  # @note Prisma's config package pins a deepmerge-ts with a stack-exhaustion
+  # advisory; the API it uses is unchanged in 8
+  deepmerge-ts: '>=8.0.0'
+
+# Dependency patches
+patchedDependencies:
+  next-auth@4.24.15: patches/next-auth@4.24.15.patch
+  react-markdown@8.0.7: patches/react-markdown@8.0.7.patch
+
+# Dependency build scripts
+# Unlisted scripts are denied but considered unreviewed. With strictDepBuilds,
+# false records a reviewed denial; only true entries may execute.
+allowBuilds:
+  '@mongodb-js/zstd': false
+  '@parcel/watcher': false
+  '@prisma/client': true
+  '@prisma/engines': true
+  '@scarf/scarf': false
+  '@sentry/cli': false
+  '@sentry/node-cpu-profiler': false
+  '@tree-sitter-grammars/tree-sitter-yaml': false
+  better-sqlite3: true
+  core-js: false
+  core-js-pure: false
+  esbuild: false
+  iframe-resizer: false
+  msw: false
+  node-liblzma: false
+  prisma: true
+  prisma-zod-generator: false
+  sharp: false
+  tesseract.js: false
+  tree-sitter: false
+  tree-sitter-json: false
+  unrs-resolver: false

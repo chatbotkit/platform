@@ -1,0 +1,109 @@
+# @see https://docs.coinapi.io/market-data/rest-api
+# @note this is a barebone OpenAPI spec for CoinAPI
+# @todo replace with official spec when available
+openapi: 3.0.3
+info:
+  title: CoinAPI Market Data API
+  version: '1.0'
+  description: REST API for cryptocurrency market data
+servers:
+  - url: https://rest.coinapi.io
+paths:
+  /v1/assets/{asset_id}:
+    get:
+      operationId: getAsset
+      summary: Get specific asset information
+      description: Retrieve detailed information about a specific cryptocurrency asset
+      parameters:
+        - name: asset_id
+          in: path
+          required: true
+          description: Asset identifier (e.g., BTC, ETH)
+          schema:
+            type: string
+        - name: apikey
+          in: query
+          required: true
+          description: API key for authentication
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Asset'
+        '401':
+          description: Unauthorized - invalid or missing API key
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+components:
+  schemas:
+    Asset:
+      type: object
+      properties:
+        asset_id:
+          type: string
+          description: Asset identifier
+        name:
+          type: string
+          description: Asset name
+        type_is_crypto:
+          type: integer
+          description: 1 if cryptocurrency, 0 otherwise
+        data_start:
+          type: string
+          format: date-time
+          description: Start date of available data
+        data_end:
+          type: string
+          format: date-time
+          description: End date of available data
+        data_quote_start:
+          type: string
+          format: date-time
+          description: Start date of quote data
+        data_quote_end:
+          type: string
+          format: date-time
+          description: End date of quote data
+        data_orderbook_start:
+          type: string
+          format: date-time
+          description: Start date of order book data
+        data_orderbook_end:
+          type: string
+          format: date-time
+          description: End date of order book data
+        data_trade_start:
+          type: string
+          format: date-time
+          description: Start date of trade data
+        data_trade_end:
+          type: string
+          format: date-time
+          description: End date of trade data
+        data_symbols_count:
+          type: integer
+          description: Number of symbols
+        volume_1hrs_usd:
+          type: number
+          description: Volume in USD over last 1 hour
+        volume_1day_usd:
+          type: number
+          description: Volume in USD over last 1 day
+        volume_1mth_usd:
+          type: number
+          description: Volume in USD over last 1 month
+        price_usd:
+          type: number
+          description: Current price in USD
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Error message

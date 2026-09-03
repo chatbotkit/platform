@@ -1,0 +1,440 @@
+# @see https://openweathermap.org/api
+# @note this is a barebone OpenAPI spec for OpenWeatherMap API
+# @todo replace with official spec when available
+openapi: 3.0.3
+info:
+  title: OpenWeatherMap API
+  version: '2.5'
+  description: OpenWeatherMap API for weather data, forecasts, and geocoding
+servers:
+  - url: https://api.openweathermap.org
+paths:
+  /data/2.5/weather:
+    get:
+      operationId: getCurrentWeather
+      description: Get current weather data for a location
+      parameters:
+        - name: q
+          in: query
+          description: City name, state code, and country code
+          schema:
+            type: string
+        - name: lat
+          in: query
+          description: Latitude coordinate
+          schema:
+            type: number
+        - name: lon
+          in: query
+          description: Longitude coordinate
+          schema:
+            type: number
+        - name: zip
+          in: query
+          description: Zip/post code and country code
+          schema:
+            type: string
+        - name: units
+          in: query
+          description: Temperature units
+          schema:
+            type: string
+            enum: [standard, metric, imperial]
+        - name: lang
+          in: query
+          description: Language code
+          schema:
+            type: string
+        - name: appid
+          in: query
+          required: true
+          description: API key
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CurrentWeatherResponse'
+  /data/2.5/forecast:
+    get:
+      operationId: getWeatherForecast
+      description: Get 5-day weather forecast with 3-hour intervals
+      parameters:
+        - name: q
+          in: query
+          description: City name, state code, and country code
+          schema:
+            type: string
+        - name: lat
+          in: query
+          description: Latitude coordinate
+          schema:
+            type: number
+        - name: lon
+          in: query
+          description: Longitude coordinate
+          schema:
+            type: number
+        - name: zip
+          in: query
+          description: Zip/post code and country code
+          schema:
+            type: string
+        - name: units
+          in: query
+          description: Temperature units
+          schema:
+            type: string
+            enum: [standard, metric, imperial]
+        - name: cnt
+          in: query
+          description: Number of timestamps to return
+          schema:
+            type: integer
+        - name: lang
+          in: query
+          description: Language code
+          schema:
+            type: string
+        - name: appid
+          in: query
+          required: true
+          description: API key
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ForecastResponse'
+  /data/2.5/air_pollution:
+    get:
+      operationId: getAirPollution
+      description: Get air pollution data
+      parameters:
+        - name: lat
+          in: query
+          required: true
+          description: Latitude coordinate
+          schema:
+            type: number
+        - name: lon
+          in: query
+          required: true
+          description: Longitude coordinate
+          schema:
+            type: number
+        - name: appid
+          in: query
+          required: true
+          description: API key
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AirPollutionResponse'
+  /geo/1.0/direct:
+    get:
+      operationId: geocodeDirect
+      description: Convert city name to coordinates
+      parameters:
+        - name: q
+          in: query
+          required: true
+          description: City name, state code, and country code
+          schema:
+            type: string
+        - name: limit
+          in: query
+          description: Number of locations to return
+          schema:
+            type: integer
+            default: 1
+        - name: appid
+          in: query
+          required: true
+          description: API key
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/GeocodingLocation'
+                minItems: 1
+              example:
+                - name: London
+                  lat: 51.5074
+                  lon: -0.1278
+                  country: GB
+  /geo/1.0/reverse:
+    get:
+      operationId: geocodeReverse
+      description: Convert coordinates to location name
+      parameters:
+        - name: lat
+          in: query
+          required: true
+          description: Latitude coordinate
+          schema:
+            type: number
+        - name: lon
+          in: query
+          required: true
+          description: Longitude coordinate
+          schema:
+            type: number
+        - name: limit
+          in: query
+          description: Number of locations to return
+          schema:
+            type: integer
+            default: 1
+        - name: appid
+          in: query
+          required: true
+          description: API key
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/GeocodingLocation'
+                minItems: 1
+              example:
+                - name: London
+                  lat: 51.5074
+                  lon: -0.1278
+                  country: GB
+components:
+  schemas:
+    CurrentWeatherResponse:
+      type: object
+      properties:
+        coord:
+          type: object
+          properties:
+            lon:
+              type: number
+            lat:
+              type: number
+        weather:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+              main:
+                type: string
+              description:
+                type: string
+              icon:
+                type: string
+        main:
+          type: object
+          properties:
+            temp:
+              type: number
+            feels_like:
+              type: number
+            temp_min:
+              type: number
+            temp_max:
+              type: number
+            pressure:
+              type: integer
+            humidity:
+              type: integer
+        visibility:
+          type: integer
+        wind:
+          type: object
+          properties:
+            speed:
+              type: number
+            deg:
+              type: integer
+        clouds:
+          type: object
+          properties:
+            all:
+              type: integer
+        dt:
+          type: integer
+        sys:
+          type: object
+          properties:
+            country:
+              type: string
+            sunrise:
+              type: integer
+            sunset:
+              type: integer
+        timezone:
+          type: integer
+        id:
+          type: integer
+        name:
+          type: string
+        cod:
+          type: integer
+    ForecastResponse:
+      type: object
+      properties:
+        cod:
+          type: string
+        message:
+          type: integer
+        cnt:
+          type: integer
+        list:
+          type: array
+          items:
+            type: object
+            properties:
+              dt:
+                type: integer
+              main:
+                type: object
+                properties:
+                  temp:
+                    type: number
+                  feels_like:
+                    type: number
+                  temp_min:
+                    type: number
+                  temp_max:
+                    type: number
+                  pressure:
+                    type: integer
+                  humidity:
+                    type: integer
+              weather:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                    main:
+                      type: string
+                    description:
+                      type: string
+                    icon:
+                      type: string
+              clouds:
+                type: object
+                properties:
+                  all:
+                    type: integer
+              wind:
+                type: object
+                properties:
+                  speed:
+                    type: number
+                  deg:
+                    type: integer
+              dt_txt:
+                type: string
+        city:
+          type: object
+          properties:
+            id:
+              type: integer
+            name:
+              type: string
+            coord:
+              type: object
+              properties:
+                lat:
+                  type: number
+                lon:
+                  type: number
+            country:
+              type: string
+            population:
+              type: integer
+            timezone:
+              type: integer
+            sunrise:
+              type: integer
+            sunset:
+              type: integer
+    AirPollutionResponse:
+      type: object
+      properties:
+        coord:
+          type: object
+          properties:
+            lon:
+              type: number
+            lat:
+              type: number
+        list:
+          type: array
+          items:
+            type: object
+            properties:
+              main:
+                type: object
+                properties:
+                  aqi:
+                    type: integer
+                    description: Air Quality Index (1=Good, 5=Very Poor)
+              components:
+                type: object
+                properties:
+                  co:
+                    type: number
+                  no:
+                    type: number
+                  no2:
+                    type: number
+                  o3:
+                    type: number
+                  so2:
+                    type: number
+                  pm2_5:
+                    type: number
+                  pm10:
+                    type: number
+                  nh3:
+                    type: number
+              dt:
+                type: integer
+    GeocodingLocation:
+      type: object
+      properties:
+        name:
+          type: string
+        local_names:
+          type: object
+          additionalProperties:
+            type: string
+        lat:
+          type: number
+        lon:
+          type: number
+        country:
+          type: string
+        state:
+          type: string

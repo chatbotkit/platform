@@ -1,0 +1,9 @@
+{
+  "start": "/apps/5c0a7a11",
+  "name": "Live Conversations",
+  "description": "Monitor active conversations and inspect the agent execution stream as it happens.",
+  "icon": "@lucide/radar",
+  "order": 130,
+  "category": "developer",
+  "config": {}
+}

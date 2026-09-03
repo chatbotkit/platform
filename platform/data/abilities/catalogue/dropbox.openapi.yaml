@@ -1,0 +1,157 @@
+openapi: 3.0.0
+info:
+  title: Dropbox API
+  version: '2.0'
+  description: Barebone spec for Dropbox API abilities testing
+servers:
+  - url: https://api.dropboxapi.com
+paths:
+  /2/files/search_v2:
+    post:
+      operationId: filesSearchV2
+      summary: Search for files
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                query:
+                  type: string
+                options:
+                  type: object
+                  properties:
+                    max_results:
+                      type: integer
+                    order_by:
+                      type: string
+                      enum: [relevance, last_modified_time]
+                    file_status:
+                      type: string
+                    file_categories:
+                      type: array
+                      items:
+                        type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  matches:
+                    type: array
+                    items:
+                      type: object
+                      required:
+                        - metadata
+                      properties:
+                        metadata:
+                          type: object
+                          required:
+                            - metadata
+                            - is_downloadable
+                            - path_lower
+                          properties:
+                            metadata:
+                              type: object
+                              required:
+                                - id
+                                - name
+                                - path_lower
+                              properties:
+                                id:
+                                  type: string
+                                name:
+                                  type: string
+                                path_lower:
+                                  type: string
+                            is_downloadable:
+                              type: boolean
+                            path_lower:
+                              type: string
+      security:
+        - Bearer: []
+  /2/files/list_folder:
+    post:
+      operationId: filesListFolder
+      summary: List folder contents
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                path:
+                  type: string
+                limit:
+                  type: integer
+                recursive:
+                  type: boolean
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  entries:
+                    type: array
+                    items:
+                      type: object
+                      required:
+                        - id
+                        - name
+                        - path_lower
+                        - is_downloadable
+                      properties:
+                        id:
+                          type: string
+                        name:
+                          type: string
+                        path_lower:
+                          type: string
+                        is_downloadable:
+                          type: boolean
+      security:
+        - Bearer: []
+  /2/files/get_metadata:
+    post:
+      operationId: filesGetMetadata
+      summary: Get file metadata
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                path:
+                  type: string
+                include_media_info:
+                  type: boolean
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  name:
+                    type: string
+                  path_lower:
+                    type: string
+      security:
+        - Bearer: []
+components:
+  securitySchemes:
+    Bearer:
+      type: http
+      scheme: bearer

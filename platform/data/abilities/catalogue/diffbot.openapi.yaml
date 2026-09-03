@@ -1,0 +1,256 @@
+# @see https://docs.diffbot.com/reference/introduction-to-diffbot-apis
+# @note this is a barebone OpenAPI spec for Diffbot API
+# @todo replace with official spec when available
+openapi: 3.0.3
+info:
+  title: Diffbot API
+  version: '3.0'
+  description: Diffbot builds AI models that read websites and structure them into facts
+servers:
+  - url: https://api.diffbot.com
+  - url: https://kg.diffbot.com
+paths:
+  /v3/analyze:
+    get:
+      operationId: analyzeWebPage
+      summary: Automatically classify a web page and extract structured data
+      parameters:
+        - name: token
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: url
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalyzeResponse'
+  /v3/article:
+    get:
+      operationId: extractArticle
+      summary: Extract clean article content from any article URL
+      parameters:
+        - name: token
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: url
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ArticleResponse'
+  /v3/product:
+    get:
+      operationId: extractProduct
+      summary: Extract structured product information from product pages
+      parameters:
+        - name: token
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: url
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductResponse'
+  /kg/v3/enhance:
+    post:
+      operationId: enhanceEntity
+      summary: Enrich a person or organization entity with comprehensive data
+      parameters:
+        - name: token
+          in: query
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EnhanceRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnhanceResponse'
+components:
+  schemas:
+    AnalyzeResponse:
+      type: object
+      properties:
+        request:
+          type: object
+          properties:
+            pageUrl:
+              type: string
+            api:
+              type: string
+        objects:
+          type: array
+          items:
+            type: object
+            properties:
+              type:
+                type: string
+              title:
+                type: string
+              text:
+                type: string
+              html:
+                type: string
+              date:
+                type: string
+              author:
+                type: string
+              images:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    url:
+                      type: string
+    ArticleResponse:
+      type: object
+      properties:
+        request:
+          type: object
+          properties:
+            pageUrl:
+              type: string
+            api:
+              type: string
+        objects:
+          type: array
+          items:
+            type: object
+            properties:
+              type:
+                type: string
+              title:
+                type: string
+              text:
+                type: string
+              html:
+                type: string
+              date:
+                type: string
+              author:
+                type: string
+              authorUrl:
+                type: string
+              images:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    url:
+                      type: string
+                    title:
+                      type: string
+              tags:
+                type: array
+                items:
+                  type: string
+    ProductResponse:
+      type: object
+      properties:
+        request:
+          type: object
+          properties:
+            pageUrl:
+              type: string
+            api:
+              type: string
+        objects:
+          type: array
+          items:
+            type: object
+            properties:
+              type:
+                type: string
+              title:
+                type: string
+              text:
+                type: string
+              offerPrice:
+                type: string
+              regularPrice:
+                type: string
+              availability:
+                type: boolean
+              images:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    url:
+                      type: string
+              specs:
+                type: object
+    EnhanceRequest:
+      type: object
+      required:
+        - type
+      properties:
+        type:
+          type: string
+          enum:
+            - person
+            - organization
+        name:
+          type: string
+        location:
+          type: string
+        url:
+          type: string
+    EnhanceResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              name:
+                type: string
+              type:
+                type: string
+              location:
+                type: object
+                properties:
+                  city:
+                    type: string
+                  country:
+                    type: string
+              homepageUri:
+                type: string
+              description:
+                type: string

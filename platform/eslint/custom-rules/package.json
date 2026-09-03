@@ -1,0 +1,7 @@
+{
+  "name": "eslint-plugin-custom-eslint-rules",
+  "version": "1.0.0",
+  "private": true,
+  "license": "Apache-2.0",
+  "main": "index.js"
+}

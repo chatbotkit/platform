@@ -1,0 +1,52 @@
+description: |
+  Generates a cron expression from a natural language description.
+prompt: |
+  Convert the following natural language description into a valid cron
+  expression (5-field format: minute hour day-of-month month day-of-week).
+
+  Rules:
+  - Output ONLY the cron expression, nothing else.
+  - Use standard 5-field cron syntax.
+  - Use * for "every", */N for intervals, and comma-separated values for lists.
+  - Day-of-week uses 0-6 (Sunday=0) or 3-letter abbreviations (MON, TUE, etc.).
+  - If the input is ambiguous, pick the most reasonable interpretation.
+
+  Examples:
+  ###
+  every 5 minutes
+  ###
+  */5 * * * *
+
+  ###
+  every day at midnight
+  ###
+  0 0 * * *
+
+  ###
+  every Monday at 9am
+  ###
+  0 9 * * 1
+
+  ###
+  twice a day at 8am and 6pm
+  ###
+  0 8,18 * * *
+
+  ###
+  every hour on weekdays
+  ###
+  0 * * * 1-5
+
+  ###
+  first day of every month at noon
+  ###
+  0 12 1 * *
+
+  Input:
+  ###
+  {input}
+  ###
+
+  Cron expression:
+model: gpt-4o-mini/temperature=0.3
+output: text

@@ -1,0 +1,415 @@
+name: Publish GHCR Platform
+
+on:
+  workflow_dispatch:
+
+  # @note no `paths` filter here on purpose: the verify job must run on every
+  # push to next so its check lands on the SHA the promotion pull request
+  # (next -> main) requires - pull-request.yaml skips its own run for that
+  # head branch. Path filtering for the image build lives in the changes job
+  # below instead.
+  push:
+    branches:
+      - main
+      - next
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: publish-ghcr-platform-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  # @note every job is guarded to the canonical repository and its
+  # `platform-*` siblings: a fork that pushes to main or next gets a clean
+  # skip rather than a queued build against runners and a registry it does
+  # not have.
+  #
+  # The trigger-level `paths` filter this job replaces could not coexist with
+  # running verify on every next push, so the build-relevance decision is made
+  # here from the actual diff of the push. Anything that prevents computing
+  # that diff (a brand-new branch, a force push, a manual dispatch) falls back
+  # to building - a spurious build is cheap, a silently skipped one is not.
+  changes:
+    if: >-
+      (github.repository == 'chatbotkit/platform' || startsWith(github.repository, 'chatbotkit/platform-')) &&
+      github.actor != 'github-actions[bot]'
+    name: Detect build-relevant changes
+    runs-on: ubuntu-latest
+    outputs:
+      build: ${{ steps.diff.outputs.build }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Diff the push against build-relevant paths
+        id: diff
+        env:
+          BEFORE: ${{ github.event.before }}
+        run: |
+          # @note keep this pattern list in sync with the inputs the Docker
+          # build actually consumes (the former trigger paths filter)
+          pattern='^(packages/|patches/|platform/|stubs/|docker/|\.dockerignore$|\.pnpmfile\.cjs$|package\.json$|pnpm-lock\.yaml$|pnpm-workspace\.yaml$|turbo\.json$|\.github/workflows/(publish-ghcr-platform|_verify)\.yaml$)'
+
+          if [ "$GITHUB_EVENT_NAME" != "push" ] \
+            || [ -z "$BEFORE" ] \
+            || [ "$BEFORE" = "0000000000000000000000000000000000000000" ] \
+            || ! git fetch --quiet --depth=1 origin "$BEFORE"
+          then
+            echo "build=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if git diff --name-only "$BEFORE" "$GITHUB_SHA" | grep -qE "$pattern"; then
+            echo "build=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "build=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  # @note `next` receives direct pushes, so nothing has vetted the code yet -
+  # run the quality gate before spending build minutes on it. It runs on
+  # every next push, not just build-relevant ones, so the promotion pull
+  # request always finds a verify check on the head SHA. `main` only moves
+  # through pull requests that already passed the same gate, so the job is
+  # skipped there and the build starts immediately.
+  verify:
+    if: >-
+      (github.repository == 'chatbotkit/platform' || startsWith(github.repository, 'chatbotkit/platform-')) &&
+      github.actor != 'github-actions[bot]' &&
+      github.ref == 'refs/heads/next'
+    uses: ./.github/workflows/_verify.yaml
+
+  build:
+    needs:
+      - changes
+      - verify
+    # @note !cancelled() + accepting the skipped verify keeps main builds
+    # running while a failed gate on next still blocks them
+    if: >-
+      !cancelled() &&
+      (github.repository == 'chatbotkit/platform' || startsWith(github.repository, 'chatbotkit/platform-')) &&
+      needs.changes.outputs.build == 'true' &&
+      (needs.verify.result == 'success' || needs.verify.result == 'skipped') &&
+      github.actor != 'github-actions[bot]' &&
+      (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/next')
+    name: Build ${{ matrix.flavor.name }} (${{ matrix.architecture.name }})
+    runs-on: ${{ matrix.architecture.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        flavor:
+          # @note package selections are compile-time image flavors. Add a
+          # flavor here only when its Docker target installs that exact package
+          # configuration. Runtime services such as Redis are not flavors.
+          - name: community
+            application_target: application
+            initializer_target: initializer
+        architecture:
+          - name: amd64
+            platform: linux/amd64
+            runner: ubuntu-latest-8-cores-amd64
+          - name: arm64
+            platform: linux/arm64
+            runner: ubuntu-latest-8-cores-arm64
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          lfs: true
+
+      # @note the naming grammar is <repository>-<flavor>[-<component>], with
+      # the tag carrying only the build axis (channel or sha). The bare
+      # <repository>-<flavor> name is the Compose distribution artifact -
+      # the one consumers type - and -app/-init are its digest-pinned
+      # component images.
+      - name: Resolve image names
+        id: image
+        env:
+          FLAVOR: ${{ matrix.flavor.name }}
+          REPOSITORY_NAME: ${{ github.event.repository.name }}
+          REPOSITORY_OWNER: ${{ github.repository_owner }}
+        run: |
+          owner="${REPOSITORY_OWNER,,}"
+          repository="${REPOSITORY_NAME,,}"
+          stack="${REGISTRY}/${owner}/${repository}-${FLAVOR}"
+          echo "stack=${stack}" >> "$GITHUB_OUTPUT"
+          echo "application=${stack}-app" >> "$GITHUB_OUTPUT"
+          echo "initializer=${stack}-init" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v4
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract application metadata
+        id: application-metadata
+        uses: docker/metadata-action@v6
+        with:
+          images: ${{ steps.image.outputs.application }}
+          tags: |
+            type=raw,value=${{ github.ref_name }}
+            type=sha,format=short,prefix=sha-
+            type=raw,value=latest,enable=${{ github.ref_name == 'main' }}
+
+      - name: Build and push application image
+        id: application
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: docker/Dockerfile
+          target: ${{ matrix.flavor.application_target }}
+          platforms: ${{ matrix.architecture.platform }}
+          # @note community images embed full source maps on purpose - the
+          # source is public and self-hosted debugging needs them
+          build-args: |
+            BUILD_SOURCEMAPS=full
+          labels: ${{ steps.application-metadata.outputs.labels }}
+          outputs: type=image,name=${{ steps.image.outputs.application }},push-by-digest=true,name-canonical=true,push=true
+          cache-from: type=gha,scope=${{ github.event.repository.name }}-${{ matrix.flavor.name }}-application-${{ matrix.architecture.name }}
+          cache-to: type=gha,mode=max,scope=${{ github.event.repository.name }}-${{ matrix.flavor.name }}-application-${{ matrix.architecture.name }}
+
+      - name: Extract initializer metadata
+        id: initializer-metadata
+        uses: docker/metadata-action@v6
+        with:
+          images: ${{ steps.image.outputs.initializer }}
+          tags: |
+            type=raw,value=${{ github.ref_name }}
+            type=sha,format=short,prefix=sha-
+            type=raw,value=latest,enable=${{ github.ref_name == 'main' }}
+
+      - name: Build and push initializer image
+        id: initializer
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: docker/Dockerfile
+          target: ${{ matrix.flavor.initializer_target }}
+          platforms: ${{ matrix.architecture.platform }}
+          build-args: |
+            BUILD_SOURCEMAPS=full
+          labels: ${{ steps.initializer-metadata.outputs.labels }}
+          outputs: type=image,name=${{ steps.image.outputs.initializer }},push-by-digest=true,name-canonical=true,push=true
+          cache-from: |
+            type=gha,scope=${{ github.event.repository.name }}-${{ matrix.flavor.name }}-application-${{ matrix.architecture.name }}
+            type=gha,scope=${{ github.event.repository.name }}-${{ matrix.flavor.name }}-initializer-${{ matrix.architecture.name }}
+          cache-to: type=gha,mode=max,scope=${{ github.event.repository.name }}-${{ matrix.flavor.name }}-initializer-${{ matrix.architecture.name }}
+
+      - name: Smoke-test published images
+        env:
+          APPLICATION_IMAGE: ${{ steps.image.outputs.application }}@${{ steps.application.outputs.digest }}
+          ARCHITECTURE: ${{ matrix.architecture.name }}
+          FLAVOR: ${{ matrix.flavor.name }}
+          INITIALIZER_IMAGE: ${{ steps.image.outputs.initializer }}@${{ steps.initializer.outputs.digest }}
+          PLATFORM: ${{ matrix.architecture.platform }}
+        run: |
+          container="platform-smoke-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-${FLAVOR}-${ARCHITECTURE}"
+          volume="platform-smoke-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-${FLAVOR}-${ARCHITECTURE}"
+
+          cleanup() {
+            docker rm --force "$container" >/dev/null 2>&1 || true
+            docker volume rm --force "$volume" >/dev/null 2>&1 || true
+          }
+
+          trap cleanup EXIT
+
+          docker volume create "$volume"
+          docker run --rm \
+            --platform "$PLATFORM" \
+            --env PRISMA_DATABASE_URL=file:/data/platform.db \
+            --volume "$volume:/data" \
+            "$INITIALIZER_IMAGE"
+
+          # @note SITE_URL deliberately differs from the image's build-time
+          # value so the probe below proves the runtime environment actually
+          # reaches the served pages - a build-time bake cannot pass it
+          docker run --detach \
+            --platform "$PLATFORM" \
+            --name "$container" \
+            --env NEXTAUTH_SECRET=published-image-smoke-test \
+            --env NEXTAUTH_URL=http://smoke-test.invalid \
+            --env PRISMA_DATABASE_URL=file:/data/platform.db \
+            --env QUEUE_SECRET=published-image-smoke-test \
+            --env SITE_URL=http://smoke-test.invalid \
+            --volume "$volume:/data" \
+            "$APPLICATION_IMAGE"
+
+          # @note /signin renders per request, so its markup must carry the
+          # runtime site host stamped by the request context
+          for attempt in $(seq 1 90); do
+            if docker exec "$container" node -e \
+              "fetch('http://127.0.0.1:3000/signin').then(async (response) => { const body = await response.text(); process.exit(response.status < 500 && body.includes('smoke-test.invalid') ? 0 : 1) }).catch(() => process.exit(1))"
+            then
+              exit 0
+            fi
+
+            sleep 2
+          done
+
+          docker logs "$container"
+          exit 1
+
+      # @note matrix job outputs cannot be aggregated reliably, so digest
+      # marker files carry both architecture results into the publish job
+      - name: Export image digests
+        env:
+          APPLICATION_DIGEST: ${{ steps.application.outputs.digest }}
+          INITIALIZER_DIGEST: ${{ steps.initializer.outputs.digest }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/platform-digests/application"
+          mkdir -p "$RUNNER_TEMP/platform-digests/initializer"
+          touch "$RUNNER_TEMP/platform-digests/application/${APPLICATION_DIGEST#sha256:}"
+          touch "$RUNNER_TEMP/platform-digests/initializer/${INITIALIZER_DIGEST#sha256:}"
+
+      - name: Upload image digests
+        uses: actions/upload-artifact@v7
+        with:
+          name: platform-digests-${{ matrix.flavor.name }}-${{ matrix.architecture.name }}
+          path: ${{ runner.temp }}/platform-digests
+          retention-days: 1
+
+  publish:
+    # @note !cancelled() is required: the implicit success() looks at the
+    # whole needs chain, and verify is skipped on main
+    if: >-
+      !cancelled() &&
+      (github.repository == 'chatbotkit/platform' || startsWith(github.repository, 'chatbotkit/platform-')) &&
+      needs.build.result == 'success' &&
+      github.actor != 'github-actions[bot]' &&
+      (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/next')
+    name: Publish ${{ matrix.flavor.name }}
+    needs: build
+    runs-on: ${{ matrix.flavor.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        flavor:
+          # @note keep this list in sync with the build job's flavor matrix
+          - name: community
+            runner: ubuntu-latest-8-cores-amd64
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          lfs: true
+
+      - name: Resolve image names
+        id: image
+        env:
+          FLAVOR: ${{ matrix.flavor.name }}
+          REPOSITORY_NAME: ${{ github.event.repository.name }}
+          REPOSITORY_OWNER: ${{ github.repository_owner }}
+        run: |
+          owner="${REPOSITORY_OWNER,,}"
+          repository="${REPOSITORY_NAME,,}"
+          stack="${REGISTRY}/${owner}/${repository}-${FLAVOR}"
+          echo "stack=${stack}" >> "$GITHUB_OUTPUT"
+          echo "application=${stack}-app" >> "$GITHUB_OUTPUT"
+          echo "initializer=${stack}-init" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      # @note `docker compose publish` requires Compose v2.34 or newer; the
+      # runner's bundled plugin is not guaranteed to be that new
+      - name: Set up Docker Compose
+        uses: docker/setup-compose-action@v2
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v4
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Download image digests
+        uses: actions/download-artifact@v7
+        with:
+          pattern: platform-digests-${{ matrix.flavor.name }}-*
+          path: ${{ runner.temp }}/platform-digests
+          merge-multiple: true
+
+      - name: Create multi-platform image manifests
+        id: manifest
+        env:
+          APPLICATION_IMAGE: ${{ steps.image.outputs.application }}
+          CHANNEL: ${{ github.ref_name }}
+          DIGESTS_DIR: ${{ runner.temp }}/platform-digests
+          INITIALIZER_IMAGE: ${{ steps.image.outputs.initializer }}
+        run: |
+          application_sources=()
+          for digest_file in "$DIGESTS_DIR"/application/*; do
+            [ -f "$digest_file" ] || continue
+            application_sources+=("${APPLICATION_IMAGE}@sha256:$(basename "$digest_file")")
+          done
+
+          initializer_sources=()
+          for digest_file in "$DIGESTS_DIR"/initializer/*; do
+            [ -f "$digest_file" ] || continue
+            initializer_sources+=("${INITIALIZER_IMAGE}@sha256:$(basename "$digest_file")")
+          done
+
+          if [ "${#application_sources[@]}" -ne 2 ] || [ "${#initializer_sources[@]}" -ne 2 ]; then
+            echo "Expected two architecture digests for each image" >&2
+            exit 1
+          fi
+
+          short_sha="${GITHUB_SHA:0:7}"
+          application_tags=(--tag "${APPLICATION_IMAGE}:${CHANNEL}" --tag "${APPLICATION_IMAGE}:sha-${short_sha}")
+          initializer_tags=(--tag "${INITIALIZER_IMAGE}:${CHANNEL}" --tag "${INITIALIZER_IMAGE}:sha-${short_sha}")
+
+          if [ "$CHANNEL" = "main" ]; then
+            application_tags+=(--tag "${APPLICATION_IMAGE}:latest")
+            initializer_tags+=(--tag "${INITIALIZER_IMAGE}:latest")
+          fi
+
+          docker buildx imagetools create "${application_tags[@]}" "${application_sources[@]}"
+          docker buildx imagetools create "${initializer_tags[@]}" "${initializer_sources[@]}"
+
+          application_digest=$(docker buildx imagetools inspect "${APPLICATION_IMAGE}:${CHANNEL}" --format '{{.Manifest.Digest}}')
+          initializer_digest=$(docker buildx imagetools inspect "${INITIALIZER_IMAGE}:${CHANNEL}" --format '{{.Manifest.Digest}}')
+          echo "application_digest=${application_digest}" >> "$GITHUB_OUTPUT"
+          echo "initializer_digest=${initializer_digest}" >> "$GITHUB_OUTPUT"
+
+      # @note the one-command distribution route: the flavor's Compose file is
+      # published as an OCI artifact under <repository>-<flavor>, with every
+      # image reference resolved to a digest so the artifact tag identifies an
+      # exact, immutable stack. Consumers run:
+      #
+      #   docker compose -f oci://ghcr.io/chatbotkit/platform-community:latest up
+      - name: Publish Compose distribution artifact
+        env:
+          APPLICATION_IMAGE: ${{ steps.image.outputs.application }}@${{ steps.manifest.outputs.application_digest }}
+          CHANNEL: ${{ github.ref_name }}
+          FLAVOR: ${{ matrix.flavor.name }}
+          INITIALIZER_IMAGE: ${{ steps.image.outputs.initializer }}@${{ steps.manifest.outputs.initializer_digest }}
+          STACK_IMAGE: ${{ steps.image.outputs.stack }}
+        run: |
+          publish() {
+            PLATFORM_IMAGE="$APPLICATION_IMAGE" \
+            PLATFORM_INIT_IMAGE="$INITIALIZER_IMAGE" \
+              docker compose --file "docker/distro/${FLAVOR}/compose.yml" \
+                publish -y --resolve-image-digests "$1"
+          }
+
+          publish "${STACK_IMAGE}:${CHANNEL}"
+
+          if [ "$CHANNEL" = "main" ]; then
+            publish "${STACK_IMAGE}:latest"
+          fi
+
+      - name: Smoke-test published distribution artifact
+        env:
+          CHANNEL: ${{ github.ref_name }}
+          STACK_IMAGE: ${{ steps.image.outputs.stack }}
+        run: |
+          docker compose --file "oci://${STACK_IMAGE}:${CHANNEL}" config --quiet

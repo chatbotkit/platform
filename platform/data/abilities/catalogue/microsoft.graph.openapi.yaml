@@ -1,0 +1,1421 @@
+# @see https://learn.microsoft.com/en-us/graph/api/overview
+# @note this is a barebone OpenAPI spec for Microsoft Graph API
+# @note extracted from the official spec at https://github.com/microsoftgraph/msgraph-metadata
+openapi: 3.0.3
+info:
+  title: Microsoft Graph API
+  version: v1.0
+  description: Microsoft Graph REST API for contacts, messages, and calendar events
+servers:
+  - url: https://graph.microsoft.com/v1.0
+paths:
+  /me/contacts:
+    get:
+      operationId: listContacts
+      summary: List contacts
+      description: Get contacts from a user's address book
+      parameters:
+        - name: $search
+          in: query
+          description: Search string
+          schema:
+            type: string
+        - name: $select
+          in: query
+          description: Select properties to return
+          schema:
+            type: string
+        - name: $top
+          in: query
+          description: Number of items to return
+          schema:
+            type: integer
+        - name: $skip
+          in: query
+          description: Number of items to skip
+          schema:
+            type: integer
+        - name: $filter
+          in: query
+          description: Filter items
+          schema:
+            type: string
+        - name: $orderby
+          in: query
+          description: Order items by
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContactCollectionResponse'
+    post:
+      operationId: createContact
+      summary: Create contact
+      description: Create a new contact in a user's address book
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Contact'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Contact'
+  /me/contacts/{contactId}:
+    get:
+      operationId: getContact
+      summary: Get contact
+      description: Get a specific contact by ID
+      parameters:
+        - name: contactId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: $select
+          in: query
+          description: Select properties to return
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Contact'
+    patch:
+      operationId: updateContact
+      summary: Update contact
+      description: Update an existing contact
+      parameters:
+        - name: contactId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Contact'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Contact'
+    delete:
+      operationId: deleteContact
+      summary: Delete contact
+      description: Delete a contact
+      parameters:
+        - name: contactId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: No Content
+  /me/messages:
+    get:
+      operationId: listMessages
+      summary: List messages
+      description: Get messages from a user's mailbox
+      parameters:
+        - name: $search
+          in: query
+          description: Search string
+          schema:
+            type: string
+        - name: $select
+          in: query
+          description: Select properties to return
+          schema:
+            type: string
+        - name: $top
+          in: query
+          description: Number of items to return
+          schema:
+            type: integer
+        - name: $skip
+          in: query
+          description: Number of items to skip
+          schema:
+            type: integer
+        - name: $filter
+          in: query
+          description: Filter items
+          schema:
+            type: string
+        - name: $orderby
+          in: query
+          description: Order items by
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageCollectionResponse'
+    post:
+      operationId: createMessage
+      summary: Create message
+      description: Create a new message (draft) in a user's mailbox
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Message'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+  /me/messages/{messageId}:
+    get:
+      operationId: getMessage
+      summary: Get message
+      description: Get a specific message by ID
+      parameters:
+        - name: messageId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: $select
+          in: query
+          description: Select properties to return
+          schema:
+            type: string
+        - name: Prefer
+          in: header
+          description: Preference header
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+    patch:
+      operationId: updateMessage
+      summary: Update message
+      description: Update an existing message
+      parameters:
+        - name: messageId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Message'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+    delete:
+      operationId: deleteMessage
+      summary: Delete message
+      description: Delete a message
+      parameters:
+        - name: messageId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: No Content
+  /me/events:
+    get:
+      operationId: listEvents
+      summary: List calendar events
+      description: Get events from a user's primary calendar
+      parameters:
+        - name: $search
+          in: query
+          description: Search string
+          schema:
+            type: string
+        - name: $select
+          in: query
+          description: Select properties to return
+          schema:
+            type: string
+        - name: $top
+          in: query
+          description: Number of items to return
+          schema:
+            type: integer
+        - name: $skip
+          in: query
+          description: Number of items to skip
+          schema:
+            type: integer
+        - name: $filter
+          in: query
+          description: Filter items
+          schema:
+            type: string
+        - name: $orderby
+          in: query
+          description: Order items by
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventCollectionResponse'
+    post:
+      operationId: createEvent
+      summary: Create calendar event
+      description: Create a new event in a user's primary calendar
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Event'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Event'
+  /me/events/{eventId}:
+    get:
+      operationId: getEvent
+      summary: Get calendar event
+      description: Get a specific event by ID
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: $select
+          in: query
+          description: Select properties to return
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Event'
+    patch:
+      operationId: updateEvent
+      summary: Update calendar event
+      description: Update an existing event
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Event'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Event'
+    delete:
+      operationId: deleteEvent
+      summary: Delete calendar event
+      description: Delete an event
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: No Content
+  # OneDrive/Files endpoints
+  /me/drive/root/children:
+    get:
+      operationId: listRootChildren
+      summary: List files in root
+      description: List files and folders in the user's OneDrive root
+      parameters:
+        - name: $select
+          in: query
+          description: Select properties to return
+          schema:
+            type: string
+        - name: $top
+          in: query
+          description: Number of items to return
+          schema:
+            type: integer
+        - name: $skip
+          in: query
+          description: Number of items to skip
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DriveItemCollectionResponse'
+    post:
+      operationId: createFolder
+      summary: Create folder
+      description: Create a new folder in OneDrive root
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DriveItem'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DriveItem'
+  /me/drive/items/{itemId}:
+    get:
+      operationId: getDriveItem
+      summary: Get drive item
+      description: Get a specific file or folder by ID
+      parameters:
+        - name: itemId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DriveItem'
+    delete:
+      operationId: deleteDriveItem
+      summary: Delete drive item
+      description: Delete a file or folder
+      parameters:
+        - name: itemId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: No Content
+  /me/drive/items/{itemId}/children:
+    get:
+      operationId: listFolderChildren
+      summary: List folder children
+      description: List files and folders in a specific folder
+      parameters:
+        - name: itemId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: $select
+          in: query
+          description: Select properties to return
+          schema:
+            type: string
+        - name: $top
+          in: query
+          description: Number of items to return
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DriveItemCollectionResponse'
+  /me/drive/items/{itemId}/copy:
+    post:
+      operationId: copyDriveItem
+      summary: Copy drive item
+      description: Copy a file to a new location
+      parameters:
+        - name: itemId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                parentReference:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                name:
+                  type: string
+      responses:
+        '202':
+          description: Accepted
+  /me/drive/root/search(q='{query}'):
+    get:
+      operationId: searchDriveItems
+      summary: Search files
+      description: Search for files in OneDrive
+      parameters:
+        - name: query
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: $top
+          in: query
+          description: Number of items to return
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DriveItemCollectionResponse'
+  # Teams endpoints
+  /me/joinedTeams:
+    get:
+      operationId: listJoinedTeams
+      summary: List joined teams
+      description: List teams the user is a member of
+      parameters:
+        - name: $select
+          in: query
+          description: Select properties to return
+          schema:
+            type: string
+        - name: $top
+          in: query
+          description: Number of items to return
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeamCollectionResponse'
+  /teams/{teamId}:
+    get:
+      operationId: getTeam
+      summary: Get team
+      description: Get a specific team by ID
+      parameters:
+        - name: teamId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Team'
+  /teams/{teamId}/channels:
+    get:
+      operationId: listChannels
+      summary: List channels
+      description: List channels in a team
+      parameters:
+        - name: teamId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: $select
+          in: query
+          description: Select properties to return
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChannelCollectionResponse'
+    post:
+      operationId: createChannel
+      summary: Create channel
+      description: Create a new channel in a team
+      parameters:
+        - name: teamId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Channel'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Channel'
+  /teams/{teamId}/channels/{channelId}:
+    get:
+      operationId: getChannel
+      summary: Get channel
+      description: Get a specific channel
+      parameters:
+        - name: teamId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: channelId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Channel'
+  /teams/{teamId}/channels/{channelId}/messages:
+    get:
+      operationId: listChannelMessages
+      summary: List channel messages
+      description: List messages in a channel
+      parameters:
+        - name: teamId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: channelId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: $top
+          in: query
+          description: Number of items to return
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatMessageCollectionResponse'
+    post:
+      operationId: sendChannelMessage
+      summary: Send channel message
+      description: Send a message to a channel
+      parameters:
+        - name: teamId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: channelId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatMessage'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatMessage'
+  /me/chats:
+    get:
+      operationId: listChats
+      summary: List chats
+      description: List the user's chats
+      parameters:
+        - name: $top
+          in: query
+          description: Number of items to return
+          schema:
+            type: integer
+        - name: $expand
+          in: query
+          description: Expand related entities
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatCollectionResponse'
+  /me/chats/{chatId}/messages:
+    get:
+      operationId: listChatMessages
+      summary: List chat messages
+      description: List messages in a chat
+      parameters:
+        - name: chatId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: $top
+          in: query
+          description: Number of items to return
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatMessageCollectionResponse'
+    post:
+      operationId: sendChatMessage
+      summary: Send chat message
+      description: Send a message in a chat
+      parameters:
+        - name: chatId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatMessage'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatMessage'
+  # Users/Directory endpoints
+  /me:
+    get:
+      operationId: getMe
+      summary: Get current user
+      description: Get profile of the signed-in user
+      parameters:
+        - name: $select
+          in: query
+          description: Select properties to return
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+  /users:
+    get:
+      operationId: listUsers
+      summary: List users
+      description: List users in the organization
+      parameters:
+        - name: $select
+          in: query
+          description: Select properties to return
+          schema:
+            type: string
+        - name: $top
+          in: query
+          description: Number of items to return
+          schema:
+            type: integer
+        - name: $skip
+          in: query
+          description: Number of items to skip
+          schema:
+            type: integer
+        - name: $filter
+          in: query
+          description: Filter expression
+          schema:
+            type: string
+        - name: $search
+          in: query
+          description: Search string
+          schema:
+            type: string
+        - name: $count
+          in: query
+          description: Include count
+          schema:
+            type: string
+        - name: ConsistencyLevel
+          in: header
+          description: Consistency level header
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserCollectionResponse'
+  /users/{userId}:
+    get:
+      operationId: getUser
+      summary: Get user
+      description: Get a specific user by ID
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: $select
+          in: query
+          description: Select properties to return
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+  /users/{userId}/manager:
+    get:
+      operationId: getUserManager
+      summary: Get user's manager
+      description: Get a user's manager
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+  /users/{userId}/directReports:
+    get:
+      operationId: listDirectReports
+      summary: List direct reports
+      description: List a user's direct reports
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: $select
+          in: query
+          description: Select properties to return
+          schema:
+            type: string
+        - name: $top
+          in: query
+          description: Number of items to return
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserCollectionResponse'
+  /groups:
+    get:
+      operationId: listGroups
+      summary: List groups
+      description: List groups in the organization
+      parameters:
+        - name: $select
+          in: query
+          description: Select properties to return
+          schema:
+            type: string
+        - name: $top
+          in: query
+          description: Number of items to return
+          schema:
+            type: integer
+        - name: $filter
+          in: query
+          description: Filter expression
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GroupCollectionResponse'
+  /groups/{groupId}/members:
+    get:
+      operationId: listGroupMembers
+      summary: List group members
+      description: List members of a group
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: $select
+          in: query
+          description: Select properties to return
+          schema:
+            type: string
+        - name: $top
+          in: query
+          description: Number of items to return
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserCollectionResponse'
+components:
+  schemas:
+    Contact:
+      type: object
+      properties:
+        id:
+          type: string
+        displayName:
+          type: string
+        givenName:
+          type: string
+        surname:
+          type: string
+        emailAddresses:
+          type: array
+          items:
+            $ref: '#/components/schemas/EmailAddress'
+        businessPhones:
+          type: array
+          items:
+            type: string
+        mobilePhone:
+          type: string
+        homePhones:
+          type: array
+          items:
+            type: string
+        companyName:
+          type: string
+        jobTitle:
+          type: string
+        birthday:
+          type: string
+          format: date-time
+        personalNotes:
+          type: string
+    ContactCollectionResponse:
+      type: object
+      properties:
+        value:
+          type: array
+          items:
+            $ref: '#/components/schemas/Contact'
+        '@odata.nextLink':
+          type: string
+    EmailAddress:
+      type: object
+      properties:
+        address:
+          type: string
+        name:
+          type: string
+    Message:
+      type: object
+      properties:
+        id:
+          type: string
+        subject:
+          type: string
+        body:
+          $ref: '#/components/schemas/ItemBody'
+        bodyPreview:
+          type: string
+        from:
+          $ref: '#/components/schemas/Recipient'
+        toRecipients:
+          type: array
+          items:
+            $ref: '#/components/schemas/Recipient'
+        ccRecipients:
+          type: array
+          items:
+            $ref: '#/components/schemas/Recipient'
+        bccRecipients:
+          type: array
+          items:
+            $ref: '#/components/schemas/Recipient'
+        receivedDateTime:
+          type: string
+          format: date-time
+        sentDateTime:
+          type: string
+          format: date-time
+        hasAttachments:
+          type: boolean
+        isRead:
+          type: boolean
+        isDraft:
+          type: boolean
+        importance:
+          type: string
+          enum:
+            - low
+            - normal
+            - high
+    MessageCollectionResponse:
+      type: object
+      properties:
+        value:
+          type: array
+          items:
+            $ref: '#/components/schemas/Message'
+        '@odata.nextLink':
+          type: string
+    ItemBody:
+      type: object
+      properties:
+        contentType:
+          type: string
+          enum:
+            - text
+            - html
+            - Text
+            - HTML
+        content:
+          type: string
+    Recipient:
+      type: object
+      properties:
+        emailAddress:
+          $ref: '#/components/schemas/EmailAddress'
+    Event:
+      type: object
+      properties:
+        id:
+          type: string
+        subject:
+          type: string
+        body:
+          $ref: '#/components/schemas/ItemBody'
+        bodyPreview:
+          type: string
+        start:
+          $ref: '#/components/schemas/DateTimeTimeZone'
+        end:
+          $ref: '#/components/schemas/DateTimeTimeZone'
+        location:
+          $ref: '#/components/schemas/Location'
+        attendees:
+          type: array
+          items:
+            $ref: '#/components/schemas/Attendee'
+        organizer:
+          $ref: '#/components/schemas/Recipient'
+        isAllDay:
+          type: boolean
+        isCancelled:
+          type: boolean
+        isOrganizer:
+          type: boolean
+        recurrence:
+          type: object
+        showAs:
+          type: string
+          enum:
+            - free
+            - tentative
+            - busy
+            - oof
+            - workingElsewhere
+            - unknown
+    EventCollectionResponse:
+      type: object
+      properties:
+        value:
+          type: array
+          items:
+            $ref: '#/components/schemas/Event'
+        '@odata.nextLink':
+          type: string
+    DateTimeTimeZone:
+      type: object
+      properties:
+        dateTime:
+          type: string
+        timeZone:
+          type: string
+    Location:
+      type: object
+      properties:
+        displayName:
+          type: string
+        address:
+          type: object
+          properties:
+            street:
+              type: string
+            city:
+              type: string
+            state:
+              type: string
+            postalCode:
+              type: string
+            countryOrRegion:
+              type: string
+        coordinates:
+          type: object
+          properties:
+            latitude:
+              type: number
+            longitude:
+              type: number
+    Attendee:
+      type: object
+      properties:
+        type:
+          type: string
+          enum:
+            - required
+            - optional
+            - resource
+        status:
+          type: object
+          properties:
+            response:
+              type: string
+              enum:
+                - none
+                - organizer
+                - tentativelyAccepted
+                - accepted
+                - declined
+                - notResponded
+            time:
+              type: string
+              format: date-time
+        emailAddress:
+          $ref: '#/components/schemas/EmailAddress'
+    # OneDrive schemas
+    DriveItem:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        size:
+          type: integer
+        webUrl:
+          type: string
+        createdDateTime:
+          type: string
+          format: date-time
+        lastModifiedDateTime:
+          type: string
+          format: date-time
+        folder:
+          type: object
+          properties:
+            childCount:
+              type: integer
+        file:
+          type: object
+          properties:
+            mimeType:
+              type: string
+        createdBy:
+          type: object
+          properties:
+            user:
+              type: object
+              properties:
+                displayName:
+                  type: string
+        lastModifiedBy:
+          type: object
+          properties:
+            user:
+              type: object
+              properties:
+                displayName:
+                  type: string
+        parentReference:
+          type: object
+          properties:
+            id:
+              type: string
+            path:
+              type: string
+        '@microsoft.graph.conflictBehavior':
+          type: string
+    DriveItemCollectionResponse:
+      type: object
+      properties:
+        value:
+          type: array
+          items:
+            $ref: '#/components/schemas/DriveItem'
+        '@odata.nextLink':
+          type: string
+    # Teams schemas
+    Team:
+      type: object
+      properties:
+        id:
+          type: string
+        displayName:
+          type: string
+        description:
+          type: string
+        webUrl:
+          type: string
+        isArchived:
+          type: boolean
+    TeamCollectionResponse:
+      type: object
+      properties:
+        value:
+          type: array
+          items:
+            $ref: '#/components/schemas/Team'
+        '@odata.nextLink':
+          type: string
+    Channel:
+      type: object
+      properties:
+        id:
+          type: string
+        displayName:
+          type: string
+        description:
+          type: string
+        webUrl:
+          type: string
+        email:
+          type: string
+        membershipType:
+          type: string
+          enum:
+            - standard
+            - private
+            - unknownFutureValue
+    ChannelCollectionResponse:
+      type: object
+      properties:
+        value:
+          type: array
+          items:
+            $ref: '#/components/schemas/Channel'
+        '@odata.nextLink':
+          type: string
+    ChatMessage:
+      type: object
+      properties:
+        id:
+          type: string
+        subject:
+          type: string
+        body:
+          $ref: '#/components/schemas/ItemBody'
+        from:
+          type: object
+          properties:
+            user:
+              type: object
+              properties:
+                displayName:
+                  type: string
+                id:
+                  type: string
+        createdDateTime:
+          type: string
+          format: date-time
+    ChatMessageCollectionResponse:
+      type: object
+      properties:
+        value:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChatMessage'
+        '@odata.nextLink':
+          type: string
+    Chat:
+      type: object
+      properties:
+        id:
+          type: string
+        topic:
+          type: string
+        chatType:
+          type: string
+          enum:
+            - oneOnOne
+            - group
+            - meeting
+            - unknownFutureValue
+        createdDateTime:
+          type: string
+          format: date-time
+        lastUpdatedDateTime:
+          type: string
+          format: date-time
+    ChatCollectionResponse:
+      type: object
+      properties:
+        value:
+          type: array
+          items:
+            $ref: '#/components/schemas/Chat'
+        '@odata.nextLink':
+          type: string
+    # User schemas
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+        displayName:
+          type: string
+        givenName:
+          type: string
+        surname:
+          type: string
+        mail:
+          type: string
+        userPrincipalName:
+          type: string
+        jobTitle:
+          type: string
+        department:
+          type: string
+        officeLocation:
+          type: string
+        mobilePhone:
+          type: string
+        businessPhones:
+          type: array
+          items:
+            type: string
+        companyName:
+          type: string
+    UserCollectionResponse:
+      type: object
+      properties:
+        value:
+          type: array
+          items:
+            $ref: '#/components/schemas/User'
+        '@odata.nextLink':
+          type: string
+    Group:
+      type: object
+      properties:
+        id:
+          type: string
+        displayName:
+          type: string
+        description:
+          type: string
+        mail:
+          type: string
+        groupTypes:
+          type: array
+          items:
+            type: string
+    GroupCollectionResponse:
+      type: object
+      properties:
+        value:
+          type: array
+          items:
+            $ref: '#/components/schemas/Group'
+        '@odata.nextLink':
+          type: string

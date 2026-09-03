@@ -1,0 +1,79 @@
+perplexity/search[sonar]:
+  provider: 'perplexity'
+  icon: '@logo/perplexity.ai'
+  name: Web Search
+  description: Search the web for specific keywords
+  tags:
+    - search
+    - web
+  instruction: |
+    ```agent/exec
+    model: sonar
+    backstory: |
+      You are a web search expert. You can search the web for specific keywords
+      and return the results in a structured format.
+
+      Failure to follow the instructions may result in unexpected outcomes and
+      unintended consequences.
+    instructions: ((query! ys|the search query))
+    ```
+
+perplexity/search[sonar-pro]:
+  provider: 'perplexity'
+  icon: '@logo/perplexity.ai'
+  name: Web Search
+  description: Search the web for specific keywords
+  tags:
+    - search
+    - web
+  instruction: |
+    ```agent/exec
+    model: sonar-pro
+    backstory: |
+      You are a web search expert. You can search the web for specific keywords
+      and return the results in a structured format.
+
+      Failure to follow the instructions may result in unexpected outcomes and
+      unintended consequences.
+    instructions: ((query! ys|the search query))
+    ```
+
+perplexity/search[sonar-reasoning]:
+  provider: 'perplexity'
+  icon: '@logo/perplexity.ai'
+  name: Web Search
+  description: Search the web for specific keywords
+  tags:
+    - search
+    - web
+  instruction: |
+    ```agent/exec
+    model: sonar-reasoning
+    backstory: |
+      You are a web search expert. You can search the web for specific keywords
+      and return the results in a structured format.
+
+      Failure to follow the instructions may result in unexpected outcomes and
+      unintended consequences.
+    instructions: ((query! ys|the search query))
+    ```
+
+perplexity/search[sonar-reasoning-pro]:
+  provider: 'perplexity'
+  icon: '@logo/perplexity.ai'
+  name: Web Search
+  description: Search the web for specific keywords
+  tags:
+    - search
+    - web
+  instruction: |
+    ```agent/exec
+    model: sonar-reasoning-pro
+    backstory: |
+      You are a web search expert. You can search the web for specific keywords
+      and return the results in a structured format.
+
+      Failure to follow the instructions may result in unexpected outcomes and
+      unintended consequences.
+    instructions: ((query! ys|the search query))
+    ```

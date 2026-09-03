@@ -1,0 +1,560 @@
+vanta/auth/test:
+  provider: 'vanta'
+  icon: '@logo/vanta.com'
+  name: Test Vanta API Connection
+  description: Test the Vanta API connection and verify authentication credentials are working properly.
+  tags:
+    - vanta
+    - auth
+    - test
+  instruction: |
+    ```fetch
+    method: GET
+    url: https://api.vanta.com/v1/me
+    headers:
+      Authorization: ${SECRET_DEFAULT}
+      Accept: application/json
+    ```
+  secret: '@vanta'
+
+# ---
+
+vanta/vendor/list:
+  provider: 'vanta'
+  icon: '@logo/vanta.com'
+  name: List Vanta Vendors
+  description: Retrieve a list of all vendors configured in your Vanta organization.
+  tags:
+    - vanta
+    - vendor
+    - list
+  instruction: |
+    ```fetch
+    method: GET
+    url: https://api.vanta.com/v1/vendors
+    headers:
+      Authorization: ${SECRET_DEFAULT}
+      Accept: application/json
+    query:
+      page?: $[page number default<1>|page number for pagination]
+      per_page?: $[per_page number default<25>|number of items per page (max 100)]
+    ```
+  secret: '@vanta'
+
+vanta/vendor/fetch:
+  provider: 'vanta'
+  icon: '@logo/vanta.com'
+  name: Fetch Vanta Vendor
+  description: Retrieve detailed information about a specific vendor by ID.
+  tags:
+    - vanta
+    - vendor
+    - fetch
+  instruction: |
+    ```fetch
+    method: GET
+    url: https://api.vanta.com/v1/vendors/$[vendor_id! euc|the vendor ID]
+    headers:
+      Authorization: ${SECRET_DEFAULT}
+      Accept: application/json
+    ```
+  secret: '@vanta'
+
+vanta/vendor/create:
+  provider: 'vanta'
+  icon: '@logo/vanta.com'
+  name: Create Vanta Vendor
+  description: Create a new vendor in your Vanta organization with the specified details.
+  tags:
+    - vanta
+    - vendor
+    - create
+  instruction: |
+    ```fetch
+    method: POST
+    url: https://api.vanta.com/v1/vendors
+    headers:
+      Authorization: ${SECRET_DEFAULT}
+      Accept: application/json
+      Content-Type: application/json
+    body:
+      name: $[name! ys|vendor name]
+      website?: $[website ys?|vendor website URL]
+      description?: $[description ys?|vendor description]
+      contact_email?: $[contact_email ys?|vendor contact email address]
+      business_owner_email?: $[business_owner_email ys?|business owner email address]
+      technical_owner_email?: $[technical_owner_email ys?|technical owner email address]
+      vendor_type?: $[vendor_type ys? enum<software,consulting,other>|type of vendor]
+      criticality?: $[criticality ys? enum<critical,high,medium,low>|vendor criticality level]
+      data_classification?: $[data_classification ys? enum<public,internal,confidential,restricted>|data classification level]
+    ```
+  secret: '@vanta'
+
+vanta/vendor/update:
+  provider: 'vanta'
+  icon: '@logo/vanta.com'
+  name: Update Vanta Vendor
+  description: Update an existing vendor's information in your Vanta organization.
+  tags:
+    - vanta
+    - vendor
+    - update
+  instruction: |
+    ```fetch
+    method: PATCH
+    url: https://api.vanta.com/v1/vendors/$[vendor_id! euc|the vendor ID]
+    headers:
+      Authorization: ${SECRET_DEFAULT}
+      Accept: application/json
+      Content-Type: application/json
+    body:
+      name?: $[name ys?|vendor name]
+      website?: $[website ys?|vendor website URL]
+      description?: $[description ys?|vendor description]
+      contact_email?: $[contact_email ys?|vendor contact email address]
+      business_owner_email?: $[business_owner_email ys?|business owner email address]
+      technical_owner_email?: $[technical_owner_email ys?|technical owner email address]
+      vendor_type?: $[vendor_type ys? enum<software,consulting,other>|type of vendor]
+      criticality?: $[criticality ys? enum<critical,high,medium,low>|vendor criticality level]
+      data_classification?: $[data_classification ys? enum<public,internal,confidential,restricted>|data classification level]
+    ```
+  secret: '@vanta'
+
+vanta/vendor/delete:
+  provider: 'vanta'
+  icon: '@logo/vanta.com'
+  name: Delete Vanta Vendor
+  description: Remove a vendor from your Vanta organization. This action cannot be undone.
+  tags:
+    - vanta
+    - vendor
+    - delete
+  instruction: |
+    ```fetch
+    method: DELETE
+    url: https://api.vanta.com/v1/vendors/$[vendor_id! euc|the vendor ID]
+    headers:
+      Authorization: ${SECRET_DEFAULT}
+      Accept: application/json
+    ```
+  secret: '@vanta'
+
+# ---
+
+vanta/vendor/document/list:
+  provider: 'vanta'
+  icon: '@logo/vanta.com'
+  name: List Vendor Documents
+  description: Retrieve all documents attached to a specific vendor.
+  tags:
+    - vanta
+    - vendor
+    - document
+    - list
+  instruction: |
+    ```fetch
+    method: GET
+    url: https://api.vanta.com/v1/vendors/$[vendor_id! euc|the vendor ID]/documents
+    headers:
+      Authorization: ${SECRET_DEFAULT}
+      Accept: application/json
+    ```
+  secret: '@vanta'
+
+vanta/vendor/document/attach:
+  provider: 'vanta'
+  icon: '@logo/vanta.com'
+  name: Attach Document to Vendor
+  description: Attach a document to a vendor for compliance and audit purposes.
+  tags:
+    - vanta
+    - vendor
+    - document
+    - attach
+  instruction: |
+    ```fetch
+    method: POST
+    url: https://api.vanta.com/v1/vendors/$[vendor_id! euc|the vendor ID]/documents
+    headers:
+      Authorization: ${SECRET_DEFAULT}
+      Accept: application/json
+      Content-Type: application/json
+    body:
+      document_type: $[document_type! ys enum<contract,soc2,iso27001,gdpr,security_questionnaire,other>|type of document]
+      file_url: $[file_url! ys|URL to the document file]
+      name: $[name! ys|document name]
+      description?: $[description ys?|document description]
+      expiration_date?: $[expiration_date ys?|document expiration date (YYYY-MM-DD)]
+    ```
+  secret: '@vanta'
+
+# ---
+
+vanta/resource/list:
+  provider: 'vanta'
+  icon: '@logo/vanta.com'
+  name: List Vanta Resources
+  description: Retrieve a list of all resources (servers, applications, etc.) in your Vanta organization.
+  tags:
+    - vanta
+    - resource
+    - list
+  instruction: |
+    ```fetch
+    method: GET
+    url: https://api.vanta.com/v1/resources
+    headers:
+      Authorization: ${SECRET_DEFAULT}
+      Accept: application/json
+    query:
+      resource_type?: $[resource_type ys? enum<server,application,database,network,other>|filter by resource type]
+      page?: $[page number default<1>|page number for pagination]
+      per_page?: $[per_page number default<25>|number of items per page (max 100)]
+    ```
+  secret: '@vanta'
+
+vanta/resource/fetch:
+  provider: 'vanta'
+  icon: '@logo/vanta.com'
+  name: Fetch Vanta Resource
+  description: Retrieve detailed information about a specific resource by ID.
+  tags:
+    - vanta
+    - resource
+    - fetch
+  instruction: |
+    ```fetch
+    method: GET
+    url: https://api.vanta.com/v1/resources/$[resource_id! euc|the resource ID]
+    headers:
+      Authorization: ${SECRET_DEFAULT}
+      Accept: application/json
+    ```
+  secret: '@vanta'
+
+vanta/resource/update:
+  provider: 'vanta'
+  icon: '@logo/vanta.com'
+  name: Update Resource Owner and Description
+  description: Update the owner and description of a resource for better tracking and compliance.
+  tags:
+    - vanta
+    - resource
+    - update
+    - owner
+  instruction: |
+    ```fetch
+    method: PATCH
+    url: https://api.vanta.com/v1/resources/$[resource_id! euc|the resource ID]
+    headers:
+      Authorization: ${SECRET_DEFAULT}
+      Accept: application/json
+      Content-Type: application/json
+    body:
+      owner_email?: $[owner_email ys?|email address of the resource owner]
+      description?: $[description ys?|resource description]
+      business_owner_email?: $[business_owner_email ys?|business owner email address]
+      technical_owner_email?: $[technical_owner_email ys?|technical owner email address]
+      criticality?: $[criticality ys? enum<critical,high,medium,low>|resource criticality level]
+      data_classification?: $[data_classification ys? enum<public,internal,confidential,restricted>|data classification level]
+    ```
+  secret: '@vanta'
+
+# ---
+
+vanta/integration/list:
+  provider: 'vanta'
+  icon: '@logo/vanta.com'
+  name: List Vanta Integrations
+  description: Retrieve a list of all integrations configured in your Vanta organization.
+  tags:
+    - vanta
+    - integration
+    - list
+  instruction: |
+    ```fetch
+    method: GET
+    url: https://api.vanta.com/v1/integrations
+    headers:
+      Authorization: ${SECRET_DEFAULT}
+      Accept: application/json
+    ```
+  secret: '@vanta'
+
+vanta/integration/fetch:
+  provider: 'vanta'
+  icon: '@logo/vanta.com'
+  name: Fetch Vanta Integration
+  description: Retrieve detailed information about a specific integration by ID.
+  tags:
+    - vanta
+    - integration
+    - fetch
+  instruction: |
+    ```fetch
+    method: GET
+    url: https://api.vanta.com/v1/integrations/$[integration_id! euc|the integration ID]
+    headers:
+      Authorization: ${SECRET_DEFAULT}
+      Accept: application/json
+    ```
+  secret: '@vanta'
+
+vanta/integration/create:
+  provider: 'vanta'
+  icon: '@logo/vanta.com'
+  name: Create Vanta Integration
+  description: Create a new integration to connect external services with Vanta for automated compliance monitoring.
+  tags:
+    - vanta
+    - integration
+    - create
+  instruction: |
+    ```fetch
+    method: POST
+    url: https://api.vanta.com/v1/integrations
+    headers:
+      Authorization: ${SECRET_DEFAULT}
+      Accept: application/json
+      Content-Type: application/json
+    body:
+      name: $[name! ys|integration name]
+      integration_type: $[integration_type! ys enum<aws,gcp,azure,github,slack,okta,custom>|type of integration]
+      description?: $[description ys?|integration description]
+      configuration: $[configuration! j|JSON object containing integration-specific configuration]
+    ```
+  secret: '@vanta'
+
+vanta/integration/update:
+  provider: 'vanta'
+  icon: '@logo/vanta.com'
+  name: Update Vanta Integration
+  description: Update an existing integration's configuration and settings.
+  tags:
+    - vanta
+    - integration
+    - update
+  instruction: |
+    ```fetch
+    method: PATCH
+    url: https://api.vanta.com/v1/integrations/$[integration_id! euc|the integration ID]
+    headers:
+      Authorization: ${SECRET_DEFAULT}
+      Accept: application/json
+      Content-Type: application/json
+    body:
+      name?: $[name ys?|integration name]
+      description?: $[description ys?|integration description]
+      configuration?: $[configuration j?|JSON object containing integration-specific configuration]
+      enabled?: $[enabled enum<true,false>|whether the integration is enabled]
+    ```
+  secret: '@vanta'
+
+vanta/integration/delete:
+  provider: 'vanta'
+  icon: '@logo/vanta.com'
+  name: Delete Vanta Integration
+  description: Remove an integration from your Vanta organization. This action cannot be undone.
+  tags:
+    - vanta
+    - integration
+    - delete
+  instruction: |
+    ```fetch
+    method: DELETE
+    url: https://api.vanta.com/v1/integrations/$[integration_id! euc|the integration ID]
+    headers:
+      Authorization: ${SECRET_DEFAULT}
+      Accept: application/json
+    ```
+  secret: '@vanta'
+
+# ---
+
+vanta/compliance/framework/list:
+  provider: 'vanta'
+  icon: '@logo/vanta.com'
+  name: List Compliance Frameworks
+  description: Retrieve a list of all compliance frameworks available in your Vanta organization.
+  tags:
+    - vanta
+    - compliance
+    - framework
+    - list
+  instruction: |
+    ```fetch
+    method: GET
+    url: https://api.vanta.com/v1/compliance/frameworks
+    headers:
+      Authorization: ${SECRET_DEFAULT}
+      Accept: application/json
+    ```
+  secret: '@vanta'
+
+vanta/compliance/control/list:
+  provider: 'vanta'
+  icon: '@logo/vanta.com'
+  name: List Compliance Controls
+  description: Retrieve a list of all compliance controls for a specific framework.
+  tags:
+    - vanta
+    - compliance
+    - control
+    - list
+  instruction: |
+    ```fetch
+    method: GET
+    url: https://api.vanta.com/v1/compliance/frameworks/$[framework_id! euc|the framework ID]/controls
+    headers:
+      Authorization: ${SECRET_DEFAULT}
+      Accept: application/json
+    query:
+      status?: $[status ys? enum<compliant,non_compliant,in_progress,not_applicable>|filter by control status]
+    ```
+  secret: '@vanta'
+
+vanta/compliance/evidence/list:
+  provider: 'vanta'
+  icon: '@logo/vanta.com'
+  name: List Compliance Evidence
+  description: Retrieve a list of all evidence items for compliance controls.
+  tags:
+    - vanta
+    - compliance
+    - evidence
+    - list
+  instruction: |
+    ```fetch
+    method: GET
+    url: https://api.vanta.com/v1/compliance/evidence
+    headers:
+      Authorization: ${SECRET_DEFAULT}
+      Accept: application/json
+    query:
+      control_id?: $[control_id ys?|filter by specific control ID]
+      evidence_type?: $[evidence_type ys? enum<document,screenshot,log,policy>|filter by evidence type]
+    ```
+  secret: '@vanta'
+
+# ---
+
+pack/vanta:
+  provider: 'vanta'
+  icon: '@logo/vanta.com'
+  name: Vanta Management Pack
+  description: |
+    Comprehensive Vanta management capabilities including vendor management,
+    resource ownership updates, integration management, and compliance tracking.
+    Enables automation of Vanta's compliance and security workflows.
+  tags:
+    - vanta
+    - pack
+    - compliance
+    - security
+  instruction: |
+    ```pack
+    backstory: |
+      You are a Vanta compliance and security management assistant with comprehensive access
+      to all Vanta operations. Use the available abilities to help manage vendors, update
+      resource information, configure integrations, and track compliance status.
+      
+      When asked to perform a task, you must:
+      1. Analyze the request thoroughly and determine the appropriate Vanta operations
+      2. Use the correct abilities in the proper sequence
+      3. Provide accurate and complete results with proper context
+      4. Handle errors gracefully and provide helpful guidance
+      5. Always verify operations completed successfully
+      
+      Focus on helping maintain compliance, manage vendor relationships,
+      and ensure proper resource ownership and documentation.
+    task: ((task! ys|the Vanta management task to perform))
+    abilities:
+      - vanta/auth/test
+      - vanta/vendor/list
+      - vanta/vendor/fetch
+      - vanta/vendor/create
+      - vanta/vendor/update
+      - vanta/vendor/delete
+      - vanta/vendor/document/list
+      - vanta/vendor/document/attach
+      - vanta/resource/list
+      - vanta/resource/fetch
+      - vanta/resource/update
+      - vanta/integration/list
+      - vanta/integration/fetch
+      - vanta/integration/create
+      - vanta/integration/update
+      - vanta/integration/delete
+      - vanta/compliance/framework/list
+      - vanta/compliance/control/list
+      - vanta/compliance/evidence/list
+    ```
+  secret: '@vanta'
+
+pack/vanta[vendor]:
+  provider: 'vanta'
+  icon: '@logo/vanta.com'
+  name: Vanta Vendor Management
+  description: |
+    Specialized pack for Vanta vendor management operations including creating,
+    updating, and documenting vendor relationships for compliance purposes.
+  tags:
+    - vanta
+    - vendor
+    - pack
+  instruction: |
+    ```pack
+    backstory: |
+      You are a vendor management specialist with access to Vanta's vendor
+      management capabilities. Help users manage their vendor relationships,
+      attach required documentation, and maintain compliance standards.
+      
+      Focus on:
+      - Creating and updating vendor profiles
+      - Managing vendor documentation and contracts
+      - Setting appropriate risk levels and classifications
+      - Ensuring all required vendor information is complete
+    task: ((task! ys|the vendor management task to perform))
+    abilities:
+      - vanta/auth/test
+      - vanta/vendor/list
+      - vanta/vendor/fetch
+      - vanta/vendor/create
+      - vanta/vendor/update
+      - vanta/vendor/delete
+      - vanta/vendor/document/list
+      - vanta/vendor/document/attach
+    ```
+  secret: '@vanta'
+
+pack/vanta[resource]:
+  provider: 'vanta'
+  icon: '@logo/vanta.com'
+  name: Vanta Resource Management
+  description: |
+    Specialized pack for managing resource ownership and descriptions in Vanta,
+    ensuring proper accountability and compliance documentation.
+  tags:
+    - vanta
+    - resource
+    - pack
+  instruction: |
+    ```pack
+    backstory: |
+      You are a resource management specialist focused on maintaining proper
+      resource ownership and documentation in Vanta. Help users update resource
+      information, assign owners, and ensure compliance requirements are met.
+      
+      Focus on:
+      - Updating resource owners and descriptions
+      - Setting appropriate criticality and classification levels
+      - Ensuring resources have proper business and technical ownership
+      - Maintaining accurate resource documentation
+    task: ((task! ys|the resource management task to perform))
+    abilities:
+      - vanta/auth/test
+      - vanta/resource/list
+      - vanta/resource/fetch
+      - vanta/resource/update
+    ```
+  secret: '@vanta'

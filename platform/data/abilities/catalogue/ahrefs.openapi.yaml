@@ -1,0 +1,150 @@
+# @see https://docs.ahrefs.com
+# @note this is a barebone OpenAPI spec for Ahrefs API
+# @todo replace with official spec when available
+openapi: 3.0.3
+info:
+  title: Ahrefs API
+  version: '3.0'
+  description: Ahrefs API for SEO and backlink analysis
+servers:
+  - url: https://api.ahrefs.com
+paths:
+  /v3/site-explorer/all-backlinks:
+    get:
+      operationId: getAllBacklinks
+      summary: Get all backlinks for a domain or URL
+      parameters:
+        - name: target
+          in: query
+          required: true
+          schema:
+            type: string
+          description: The domain or URL to analyze
+        - name: select
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Comma-separated list of columns to return
+        - name: mode
+          in: query
+          schema:
+            type: string
+            enum: [exact, domain, subdomains, prefix]
+            default: domain
+          description: Analysis mode
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 1000
+          description: Maximum number of results to return
+        - name: aggregation
+          in: query
+          schema:
+            type: string
+          description: Aggregation mode (e.g., 1_per_domain)
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BacklinksResponse'
+              example:
+                backlinks:
+                  - url_from: https://example.com/page
+                    anchor: Example Link
+                    title: Example Page Title
+                    ahrefs_rank: 1000
+                  - url_from: https://another.com/article
+                    anchor: Another Link
+                    title: Another Article
+                    ahrefs_rank: 2000
+  /v3/site-explorer/refdomains:
+    get:
+      operationId: getReferringDomains
+      summary: Get referring domains containing backlinks
+      parameters:
+        - name: target
+          in: query
+          required: true
+          schema:
+            type: string
+          description: The domain or URL to analyze
+        - name: select
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Comma-separated list of columns to return
+        - name: mode
+          in: query
+          schema:
+            type: string
+            enum: [exact, domain, subdomains, prefix]
+            default: domain
+          description: Analysis mode
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 1000
+          description: Maximum number of results to return
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RefDomainsResponse'
+              example:
+                refdomains:
+                  - domain_from: example.com
+                    domain_rating: 75
+                    backlinks: 150
+                  - domain_from: another.com
+                    domain_rating: 60
+                    backlinks: 80
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+  schemas:
+    Backlink:
+      type: object
+      properties:
+        url_from:
+          type: string
+        anchor:
+          type: string
+        title:
+          type: string
+        ahrefs_rank:
+          type: integer
+    BacklinksResponse:
+      type: object
+      properties:
+        backlinks:
+          type: array
+          items:
+            $ref: '#/components/schemas/Backlink'
+    RefDomain:
+      type: object
+      properties:
+        domain_from:
+          type: string
+        domain_rating:
+          type: integer
+        backlinks:
+          type: integer
+    RefDomainsResponse:
+      type: object
+      properties:
+        refdomains:
+          type: array
+          items:
+            $ref: '#/components/schemas/RefDomain'
+security:
+  - bearerAuth: []

@@ -1,0 +1,1027 @@
+# @see https://docs.matillion.com/data-productivity-cloud/api/public-api-endpoint-reference/
+# @note this is a minimal OpenAPI spec for Matillion Data Productivity Cloud API
+openapi: 3.0.3
+info:
+  title: Matillion Data Productivity Cloud API
+  version: '1.0'
+  description: Matillion Data Productivity Cloud Public API
+servers:
+  - url: https://eu1.api.matillion.com/dpc/v1
+paths:
+  /projects:
+    get:
+      operationId: listProjects
+      summary: List all projects
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          schema:
+            type: integer
+            default: 25
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectListResponse'
+    post:
+      operationId: createProject
+      summary: Create a new project
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateProjectRequest'
+      responses:
+        '201':
+          description: Project created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+  /projects/{projectId}:
+    delete:
+      operationId: deleteProject
+      summary: Delete a project
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Project deleted
+  /projects/{projectId}/environments:
+    get:
+      operationId: listEnvironments
+      summary: List environments for a project
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          schema:
+            type: integer
+            default: 25
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnvironmentListResponse'
+  /projects/{projectId}/environments/{environmentName}:
+    delete:
+      operationId: deleteEnvironment
+      summary: Delete an environment
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: environmentName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Environment deleted
+  /projects/{projectId}/published-pipelines:
+    get:
+      operationId: listPublishedPipelines
+      summary: List published pipelines
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: environmentName
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          schema:
+            type: integer
+            default: 25
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PipelineListResponse'
+  /projects/{projectId}/pipeline-executions:
+    post:
+      operationId: executePipeline
+      summary: Execute a pipeline
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExecutePipelineRequest'
+      responses:
+        '202':
+          description: Pipeline execution started
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PipelineExecution'
+  /projects/{projectId}/pipeline-executions/{pipelineExecutionId}:
+    get:
+      operationId: getPipelineExecution
+      summary: Get pipeline execution status
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: pipelineExecutionId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PipelineExecution'
+    patch:
+      operationId: updatePipelineExecution
+      summary: Update pipeline execution (cancel)
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: pipelineExecutionId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateExecutionRequest'
+      responses:
+        '200':
+          description: Execution updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PipelineExecution'
+  /pipeline-executions:
+    get:
+      operationId: listPipelineExecutions
+      summary: List pipeline executions
+      parameters:
+        - name: projectId
+          in: query
+          schema:
+            type: string
+        - name: pipelineName
+          in: query
+          schema:
+            type: string
+        - name: environmentName
+          in: query
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [RUNNING, SUCCESS, FAILED, CANCELLING, CANCELLED, UNKNOWN]
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 25
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExecutionListResponse'
+  /projects/{projectId}/schedules:
+    get:
+      operationId: listSchedules
+      summary: List schedules for a project
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          schema:
+            type: integer
+            default: 25
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScheduleListResponse'
+    post:
+      operationId: createSchedule
+      summary: Create a new schedule
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateScheduleRequest'
+      responses:
+        '201':
+          description: Schedule created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Schedule'
+  /projects/{projectId}/schedules/{scheduleId}:
+    get:
+      operationId: getSchedule
+      summary: Get schedule details
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: scheduleId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Schedule'
+    patch:
+      operationId: updateSchedule
+      summary: Update a schedule
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: scheduleId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateScheduleRequest'
+      responses:
+        '200':
+          description: Schedule updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Schedule'
+    delete:
+      operationId: deleteSchedule
+      summary: Delete a schedule
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: scheduleId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Schedule deleted
+  /agents:
+    get:
+      operationId: listAgents
+      summary: List all agents
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          schema:
+            type: integer
+            default: 25
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentListResponse'
+    post:
+      operationId: createAgent
+      summary: Create a new agent
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAgentRequest'
+      responses:
+        '201':
+          description: Agent created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Agent'
+  /agents/{agentId}:
+    get:
+      operationId: getAgent
+      summary: Get agent details
+      parameters:
+        - name: agentId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Agent'
+    patch:
+      operationId: updateAgent
+      summary: Update an agent
+      parameters:
+        - name: agentId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateAgentRequest'
+      responses:
+        '200':
+          description: Agent updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Agent'
+    delete:
+      operationId: deleteAgent
+      summary: Delete an agent
+      parameters:
+        - name: agentId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Agent deleted
+  /agents/{agentId}/commands:
+    post:
+      operationId: sendAgentCommand
+      summary: Send command to agent
+      parameters:
+        - name: agentId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AgentCommandRequest'
+      responses:
+        '200':
+          description: Command sent
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentCommandResponse'
+  /events:
+    get:
+      operationId: listAuditEvents
+      summary: List audit events
+      parameters:
+        - name: from
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date-time
+        - name: to
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date-time
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          schema:
+            type: integer
+            default: 25
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuditEventListResponse'
+  /consumption:
+    get:
+      operationId: getConsumption
+      summary: Get consumption breakdown
+      parameters:
+        - name: consumedFrom
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: consumedBefore
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConsumptionResponse'
+  /projects/{projectId}/artifacts:
+    get:
+      operationId: listArtifacts
+      summary: List artifacts
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: environmentName
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: enabledOnly
+          in: query
+          schema:
+            type: boolean
+            default: true
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          schema:
+            type: integer
+            default: 25
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ArtifactListResponse'
+  /projects/{projectId}/artifacts/details:
+    get:
+      operationId: getArtifact
+      summary: Get artifact details
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: environmentName
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: versionName
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Artifact'
+  /projects/{projectId}/artifacts/promotions:
+    post:
+      operationId: promoteArtifact
+      summary: Promote artifact
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PromoteArtifactRequest'
+      responses:
+        '200':
+          description: Artifact promoted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ArtifactPromotion'
+  /custom-connectors:
+    get:
+      operationId: listCustomConnectors
+      summary: List custom connectors
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomConnectorListResponse'
+  /lineage/events:
+    get:
+      operationId: listLineageEvents
+      summary: List lineage events
+      parameters:
+        - name: generatedFrom
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date-time
+        - name: generatedBefore
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date-time
+        - name: page
+          in: query
+          required: true
+          schema:
+            type: integer
+        - name: size
+          in: query
+          schema:
+            type: integer
+            default: 100
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LineageEventListResponse'
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+  schemas:
+    Project:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        warehouse:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+    ProjectListResponse:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Project'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+    CreateProjectRequest:
+      type: object
+      required:
+        - name
+        - warehouse
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        warehouse:
+          type: string
+          enum: [SNOWFLAKE, REDSHIFT]
+        agentDeploymentType:
+          type: string
+          enum: [HYBRID]
+    Environment:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+    EnvironmentListResponse:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Environment'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+    Pipeline:
+      type: object
+      properties:
+        name:
+          type: string
+        type:
+          type: string
+    PipelineListResponse:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Pipeline'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+    ExecutePipelineRequest:
+      type: object
+      required:
+        - pipelineName
+        - environmentName
+      properties:
+        pipelineName:
+          type: string
+        environmentName:
+          type: string
+        versionName:
+          type: string
+        agentId:
+          type: string
+        executionTag:
+          type: string
+    PipelineExecution:
+      type: object
+      properties:
+        executionId:
+          type: string
+        status:
+          type: string
+          enum: [RUNNING, SUCCESS, FAILED, CANCELLING, CANCELLED, UNKNOWN]
+        pipelineName:
+          type: string
+        environmentName:
+          type: string
+    UpdateExecutionRequest:
+      type: object
+      properties:
+        status:
+          type: string
+        forceUpdate:
+          type: boolean
+    ExecutionListResponse:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/PipelineExecution'
+    Schedule:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        cronExpression:
+          type: string
+        scheduleEnabled:
+          type: boolean
+    ScheduleListResponse:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Schedule'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+    CreateScheduleRequest:
+      type: object
+      properties:
+        pipeline:
+          type: object
+          properties:
+            pipelineName:
+              type: string
+            environmentName:
+              type: string
+            versionName:
+              type: string
+            agentId:
+              type: string
+        schedule:
+          type: object
+          properties:
+            name:
+              type: string
+            cronExpression:
+              type: string
+            cronTimezone:
+              type: string
+            scheduleEnabled:
+              type: boolean
+    UpdateScheduleRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        cronExpression:
+          type: string
+        cronTimezone:
+          type: string
+        scheduleEnabled:
+          type: boolean
+    Agent:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+        agentType:
+          type: string
+        cloudProvider:
+          type: string
+    AgentListResponse:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Agent'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+    CreateAgentRequest:
+      type: object
+      required:
+        - name
+        - agentType
+        - cloudProvider
+        - deployment
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        agentType:
+          type: string
+          enum: [data_productivity_cloud, streaming]
+        cloudProvider:
+          type: string
+          enum: [aws, azure, snowflake, gcp]
+        deployment:
+          type: string
+        trackName:
+          type: string
+          enum: [current, stable]
+        enableAutoUpdates:
+          type: boolean
+        restrictedAccess:
+          type: boolean
+    UpdateAgentRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        trackName:
+          type: string
+          enum: [CURRENT, STABLE]
+        enableAutoUpdates:
+          type: boolean
+        restrictedAccess:
+          type: boolean
+    AgentCommandRequest:
+      type: object
+      required:
+        - command
+      properties:
+        command:
+          type: string
+          enum: [RESTART, PAUSE, RESUME]
+    AgentCommandResponse:
+      type: object
+      properties:
+        status:
+          type: string
+    AuditEvent:
+      type: object
+      properties:
+        eventId:
+          type: string
+        eventType:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+    AuditEventListResponse:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/AuditEvent'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+    ConsumptionResponse:
+      type: object
+      properties:
+        breakdown:
+          type: array
+          items:
+            type: object
+            properties:
+              product:
+                type: string
+              credits:
+                type: number
+    Artifact:
+      type: object
+      properties:
+        versionName:
+          type: string
+        pipelineCount:
+          type: integer
+    ArtifactListResponse:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Artifact'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+    PromoteArtifactRequest:
+      type: object
+      required:
+        - versionName
+        - sourceEnvironmentName
+        - targetEnvironmentName
+      properties:
+        versionName:
+          type: string
+        sourceEnvironmentName:
+          type: string
+        targetEnvironmentName:
+          type: string
+    ArtifactPromotion:
+      type: object
+      properties:
+        status:
+          type: string
+    CustomConnector:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+    CustomConnectorListResponse:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/CustomConnector'
+    LineageEvent:
+      type: object
+      properties:
+        eventId:
+          type: string
+        eventType:
+          type: string
+    LineageEventListResponse:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/LineageEvent'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+    PaginationMeta:
+      type: object
+      properties:
+        page:
+          type: integer
+        size:
+          type: integer
+        totalElements:
+          type: integer
+        totalPages:
+          type: integer
+security:
+  - BearerAuth: []

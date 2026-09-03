@@ -1,0 +1,43 @@
+description: |
+  This prompt is used to extract contact details such as the name and email address from a conversation.
+prompt: |-
+  Extract the contact details, such as the name and email address and detailed conversation summary, in the specified json format.
+
+  JSON Format:
+  {"name": "string", "email": "string", "summary": "string"}
+
+  Example 1:
+  ###
+  <|user|>
+  How is it going? I need help with ChatBotKit?
+  <|bot|>
+  What is your name and email?
+  <|user|>
+  My name is Bob and my email address is bob@bob.com
+  ###
+  response: {"name": "Bob", "email": "bob@bob.com", "summary": "Bob is asking for information about ChatBotKit."}
+
+  Example 2:
+  ###
+  <|user|>
+  I need help with your product. I need to know how to integrate it with Slack.
+  <|bot|>
+  In order to help you I need to know how to contact you.
+  <|user|>
+  Yes my name is John Freddy.
+  <|bot|>
+  Hi John. What is your email?
+  <|user|>
+  My email is john.freddy@gmail.com
+  ###
+  response: {"name": "John Freddy", "email": "john.freddy@gmail.com", "summary": "John needs help with the product. He needs to know how to integrate it with Slack."}
+
+  Real:
+  ###
+  {conversation}
+  ###
+  response:
+model: gpt-4o/temperature=0.7
+stop:
+  - "\n"
+output: 'json'

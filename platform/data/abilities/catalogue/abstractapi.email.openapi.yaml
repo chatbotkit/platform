@@ -1,0 +1,99 @@
+# @see https://www.abstractapi.com/api/email-validation-api#docs
+# @note this is a barebone OpenAPI spec for Abstract API Email Validation
+# @todo replace with official spec when available
+openapi: 3.0.3
+info:
+  title: Abstract API Email Validation
+  version: '1.0'
+  description: Email validation and verification API
+servers:
+  - url: https://emailvalidation.abstractapi.com
+paths:
+  /v1:
+    get:
+      operationId: validateEmail
+      parameters:
+        - name: api_key
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: email
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: auto_correct
+          in: query
+          schema:
+            type: boolean
+            default: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmailValidationResponse'
+components:
+  schemas:
+    EmailValidationResponse:
+      type: object
+      properties:
+        email:
+          type: string
+        autocorrect:
+          type: string
+        deliverability:
+          type: string
+        quality_score:
+          type: number
+        is_valid_format:
+          type: object
+          properties:
+            value:
+              type: boolean
+            text:
+              type: string
+        is_free_email:
+          type: object
+          properties:
+            value:
+              type: boolean
+            text:
+              type: string
+        is_disposable_email:
+          type: object
+          properties:
+            value:
+              type: boolean
+            text:
+              type: string
+        is_role_email:
+          type: object
+          properties:
+            value:
+              type: boolean
+            text:
+              type: string
+        is_catchall_email:
+          type: object
+          properties:
+            value:
+              type: boolean
+            text:
+              type: string
+        is_mx_found:
+          type: object
+          properties:
+            value:
+              type: boolean
+            text:
+              type: string
+        is_smtp_valid:
+          type: object
+          properties:
+            value:
+              type: boolean
+            text:
+              type: string

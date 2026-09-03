@@ -1,0 +1,9 @@
+{
+  "start": "/apps/f49c75da",
+  "name": "Integrations",
+  "description": "View and manage your integrations",
+  "icon": "@lucide/blocks",
+  "order": 31,
+  "category": "admin",
+  "config": {}
+}

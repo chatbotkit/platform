@@ -1,0 +1,40 @@
+description: |
+  This prompt identifies search intent. It is used for detecting if we need to perform a vector search.
+prompt: |-
+  Determine whether the conversation below includes a request for additional information. If so, identify the search term related to the user's inquiry. If the conversation is purely casual, output "none".
+
+  Apply the following rules:
+  - Always prioritize the user prompt over the conversation.
+  - Ignore any conversation log that is not directly related to the user prompt.
+  - Only attempt to answer if a question was posed.
+  - The question should be a single sentence.
+  - You should remove any punctuation from the question.
+  - You should remove any words that are not relevant to the question.
+  - If you are unable to formulate a question, respond with none.
+
+  Example 1:
+  ###
+  <|bot|>
+  There are many different shades of grey.
+  <|user|>
+  I love this color
+  ###
+  search: none
+
+  Example 2:
+  ###
+  <|bot|>
+  There are many different shades of grey.
+  <|user|>
+  How much does it cost
+  ###
+  search: pricing information, cost, plans
+
+  Real:
+  ###
+  {conversation}
+  ###
+  search:
+model: gpt-3.5-turbo/temperature=0.7
+stop:
+  - "\n"

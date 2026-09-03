@@ -1,0 +1,39 @@
+{
+  "name": "platform",
+  "version": "0.0.0",
+  "private": true,
+  "license": "Apache-2.0",
+  "packageManager": "pnpm@11.24.0",
+  "engines": {
+    "node": ">=24.20.0",
+    "pnpm": ">=11.24.0 <12.0.0"
+  },
+  "scripts": {
+    "build": "turbo run build",
+    "check": "turbo run check",
+    "clean": "turbo run clean",
+    "format": "run-p format:*",
+    "format:00-all": "turbo run format",
+    "format:01-package": "format-package -w",
+    "format:02-prettier": "prettier -w .",
+    "lint": "turbo run lint",
+    "test": "turbo run test"
+  },
+  "dependencies": {
+    "@chatbotkit-dev/eslint-config": "workspace:*",
+    "@eslint/eslintrc": "^3.3.6",
+    "@trivago/prettier-plugin-sort-imports": "^4.3.0",
+    "@tsconfig/recommended": "^1.0.2",
+    "@types/node": "^24.0.0",
+    "dotenv": "^16.0.3",
+    "eslint": "^9.0.0",
+    "format-package": "^7.0.0",
+    "npm-run-all2": "^9.0.3",
+    "prettier": "^2.8.7",
+    "rimraf": "^5.0.5",
+    "ts-node": "^10.9.1",
+    "tsconfig-paths": "^4.2.0",
+    "turbo": "^2.10.12",
+    "typescript": "npm:@typescript/typescript6@^6.0.2"
+  }
+}

@@ -1,0 +1,6 @@
+- question: What are retention policies?
+  answer: Retention policies automatically manage the lifecycle of your conversations by setting expiration dates based on configurable rules. This helps you maintain data hygiene and comply with data retention requirements.
+- question: How do retention policies work?
+  answer: When a conversation becomes idle, the system checks for active retention policies in your account. If a matching policy is found, it sets an expiration date on the conversation based on the policy configuration.
+- question: Can I have multiple policies?
+  answer: Yes, you can create multiple policies with different configurations. Policies are evaluated in order, and the first matching policy will be applied to eligible conversations.

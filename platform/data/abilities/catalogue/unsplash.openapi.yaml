@@ -1,0 +1,316 @@
+# @see https://unsplash.com/documentation
+# @note this is a barebone OpenAPI spec for Unsplash API
+# @todo replace with official spec when available
+openapi: 3.0.3
+info:
+  title: Unsplash API
+  version: '1.0'
+  description: Unsplash API for accessing high-quality, free-to-use photos
+servers:
+  - url: https://api.unsplash.com
+paths:
+  /search/photos:
+    get:
+      operationId: searchPhotos
+      description: Search for photos by query
+      parameters:
+        - name: query
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+            default: 10
+            maximum: 30
+        - name: orientation
+          in: query
+          schema:
+            type: string
+            enum: [landscape, portrait, squarish]
+        - name: color
+          in: query
+          schema:
+            type: string
+            enum:
+              [
+                black_and_white,
+                black,
+                white,
+                yellow,
+                orange,
+                red,
+                purple,
+                magenta,
+                green,
+                teal,
+                blue,
+              ]
+        - name: content_filter
+          in: query
+          schema:
+            type: string
+            enum: [low, high]
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchPhotosResponse'
+  /photos/{id}:
+    get:
+      operationId: getPhoto
+      description: Get a specific photo by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Photo'
+  /photos/random:
+    get:
+      operationId: getRandomPhoto
+      description: Get a random photo
+      parameters:
+        - name: query
+          in: query
+          schema:
+            type: string
+        - name: orientation
+          in: query
+          schema:
+            type: string
+            enum: [landscape, portrait, squarish]
+        - name: content_filter
+          in: query
+          schema:
+            type: string
+            enum: [low, high]
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Photo'
+  /collections:
+    get:
+      operationId: listCollections
+      description: Get a list of collections
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+            default: 10
+            maximum: 30
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Collection'
+  /collections/{id}:
+    get:
+      operationId: getCollection
+      description: Get a specific collection by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Collection'
+components:
+  securitySchemes:
+    clientId:
+      type: apiKey
+      in: header
+      name: Authorization
+  schemas:
+    SearchPhotosResponse:
+      type: object
+      properties:
+        total:
+          type: integer
+        total_pages:
+          type: integer
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Photo'
+    Photo:
+      type: object
+      properties:
+        id:
+          type: string
+        created_at:
+          type: string
+        updated_at:
+          type: string
+        width:
+          type: integer
+        height:
+          type: integer
+        color:
+          type: string
+        blur_hash:
+          type: string
+        downloads:
+          type: integer
+        likes:
+          type: integer
+        liked_by_user:
+          type: boolean
+        description:
+          type: string
+        alt_description:
+          type: string
+        urls:
+          $ref: '#/components/schemas/PhotoUrls'
+        links:
+          $ref: '#/components/schemas/PhotoLinks'
+        user:
+          $ref: '#/components/schemas/User'
+    PhotoUrls:
+      type: object
+      properties:
+        raw:
+          type: string
+        full:
+          type: string
+        regular:
+          type: string
+        small:
+          type: string
+        thumb:
+          type: string
+    PhotoLinks:
+      type: object
+      properties:
+        self:
+          type: string
+        html:
+          type: string
+        download:
+          type: string
+        download_location:
+          type: string
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+        username:
+          type: string
+        name:
+          type: string
+        portfolio_url:
+          type: string
+        bio:
+          type: string
+        location:
+          type: string
+        total_likes:
+          type: integer
+        total_photos:
+          type: integer
+        total_collections:
+          type: integer
+        profile_image:
+          $ref: '#/components/schemas/ProfileImage'
+        links:
+          $ref: '#/components/schemas/UserLinks'
+    ProfileImage:
+      type: object
+      properties:
+        small:
+          type: string
+        medium:
+          type: string
+        large:
+          type: string
+    UserLinks:
+      type: object
+      properties:
+        self:
+          type: string
+        html:
+          type: string
+        photos:
+          type: string
+        likes:
+          type: string
+        portfolio:
+          type: string
+    Collection:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        published_at:
+          type: string
+        updated_at:
+          type: string
+        curated:
+          type: boolean
+        featured:
+          type: boolean
+        total_photos:
+          type: integer
+        private:
+          type: boolean
+        share_key:
+          type: string
+        cover_photo:
+          $ref: '#/components/schemas/Photo'
+        user:
+          $ref: '#/components/schemas/User'
+        links:
+          $ref: '#/components/schemas/CollectionLinks'
+    CollectionLinks:
+      type: object
+      properties:
+        self:
+          type: string
+        html:
+          type: string
+        photos:
+          type: string
+        related:
+          type: string
+security:
+  - clientId: []

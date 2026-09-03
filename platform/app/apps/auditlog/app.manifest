@@ -1,0 +1,9 @@
+{
+  "start": "/apps/auditlog",
+  "name": "Audit Logs",
+  "description": "Audit log analysis and viewing tool.",
+  "icon": "@lucide/shield-check",
+  "order": 1002,
+  "category": "developer",
+  "config": {}
+}

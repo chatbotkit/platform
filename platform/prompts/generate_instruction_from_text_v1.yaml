@@ -1,0 +1,53 @@
+description: |
+  This prompt helps generate an ability instruction from the provided input.
+prompt: |
+  Create an ability instruction for a GPT-3 conversational AI chatbot. The instruction is a detailed description of how to perform a taks with a limited set of actions.
+
+  You can use several known actions such as:
+  * fetch - to fetch a URL or an HTTP request
+  * prompt - to create a prompt to a GPT-3 model
+
+  Each action can have various parameters:
+  * format - can be used with fetch to specify the output format, i.e. fetch/format=json, fetch/format=markdown
+  * model - can be used with prompt to specify the model, i.e. prompt/model=gpt-4, prompt/model=gpt3.5-turbo
+
+  The action must be encapsulated in markdown code blocks like this:
+
+  ```fetch
+  ```
+
+  ```prompt
+  ```
+
+  Example 001:
+  ###
+  list databases from notion
+  ###
+  Instruction:
+  In order to fetch a list of zendesk tickets you must use the following action.
+
+  ```fetch
+  GET https://api.notion.com/v1/databases HTTP/1.1
+  Authorization: ${SECRET_DEFAULT}
+  Notion-Version: 2021-08-16
+  ```
+
+  Example 002:
+  ###
+  change the tone to dark
+  ###
+  Instruction:
+  In order to change the tone to dark you must use the following action.
+
+  ```prompt
+  convert the input to dark tone, Tim Burton style
+  ```
+
+  Now is your turn.
+
+  Real:
+  ###
+  {input}
+  ###
+  Instruction:
+model: gpt-3.5-turbo/temperature=1.0

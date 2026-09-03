@@ -1,0 +1,166 @@
+openapi: 3.0.3
+info:
+  title: RevenueCat REST API
+  description: RevenueCat subscription management API
+  version: '2.0'
+servers:
+  - url: https://api.revenuecat.com
+    description: Production server
+security:
+  - bearerAuth: []
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+  schemas:
+    Customer:
+      type: object
+      properties:
+        id:
+          type: string
+        attributes:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              value:
+                type: string
+    Subscriber:
+      type: object
+      properties:
+        original_app_user_id:
+          type: string
+        first_seen:
+          type: string
+        subscriptions:
+          type: object
+        entitlements:
+          type: object
+    Subscription:
+      type: object
+      properties:
+        id:
+          type: string
+        customer_id:
+          type: string
+        product_id:
+          type: string
+        status:
+          type: string
+        environment:
+          type: string
+    SubscriptionList:
+      type: object
+      properties:
+        subscriptions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Subscription'
+paths:
+  /v1/subscribers/{appUserId}:
+    get:
+      summary: Get customer information
+      operationId: getCustomerInfo
+      parameters:
+        - name: appUserId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Customer information
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  subscriber:
+                    $ref: '#/components/schemas/Subscriber'
+  /v2/projects/{projectId}/customers:
+    post:
+      summary: Create a new customer
+      operationId: createCustomer
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Customer'
+      responses:
+        '201':
+          description: Customer created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Customer'
+  /v2/projects/{projectId}/customers/{customerId}/subscriptions:
+    get:
+      summary: List customer subscriptions
+      operationId: listCustomerSubscriptions
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: customerId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: environment
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [sandbox, production]
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 20
+        - name: starting_after
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of subscriptions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubscriptionList'
+  /v2/projects/{projectId}/subscriptions/{subscriptionId}:
+    get:
+      summary: Get subscription details
+      operationId: getSubscription
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: subscriptionId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Subscription details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subscription'

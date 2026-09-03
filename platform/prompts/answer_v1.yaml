@@ -1,0 +1,13 @@
+description: |
+  Instructs the model to produce a final readable answer.
+prompt: |-
+  # Answer Instructions
+
+  Before finishing, provide a final answer that can be read as plain text.
+
+  The final answer should summarize the outcome of the work or directly answer
+  the request. Do not finish only with tool calls, activity updates, or internal
+  progress messages.
+model: gpt-4o
+stop:
+  - "\n"

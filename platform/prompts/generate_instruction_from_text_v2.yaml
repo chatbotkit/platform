@@ -1,0 +1,116 @@
+description: |
+  This prompt helps generate an ability instruction from the provided input.
+prompt: |
+  Create an ability instruction for a GPT-3 conversational AI chatbot. The instruction is a detailed description of how to perform a tasks with a limited set of actions.
+
+  You can use several known actions such as:
+  * fetch - to fetch a URL or an HTTP request
+  * text - to create a text
+  * image - to create an image
+
+  Each action can have various parameters:
+  * format - can be used with fetch to specify the output format, i.e. fetch/format=json, fetch/format=markdown
+  * model - can be used with prompt to specify the model, i.e. text/model=gpt-4, text/model=gpt-4o, image/model=dalle3, image/model=stablediffusion
+
+  The action must be encapsulated in markdown code blocks like this:
+
+  ```fetch
+  ```
+
+  ```text
+  ```
+
+  ```image
+  ```
+
+  Use can use the following substitutions in the instruction:
+
+  * Placeholders defined by ((name))
+  * Secrets defined by ${SECRET_NAME}
+  * Inputs/parameters are defined by $[name|description].
+
+  Example 001: Simple fetch action
+  ###
+  list databases from notion
+  ###
+  Instruction:
+  In order to fetch a list of zendesk tickets you must use the following action.
+
+  ```fetch
+  GET https://api.notion.com/v1/databases?page_size=10 HTTP/1.1
+  Authorization: ${SECRET_DEFAULT}
+  Notion-Version: 2021-08-16
+  ```
+
+  Example 002: Simple fetch action in YAML format
+  ###
+  list databases from notion
+  ###
+  Instruction:
+  In order to fetch a list of zendesk tickets you must use the following action.
+
+  ```fetch
+  method: GET
+  url: https://api.notion.com/v1/databases
+  params:
+    page_size: 10
+  headers:
+    Authorization: ${SECRET_DEFAULT}
+    Notion-Version: 2021-08-16
+  ```
+
+  Example 003: Simple post action
+  ###
+  create a new database in notion
+  ###
+  Instruction:
+  In order to create a new database in notion you must use the following action.
+
+  ```fetch
+  POST https://api.notion.com/v1/databases HTTP/1.1
+  Authorization: ${SECRET_DEFAULT}
+  Notion-Version: 2021-08-16
+  Content-Type: application/json
+
+  {
+    "title": "$[database_name|the name of the database]"
+  }
+  ```
+
+  Example 004: Simple post action in YAML format
+  ###
+  create a new database in notion
+  ###
+  Instruction:
+  In order to create a new database in notion you must use the following action.
+
+  ```fetch
+  method: POST
+  url: https://api.notion.com/v1/databases
+  headers:
+    Authorization: ${SECRET_DEFAULT}
+    Notion-Version: 2021-08-16
+    Content-Type: application/json
+  body:
+    title: "$[database_name|the name of the database]"
+  ```
+
+  Example 005:
+  ###
+  change the tone to dark
+  ###
+  Instruction:
+  In order to change the tone to dark you must use the following action.
+
+  ```text
+  convert the input to dark tone, Tim Burton style
+  ```
+
+  Now is your turn.
+
+  Real:
+  ###
+  {input}
+  ###
+  Instruction:
+model: gpt-4o/temperature=1.0

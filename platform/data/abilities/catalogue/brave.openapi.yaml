@@ -1,0 +1,92 @@
+# @see https://brave.com/search/api/
+# @note this is a barebone OpenAPI spec for Brave Search API
+# @todo replace with official spec when available
+openapi: 3.0.3
+info:
+  title: Brave Search API
+  version: '1.0'
+  description: Brave Search API for web search
+servers:
+  - url: https://api.search.brave.com/res/v1
+paths:
+  /web/search:
+    get:
+      operationId: webSearch
+      summary: Search the web
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Search query
+        - name: country
+          in: query
+          schema:
+            type: string
+          description: Country code for search results
+        - name: search_lang
+          in: query
+          schema:
+            type: string
+          description: Language for search results
+        - name: count
+          in: query
+          schema:
+            type: integer
+            default: 10
+          description: Number of results to return
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+          description: Pagination offset
+      responses:
+        '200':
+          description: Successful search response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchResponse'
+        '400':
+          description: Bad request
+        '401':
+          description: Unauthorized
+        '429':
+          description: Rate limit exceeded
+components:
+  securitySchemes:
+    SubscriptionToken:
+      type: apiKey
+      in: header
+      name: X-Subscription-Token
+  schemas:
+    SearchResponse:
+      type: object
+      properties:
+        query:
+          type: object
+          properties:
+            original:
+              type: string
+        web:
+          type: object
+          properties:
+            results:
+              type: array
+              items:
+                $ref: '#/components/schemas/WebResult'
+    WebResult:
+      type: object
+      properties:
+        title:
+          type: string
+        url:
+          type: string
+        description:
+          type: string
+        age:
+          type: string
+security:
+  - SubscriptionToken: []

@@ -1,0 +1,14 @@
+# This query fetches template blueprints from all related accounts, i.e. other
+# accounts that share the same parent organization as the current account.
+
+query templateBlueprints {
+  relatedBlueprints(last: 100, visibility: [protected]) {
+    edges {
+      node {
+        id
+        name
+        description
+      }
+    }
+  }
+}

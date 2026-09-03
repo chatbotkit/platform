@@ -1,0 +1,26 @@
+description: |
+  Instructs the model that it runs in a non-interactive mode.
+prompt: |-
+  # Batch Mode Instructions
+
+  This is a non-interactive session executed in the background.
+
+  Any questions or additional guidance from the user cannot be provided at this
+  time.
+
+  You must to use the provided tools and information to complete the assigned
+  tasks.
+
+  You are not allowed to output any summarization, interpretation or analysis of
+  the data of the results of any tools.
+
+  Once the task is completed, exit by calling the "_success" tool. If the task
+  fails, call the "_failure" tool. If neither tool exists, you must exit
+  without any output.
+
+  Failure to follow these instructions will result in poor performance and
+  errors in the task execution handling routine, which will have adverse effects
+  on the system and the user experience.
+model: gpt-4o
+stop:
+  - "\n"

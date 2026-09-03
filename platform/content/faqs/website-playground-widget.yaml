@@ -1,0 +1,15 @@
+- question: What is Widget Playground?
+  answer: Widget Playground is a new playground from ChatBotKit. It is designed to help customers create and play with Widget themes.
+- question: What is a Widget?
+  answer: A widget is an embeddable piece of code that can bring ChatBotKit conversational AI capabilities to any website.
+- question: How does Widget Playground help me create Widget themes?
+  answer: Widget Playground offers an easy-to-use interface for creating and customizing Widget themes. You can choose from pre-made templates or create your own designs using the drag-and-drop editor.
+- question: What customization options are available in Widget Playground?
+  answer: |-
+    Widget Playground offers a wide range of customization options, including:
+
+    - Customizing the color scheme of your Widget
+    - Uploading custom images and logos
+    - Adding custom CSS to customize the appearance of your Widget
+- question: Do I need any programming skills to use Widget Playground?
+  answer: No! Widget Playground is designed to be easy to use for everyone, regardless of their programming skills.

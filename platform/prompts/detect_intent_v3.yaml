@@ -1,0 +1,43 @@
+description: |
+  This prompt detects the user's intent.
+prompt: |-
+  Determine whether the conversation below includes a request for action. If so, respond with the action name and input in json format.
+
+  The following actions are available:
+  {manifest}
+
+  Apply the following rules:
+  * The response is a json structure.
+  * Always prioritize the user prompt over the conversation.
+  * Ignore any conversation log that is not directly related to the user prompt.
+  * Only attempt to respond if a question or a request for action was posed.
+  * Only use available actions.
+  * If you found an action, output the action name and input `{ "action": { "name": "...", "input": "..." } }`.
+  * If unable to formulate a response, output `{ "action": null }`.
+
+  Example 1:
+  ###
+  <|bot|>
+  There are many different shades of grey.
+  <|user|>
+  I love this color.
+  ###
+  response: { "action": null }
+
+  Example 2:
+  ###
+  <|bot|>
+  There are many different shades of grey.
+  <|user|>
+  How much does it cost?
+  ###
+  response: { "action": { "name": "search", "input": "pricing information" } }
+
+  Real:
+  ###
+  {conversation}
+  ###
+  response:
+model: gpt-3.5-turbo-instruct/temperature=0.7/frequencyPenalty=1/presencePenalty=1
+stop:
+  - "\n"

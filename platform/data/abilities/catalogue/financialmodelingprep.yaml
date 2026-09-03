@@ -1,0 +1,61 @@
+financialmodelingprep/quote/order/fetch:
+  provider: 'financialmodelingprep'
+  icon: '@logo/financialmodelingprep.com'
+  name: Fetch Order Quote
+  description: Gives a simplified view of a stock's quote, including the current price, volume, and last trade price.
+  instruction: |
+    ```fetch
+    method: POST
+    url: /api/auxiliary/skillset/ability/financialmodelingprep/proxy
+    headers:
+      X-Access-Token: ${SECRET_DEFAULT}
+      Content-Type: application/json
+    body:
+      method: GET
+      url: /api/v3/quote-order/$[symbol euc|Symbol]
+    options:
+      auth: internal
+    ```
+  secret: '@financialmodelingprep'
+
+financialmodelingprep/profile/fetch:
+  provider: 'financialmodelingprep'
+  icon: '@logo/financialmodelingprep.com'
+  name: Fetch Company Profile
+  description: This endpoint provides key information such as price, beta, market capitalization, description, headquarters, managment team and more.
+  instruction: |
+    ```fetch
+    method: POST
+    url: /api/auxiliary/skillset/ability/financialmodelingprep/proxy
+    headers:
+      X-Access-Token: ${SECRET_DEFAULT}
+      Content-Type: application/json
+    body:
+      method: GET
+      url: /api/v3/profile/$[symbol euc|Symbol]
+    options:
+      auth: internal
+    ```
+  secret: '@financialmodelingprep'
+
+financialmodelingprep/income/statement/fetch:
+  provider: 'financialmodelingprep'
+  icon: '@logo/financialmodelingprep.com'
+  name: Fetch Income Statement
+  description: Provides access to real-time income statement. This data can be used to track a company's profitability over time, to compare a company to its competitors, and to identify trends in a company's business.
+  instruction: |
+    ```fetch
+    method: POST
+    url: /api/auxiliary/skillset/ability/financialmodelingprep/proxy
+    headers:
+      X-Access-Token: ${SECRET_DEFAULT}
+      Content-Type: application/json
+    body:
+      method: GET
+      url: /api/v3/income-statement/$[symbol euc|Symbol]
+      query:
+        period: $[period ys|the period to fetch the income statement for: either 'annual' or 'quarter']
+    options:
+      auth: internal
+    ```
+  secret: '@financialmodelingprep'

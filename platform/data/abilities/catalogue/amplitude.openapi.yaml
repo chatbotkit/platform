@@ -1,0 +1,139 @@
+# @see https://amplitude.com/docs/apis/analytics/http-v2
+# @note this is a barebone OpenAPI spec for Amplitude Analytics HTTP V2 API
+# @todo replace with official spec when available
+openapi: 3.0.3
+info:
+  title: Amplitude Analytics HTTP V2 API
+  version: '2.0'
+  description: Amplitude HTTP V2 API for sending events and user data
+servers:
+  - url: https://api2.amplitude.com
+paths:
+  /2/httpapi:
+    post:
+      operationId: sendEvents
+      description: Send events to Amplitude
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - api_key
+                - events
+              properties:
+                api_key:
+                  type: string
+                  description: Your project API key
+                events:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Event'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+components:
+  schemas:
+    Event:
+      type: object
+      required:
+        - event_type
+      properties:
+        user_id:
+          type: string
+          description: Unique identifier for the user
+        device_id:
+          type: string
+          description: Unique identifier for the device
+        event_type:
+          type: string
+          description: The type of event being tracked
+        time:
+          type: integer
+          format: int64
+          description: Time in milliseconds since epoch
+        event_properties:
+          type: object
+          additionalProperties: true
+          description: Additional data about the event
+        user_properties:
+          type: object
+          additionalProperties: true
+          description: User properties to set or update
+        groups:
+          type: object
+          additionalProperties: true
+          description: Group types and values
+        group_properties:
+          type: object
+          additionalProperties: true
+          description: Group properties to set or update
+        session_id:
+          type: integer
+          format: int64
+          description: Session identifier
+        insert_id:
+          type: string
+          description: Unique identifier for deduplication
+        revenue:
+          type: number
+          format: double
+          description: Revenue amount
+        price:
+          type: number
+          format: double
+          description: Product price
+        quantity:
+          type: integer
+          description: Product quantity
+        productId:
+          type: string
+          description: Product identifier
+        revenueType:
+          type: string
+          description: Type of revenue event
+    SuccessResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          example: 200
+        events_ingested:
+          type: integer
+          example: 1
+        payload_size_bytes:
+          type: integer
+          example: 123
+        server_upload_time:
+          type: integer
+          format: int64
+          example: 1609459200000
+    ErrorResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          example: 400
+        error:
+          type: string
+          example: Invalid request
+        missing_field:
+          type: string
+          example: api_key
+        events_with_invalid_fields:
+          type: object
+          additionalProperties: true
+        events_with_missing_fields:
+          type: object
+          additionalProperties: true

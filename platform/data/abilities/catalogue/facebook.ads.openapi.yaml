@@ -1,0 +1,185 @@
+# @see https://developers.facebook.com/docs/marketing-apis
+# @note this is a barebone OpenAPI spec for the Facebook Marketing API used to
+# drive MSW mocks in the unit tests. Ad account scoped collections are addressed
+# via the act_<id> node, while campaigns, ad sets and ads are addressed directly
+# by their node id, so item level endpoints share the generic /{node_id} paths.
+openapi: 3.0.0
+info:
+  title: Facebook Marketing API
+  version: '21.0'
+  description: Barebone spec for Facebook Marketing API abilities testing
+servers:
+  - url: https://graph.facebook.com/v21.0
+paths:
+  /{node_id}:
+    get:
+      operationId: getNode
+      parameters:
+        - $ref: '#/components/parameters/NodeId'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Node'
+    post:
+      operationId: updateNode
+      parameters:
+        - $ref: '#/components/parameters/NodeId'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MutationResult'
+  /{node_id}/insights:
+    get:
+      operationId: getNodeInsights
+      parameters:
+        - $ref: '#/components/parameters/NodeId'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InsightsResponse'
+  /{node_id}/campaigns:
+    get:
+      operationId: listCampaigns
+      parameters:
+        - $ref: '#/components/parameters/NodeId'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EdgeList'
+    post:
+      operationId: createCampaign
+      parameters:
+        - $ref: '#/components/parameters/NodeId'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MutationResult'
+  /{node_id}/adsets:
+    get:
+      operationId: listAdSets
+      parameters:
+        - $ref: '#/components/parameters/NodeId'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EdgeList'
+    post:
+      operationId: createAdSet
+      parameters:
+        - $ref: '#/components/parameters/NodeId'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MutationResult'
+  /{node_id}/ads:
+    get:
+      operationId: listAds
+      parameters:
+        - $ref: '#/components/parameters/NodeId'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EdgeList'
+    post:
+      operationId: createAd
+      parameters:
+        - $ref: '#/components/parameters/NodeId'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MutationResult'
+components:
+  parameters:
+    NodeId:
+      name: node_id
+      in: path
+      required: true
+      schema:
+        type: string
+  securitySchemes:
+    Bearer:
+      type: http
+      scheme: bearer
+  schemas:
+    Node:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        status:
+          type: string
+    MutationResult:
+      type: object
+      properties:
+        id:
+          type: string
+        success:
+          type: boolean
+    EdgeList:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Node'
+        paging:
+          type: object
+          properties:
+            cursors:
+              type: object
+              properties:
+                before:
+                  type: string
+                after:
+                  type: string
+    InsightsResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            type: object
+            properties:
+              impressions:
+                type: string
+              clicks:
+                type: string
+              spend:
+                type: string
+              ctr:
+                type: string
+              cpc:
+                type: string
+              cpm:
+                type: string
+              reach:
+                type: string

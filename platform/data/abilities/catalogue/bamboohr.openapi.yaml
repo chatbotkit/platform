@@ -1,0 +1,417 @@
+# @see https://openapi.bamboohr.io/main/latest/docs/openapi/public-openapi.yaml
+# @see https://documentation.bamboohr.com/reference
+#
+# @note this is a minimal OpenAPI spec covering only the endpoints used by our ability templates
+# the official BambooHR OpenAPI spec at openapi.bamboohr.io is comprehensive but includes
+# hundreds of endpoints that are not used by our integration; using a minimal spec improves
+# test performance and reduces maintenance burden while still validating our API calls
+#
+# @note the server URL uses 'test' as the company domain for testing purposes
+# in production, the actual company subdomain is dynamically inserted via the ability template
+openapi: 3.0.3
+info:
+  title: BambooHR API
+  version: '1.0'
+  description: BambooHR API for managing employee data, time-off, and HR workflows
+servers:
+  - url: https://api.bamboohr.com/api/gateway.php/test/v1
+paths:
+  /employees/directory:
+    get:
+      operationId: getEmployeeDirectory
+      summary: Get Employee Directory
+      description: Returns a list of all employees in the company directory
+      security:
+        - basicAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  fields:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        type:
+                          type: string
+                        name:
+                          type: string
+                  employees:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Employee'
+  /employees/{employeeId}:
+    get:
+      operationId: getEmployee
+      summary: Get Employee
+      description: Get an employee's information by their ID
+      security:
+        - basicAuth: []
+      parameters:
+        - name: employeeId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: fields
+          in: query
+          description: Comma-separated list of fields to include
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Employee'
+    post:
+      operationId: updateEmployee
+      summary: Update Employee
+      description: Update an employee's information
+      security:
+        - basicAuth: []
+      parameters:
+        - name: employeeId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmployeeUpdate'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+  /employees:
+    post:
+      operationId: createEmployee
+      summary: Add Employee
+      description: Add a new employee to BambooHR
+      security:
+        - basicAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmployeeCreate'
+      responses:
+        '201':
+          description: Created
+          headers:
+            Location:
+              schema:
+                type: string
+              description: URL of the newly created employee
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+  /files/view:
+    get:
+      operationId: listCompanyFiles
+      summary: List Company Files
+      description: Returns a list of all company files and their categories
+      security:
+        - basicAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  categories:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/FileCategory'
+  /reports/custom:
+    post:
+      operationId: getCustomReport
+      summary: Get Custom Report
+      description: Request a custom report with specified fields
+      security:
+        - basicAuth: []
+      parameters:
+        - name: format
+          in: query
+          description: Report output format
+          schema:
+            type: string
+            enum: [json, csv, xml, pdf]
+            default: json
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - fields
+              properties:
+                title:
+                  type: string
+                  default: Custom Report
+                fields:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  title:
+                    type: string
+                  fields:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        type:
+                          type: string
+                        name:
+                          type: string
+                  employees:
+                    type: array
+                    items:
+                      type: object
+  /time_off/requests:
+    get:
+      operationId: listTimeOffRequests
+      summary: List Time Off Requests
+      description: Get time off requests within a date range
+      security:
+        - basicAuth: []
+      parameters:
+        - name: start
+          in: query
+          required: true
+          description: Start date (YYYY-MM-DD)
+          schema:
+            type: string
+            format: date
+        - name: end
+          in: query
+          required: true
+          description: End date (YYYY-MM-DD)
+          schema:
+            type: string
+            format: date
+        - name: status
+          in: query
+          description: Filter by request status
+          schema:
+            type: string
+            enum: [approved, pending, denied, canceled, superseded]
+        - name: employeeId
+          in: query
+          description: Filter by employee ID
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TimeOffRequest'
+components:
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+  schemas:
+    Employee:
+      type: object
+      properties:
+        id:
+          type: string
+        displayName:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        preferredName:
+          type: string
+        jobTitle:
+          type: string
+        department:
+          type: string
+        division:
+          type: string
+        location:
+          type: string
+        workEmail:
+          type: string
+        mobilePhone:
+          type: string
+        hireDate:
+          type: string
+          format: date
+        photoUrl:
+          type: string
+    EmployeeCreate:
+      type: object
+      required:
+        - firstName
+        - lastName
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        department:
+          type: string
+        division:
+          type: string
+        hireDate:
+          type: string
+          format: date
+        location:
+          type: string
+        jobTitle:
+          type: string
+        mobilePhone:
+          type: string
+        workEmail:
+          type: string
+          format: email
+    EmployeeUpdate:
+      type: object
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        department:
+          type: string
+        division:
+          type: string
+        hireDate:
+          type: string
+          format: date
+        location:
+          type: string
+        jobTitle:
+          type: string
+        mobilePhone:
+          type: string
+        workEmail:
+          type: string
+          format: email
+    FileCategory:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        canRenameCategory:
+          type: boolean
+        canDeleteCategory:
+          type: boolean
+        canUploadFiles:
+          type: boolean
+        files:
+          type: array
+          items:
+            $ref: '#/components/schemas/File'
+    File:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        originalFileName:
+          type: string
+        size:
+          type: integer
+        dateCreated:
+          type: string
+          format: date-time
+        createdBy:
+          type: string
+    TimeOffRequest:
+      type: object
+      properties:
+        id:
+          type: string
+        employeeId:
+          type: string
+        status:
+          type: object
+          properties:
+            lastChanged:
+              type: string
+              format: date-time
+            lastChangedByUserId:
+              type: string
+            status:
+              type: string
+        name:
+          type: string
+        start:
+          type: string
+          format: date
+        end:
+          type: string
+          format: date
+        created:
+          type: string
+          format: date-time
+        type:
+          type: object
+          properties:
+            id:
+              type: string
+            name:
+              type: string
+            icon:
+              type: string
+        amount:
+          type: object
+          properties:
+            unit:
+              type: string
+            amount:
+              type: string
+        notes:
+          type: object
+          properties:
+            employee:
+              type: string
+            manager:
+              type: string
+        dates:
+          type: object

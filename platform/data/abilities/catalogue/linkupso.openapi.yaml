@@ -1,0 +1,117 @@
+# @see https://docs.linkup.so/pages/documentation/endpoints/search/reference
+# @note this is a lightweight OpenAPI spec derived from the current Linkup docs
+# @todo replace with an official downloadable OpenAPI spec if Linkup publishes one
+openapi: 3.0.3
+info:
+  title: Linkup Search API
+  version: '1.0'
+  description: Linkup Search API for agentic web search
+servers:
+  - url: https://api.linkup.so
+paths:
+  /v1/search:
+    post:
+      operationId: search
+      summary: Search the web
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SearchRequest'
+      responses:
+        '200':
+          description: Successful search response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchResponse'
+        '400':
+          description: Bad request
+        '401':
+          description: Unauthorized
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+  schemas:
+    SearchRequest:
+      type: object
+      required:
+        - q
+      properties:
+        q:
+          type: string
+          description: The natural language question for which you want to retrieve context.
+        depth:
+          type: string
+          enum:
+            - deep
+            - fast
+            - standard
+          description: Defines the precision of the search.
+        outputType:
+          type: string
+          enum:
+            - searchResults
+            - sourcedAnswer
+            - structured
+          description: The type of output to return.
+        excludeDomains:
+          type: array
+          items:
+            type: string
+        fromDate:
+          type: string
+          nullable: true
+        includeDomains:
+          type: array
+          maxItems: 100
+          items:
+            type: string
+        includeImages:
+          type: boolean
+          default: false
+        structuredOutputSchema:
+          type: string
+        toDate:
+          type: string
+          nullable: true
+        includeInlineCitations:
+          type: boolean
+          default: false
+        includeSources:
+          type: boolean
+          default: false
+        maxResults:
+          type: number
+          minimum: 1
+    SearchResponse:
+      type: object
+      properties:
+        answer:
+          type: string
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/SearchResult'
+        sources:
+          type: array
+          items:
+            $ref: '#/components/schemas/SearchResult'
+    SearchResult:
+      type: object
+      properties:
+        name:
+          type: string
+        url:
+          type: string
+        content:
+          type: string
+        type:
+          type: string
+        favicon:
+          type: string
+security:
+  - bearerAuth: []

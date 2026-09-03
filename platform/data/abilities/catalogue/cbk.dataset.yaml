@@ -1,0 +1,77 @@
+dataset/list:
+  provider: 'cbk'
+  icon: '@logo/chatbotkit.com'
+  name: List Datasets
+  description: |
+    Retrieve a list of datasets associated with the user
+  tags:
+    - dataset
+    - list
+  instruction: |
+    ```dataset/list
+    ```
+
+dataset/create:
+  provider: 'cbk'
+  icon: '@logo/chatbotkit.com'
+  name: Create Dataset
+  description: |
+    Create a new dataset
+  tags:
+    - dataset
+    - create
+  instruction: |
+    ```dataset/create
+    $[name!|the name of the dataset]
+    ```
+
+dataset/search:
+  provider: 'cbk'
+  icon: '@logo/chatbotkit.com'
+  name: Search Dataset
+  description: |
+    Search a dataset for specific keywords or filters
+  tags:
+    - dataset
+    - search
+  instruction: |
+    ```dataset/search/id=((datasetId!|the dataset Id that you want to search))
+    $[query!|search query]
+    ```
+
+dataset/record/create:
+  provider: 'cbk'
+  icon: '@logo/chatbotkit.com'
+  name: Create Dataset Record
+  description: |
+    Create a new record in a dataset
+  tags:
+    - dataset
+    - record
+    - create
+  instruction: |
+    ```dataset/record/create/id=((datasetId!|the dataset Id that you want to create a record in))
+    $[record!|the record to create]
+    ```
+
+dataset/file/create[url]:
+  provider: 'cbk'
+  icon: '@logo/chatbotkit.com'
+  name: Add File to Dataset
+  description: |
+    Creates and synchronizes a file in a dataset from a URL source.
+  tags:
+    - dataset
+    - file
+    - create
+    - url
+  instruction: |
+    ```fetch/auth=internal
+    method: POST
+    url: /api/auxiliary/skillset/ability/chatbotkit/dataset/file/attach
+    headers:
+      content-type: application/json
+    body:
+      datasetId: ((datasetId! ys|the dataset Id that you want to add the file to))
+      url: $[url!|the URL of the file to add]
+    ```

@@ -1,0 +1,44 @@
+query listContactConversations(
+  $contactIds: [ID!]
+  $first: Int
+  $last: Int
+  $after: ID
+  $before: ID
+) {
+  conversations(
+    contactIds: $contactIds
+    first: $first
+    last: $last
+    after: $after
+    before: $before
+  ) {
+    edges {
+      cursor
+
+      node {
+        id
+
+        name
+        description
+
+        meta
+
+        createdAt
+        updatedAt
+
+        task {
+          id
+
+          status
+          outcome
+        }
+      }
+    }
+    pageInfo {
+      hasNextPage
+      hasPreviousPage
+      startCursor
+      endCursor
+    }
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "start": "/apps/41f203dc",
+  "name": "Inspector",
+  "description": "Inspect the current dashboard resource with related data, events, and audit logs.",
+  "icon": "@lucide/scan-search",
+  "order": 120,
+  "category": "help"
+}

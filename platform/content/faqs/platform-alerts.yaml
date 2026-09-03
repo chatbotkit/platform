@@ -1,0 +1,31 @@
+- question: What are alerts?
+  answer: Alerts are notifications that help you identify potential issues with your usage patterns, plan limits, and feedback metrics. They are automatically generated based on your platform activity and can help you take proactive action before problems occur.
+- question: What types of alerts are there?
+  answer: |-
+    ChatBotKit generates several types of alerts:
+
+    1. **Usage Spike Alerts**: Triggered when your token, conversation, or message usage significantly exceeds your historical average. This helps identify unexpected usage patterns that may indicate issues or unusual activity.
+    2. **Limit Alerts**: Triggered when you are approaching or have reached your plan limits for resources like datasets, records, skillsets, abilities, or files.
+    3. **Negative Feedback Alerts**: Triggered when a significant portion of user ratings are negative (thumbs down), indicating potential issues with bot responses.
+    4. **Activity Alerts**: Triggered when conversation volume shows significant changes compared to previous periods.
+- question: What do the severity levels mean?
+  answer: |-
+    Alerts have three severity levels:
+
+    1. **Critical**: Requires immediate attention. Examples include usage doubling compared to average or reaching 50%+ negative feedback.
+    2. **Warning**: Should be investigated soon. Examples include 50%+ usage spikes or 30%+ negative feedback.
+    3. **Info**: Informational alerts worth noting. Examples include 20%+ usage increases or approaching plan limits.
+- question: How are usage spikes detected?
+  answer: Usage spikes are detected by comparing your most recent day's usage against your historical average. The system requires at least 3 days of data to calculate a meaningful baseline. A 20%+ increase triggers an info alert, 50%+ triggers a warning, and 100%+ (doubling) triggers a critical alert.
+- question: How often are alerts updated?
+  answer: Alerts are calculated in real-time when you view the alerts page or when the notifications button fetches data. The data reflects your usage over the specified period (typically the last 30 days for the alerts page, or 7 days for notification previews).
+- question: Can I customize alert thresholds?
+  answer: Currently, alert thresholds are standardized across all users to ensure consistent monitoring. If you have specific requirements for custom thresholds, please contact our support team to discuss your needs.
+- question: What should I do when I see an alert?
+  answer: |-
+    The action depends on the alert type:
+
+    1. **Usage Spikes**: Investigate the cause - it could be increased legitimate usage, a runaway process, or potential abuse. Check your event logs for more context.
+    2. **Limit Alerts**: Consider upgrading your plan or cleaning up unused resources to stay within limits.
+    3. **Negative Feedback**: Review your bot's responses and conversation logs to identify areas for improvement in your prompts or training data.
+    4. **Activity Alerts**: These are often informational - they may indicate successful growth or marketing campaigns driving more traffic.

@@ -1,0 +1,12 @@
+# ---
+# ---
+# ---
+
+#
+# Default space template for ability templates.
+#
+
+space:
+  icon: '@logo/chatbotkit.com'
+  name: Space Storage
+  description: A space to store files and data.

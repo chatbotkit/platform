@@ -1,0 +1,15 @@
+import z from '@/lib/zod.schema'
+
+/**
+ * Configuration schema for the Memories app (8ea0112f).
+ *
+ * @description Validates the `config` field from app.manifest. This app
+ * allows users to manage contact memories.
+ */
+const ConfigSchema = z
+  .object({
+    // Currently no specific config fields required
+  })
+  .passthrough()
+
+export default ConfigSchema

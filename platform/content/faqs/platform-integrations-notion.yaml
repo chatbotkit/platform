@@ -1,0 +1,12 @@
+- question: What is the Notion Integration?
+  answer: The Notion Integration is a feature that allows you to synchronize data between your ChatBotKit application and your Notion space, allowing you to keep your chatbot's information up-to-date at all times.
+- question: What does the Sync button do?
+  answer: When pressed, the Sync button will trigger a synchronization between your ChatBotKit application and your Notion space, updating any records that have changed since the last synchronization. You should press this button whenever you make changes to your Notion database that you want to be reflected in your chatbot, and whenever you want to ensure that your chatbot is working with the most up-to-date information.
+- question: What information is needed for Notion Integration?
+  answer: To configure the Notion Integration, you will need to provide some general options around the chatbot, such as the integration name and an optional integration description. You will also need to specify a Notion API token.
+- question: What is the purpose of the Token?
+  answer: The Token is used to authenticate your connection to the Notion API, which is used to retrieve and update data in your Notion space. Without this information, ChatBotKit would not be able to access your Notion account or retrieve data from your Notion space.
+- question: Where can I learn more about the Notion Integration?
+  answer: You can find detailed information on how to set up and use the Notion Integration in the [ChatBotKit Integrations](https://chatbotkit.com/docs/integrations) docs. Additionally, our support team is always available to answer any questions or help you troubleshoot any issues you may encounter.
+- question: My notion is not syncing, what should I do?
+  answer: Your notion will not sync unless you also specify a preferred "Sync Schedule". You can force sync notion by clicking the "Sync" button.

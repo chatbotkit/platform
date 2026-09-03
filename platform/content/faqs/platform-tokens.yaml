@@ -1,0 +1,16 @@
+- question: What are tokens in ChatBotKit?
+  answer: Tokens in ChatBotKit are used to programmatically access the ChatBotKit API. They allow you to interact with your chatbot and manage its data using the API.
+- question: How do I create a token in ChatBotKit?
+  answer: |-
+    To create a token in ChatBotKit, follow these steps:
+
+    1. Go to the Tokens section of the ChatBotKit website.
+    2. Click the "Create Token" button.
+
+    A new token will be automatically generated and displayed on the screen. The token will be prefixed with `sk-`.
+- question: Can I delete a token in ChatBotKit?
+  answer: Yes, you can delete a token in ChatBotKit. To delete a token, go to the Tokens section of the ChatBotKit website, select the token you want to delete, and click the "Delete" button.
+- question: How do I use a token in ChatBotKit?
+  answer: To use a token in ChatBotKit, you will need to include it as a parameter in your API requests. For example, you might use a token to authenticate a request to retrieve data about your chatbot. Consult the ChatBotKit API documentation for more information on how to use tokens in specific API requests.
+- question: Are tokens secure in ChatBotKit?
+  answer: Tokens in ChatBotKit are secure and can only be used to access the ChatBotKit API. They should be kept confidential and not shared with anyone else. If you suspect that your token has been compromised, you can delete it and create a new one.

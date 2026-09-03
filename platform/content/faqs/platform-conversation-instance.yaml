@@ -1,0 +1,6 @@
+- question: What is a conversation?
+  answer: A conversation is a series of back-and-forth exchanges between a user and a chatbot in which messages are exchanged to achieve a particular goal or outcome.
+- question: How do I continue a conversation?
+  answer: To continue a conversation with a chatbot, simply type a message in the chat window and press the "send" button. The chatbot will respond with a new message, and the conversation will continue from there.
+- question: Are my conversations private?
+  answer: Yes, your conversations with the chatbot are private and are not shared with anyone else unless you choose to share them yourself. ChatBotKit features built-in privacy controls that protect your data and conversations from unauthorized access and use, as well as preserve the anonymity of end-users.

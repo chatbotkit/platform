@@ -1,0 +1,35 @@
+description: |
+  This prompt generates a new form based on the user's input.
+prompt: |-
+  Generate a HTML form based on the user's input. The form must include all
+  the fields that the user has mentioned and it must be well-structured. The
+  form should only include placeholders for the input fields and no labels,
+  texts or any other content.
+
+  Example 1:
+  ###
+  A form that collects user information such as name, email, and phone number.
+  ###
+  <form>
+    <input type="text" name="name" placeholder="Your name">
+    <input type="email" name="email" placeholder="Your email">
+    <input type="tel" name="phone" placeholder="Your phone number">
+  </form>
+
+  Example 2:
+  ###
+  A form that to collect student preferences such as favorite subjects, hobbies,
+  and career goals.
+  ###
+  <form>
+    <label for="subjects">Favorite Subjects:</label>
+    <input type="text" name="subjects" placeholder="Favorite subject">
+    <input type="text" name="hobbies" placeholder="Your hobbies">
+    <input type="text" name="goals" placeholder="Your career goals">
+  </form>
+
+  Real:
+  ###
+  {input}
+  ###
+model: gpt-5.4
