@@ -22,7 +22,7 @@ import { AsyncLocalStorage } from 'async_hooks'
  * in-tree so a deployment that never runs on Vercel does not carry the
  * vendor package for one optional chained call.
  */
-function waitUntil(promise: Promise<unknown>): void {
+function getWaitUntil(): ((p: Promise<unknown>) => void) | undefined {
   const context = (
     globalThis as {
       [key: symbol]: {
@@ -31,7 +31,11 @@ function waitUntil(promise: Promise<unknown>): void {
     }
   )[Symbol.for('@vercel/request-context')]
 
-  context?.get?.()?.waitUntil?.(promise)
+  return context?.get?.()?.waitUntil
+}
+
+function waitUntil(promise: Promise<unknown>): void {
+  getWaitUntil()?.(promise)
 }
 
 interface Store {
@@ -183,7 +187,6 @@ export async function defer(
   if (store) {
     // @note add the promise to the list of deferred promises
 
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
     store.deferred = store.deferred || []
 
     store.deferred.push(promise.catch(captureError))
@@ -192,6 +195,40 @@ export async function defer(
 
     await promise.catch(captureError)
   }
+}
+
+/**
+ * Runs work after the response is sent rather than before it. `defer` holds a
+ * plain (non-streaming) response until its promises settle - see `beforeClose`
+ * - so a webhook that must ack within a deadline cannot put its publish there.
+ * When the runtime cannot keep the function alive past the response the work
+ * is awaited in place, exactly as `defer` would do.
+ */
+export async function deferPastResponse(
+  fn: () => Promise<unknown>
+): Promise<void> {
+  const keepAlive = getWaitUntil()
+
+  if (!keepAlive) {
+    await defer(async () => {
+      await fn()
+    })
+
+    return
+  }
+
+  // @note a fresh store, so anything `fn` itself defers settles on this promise
+  // and not on the request store, whose `beforeClose` would hold the response
+
+  keepAlive(
+    als
+      .run({ deferred: [] }, async () => {
+        await fn()
+
+        await awaitDeferred()
+      })
+      .catch(captureError)
+  )
 }
 
 export default defer

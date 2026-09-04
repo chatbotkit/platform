@@ -173,9 +173,23 @@ RUN pnpm --filter @chatbotkit-dev/db deploy --legacy /initializer
 
 FROM node:24.20.0-bookworm-slim AS initializer
 
+# @note Prisma picks its schema-engine binary by the libssl it detects. The
+# deployer stage has openssl (a ca-certificates dependency) and so bundles the
+# openssl-3.0.x engine; without libssl here the CLI assumes 1.1.x and tries to
+# download it at first boot, which fails on hosts without outbound DNS
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends openssl \
+  && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
 
 COPY --from=initializer-deployer /initializer ./
+
+# @note the engine must come from the image, never from the network: resolve
+# it with the download mirror unreachable so a bundled/detected engine mismatch
+# fails the build here rather than at first boot. Provider-agnostic on purpose
+# - the db module behind this stage need not be SQLite
+RUN PRISMA_ENGINES_MIRROR=http://127.0.0.1:9 npx prisma --version
 
 # @note the Garage provisioning script rides along so the distribution stack
 # (docker/distro/*) can run it from this image instead of bind-mounting the

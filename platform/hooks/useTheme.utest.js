@@ -91,7 +91,7 @@ describe('useTheme', () => {
       expect(result.current.forcedTheme).toBeNull()
     })
 
-    it('should handle system theme correctly', () => {
+    it('should resolve system theme to the system preference', () => {
       useThemeBase.mockReturnValue({
         theme: 'system',
         forcedTheme: undefined,
@@ -101,8 +101,34 @@ describe('useTheme', () => {
 
       const { result } = renderHook(() => useTheme())
 
-      expect(result.current.theme).toBe('system')
+      expect(result.current.theme).toBe('dark')
       expect(result.current.resolvedTheme).toBe('dark')
+    })
+
+    it('should prefer forcedTheme over resolvedTheme', () => {
+      useThemeBase.mockReturnValue({
+        theme: 'system',
+        forcedTheme: 'light',
+        setTheme: jest.fn(),
+        resolvedTheme: 'dark',
+      })
+
+      const { result } = renderHook(() => useTheme())
+
+      expect(result.current.theme).toBe('light')
+    })
+
+    it('should fall back to theme before hydration when resolvedTheme is undefined', () => {
+      useThemeBase.mockReturnValue({
+        theme: 'dark',
+        forcedTheme: undefined,
+        setTheme: jest.fn(),
+        resolvedTheme: undefined,
+      })
+
+      const { result } = renderHook(() => useTheme())
+
+      expect(result.current.theme).toBe('dark')
     })
   })
 

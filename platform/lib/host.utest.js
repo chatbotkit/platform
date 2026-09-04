@@ -164,6 +164,7 @@ function loadHostScenario({
   targetEnv = 'production',
   testSiteUrl = siteUrl,
   requestHost = null,
+  requestProtocol = null,
   frontendHost = null,
   contextAPIHost,
   contextStaticHost,
@@ -204,6 +205,7 @@ function loadHostScenario({
         ...jest.requireActual('@/lib/context.store'),
         getContextFrontendHost: jest.fn(() => frontendHost),
         getContextRequestHost: jest.fn(() => requestHost),
+        getContextRequestProtocol: jest.fn(() => requestProtocol),
         getContextAPIHost: jest.fn(() => contextAPIHost),
         getContextStaticHost: jest.fn(() => contextStaticHost),
         getContextWidgetHost: jest.fn(() => contextWidgetHost),
@@ -334,6 +336,84 @@ describe('basic URL construction', () => {
     )
     expect(host.getLocalAPIHostURL('/v1/test')).toBe(
       'http://localhost:3000/api/v1/test'
+    )
+  })
+
+  // @note the community stack serves plain http on loopback and *.localhost
+  // hosts; dialling them over https fails the TLS handshake
+
+  it.each(['127.0.0.1:3000', '[::1]:3000', 'cbk.localhost:3000'])(
+    'switches to http for the loopback request host %s',
+    (requestHost) => {
+      const host = loadHostScenario({
+        testSiteUrl: 'https://platform.example.com',
+        requestHost,
+      })
+
+      expect(host.getLocalHostURL()).toBe(`http://${requestHost}/`)
+      expect(host.getExternalHostURL('/api/test')).toBe(
+        `http://${requestHost}/api/test`
+      )
+      expect(host.getExternalFrontendHostURL('/dashboard')).toBe(
+        `http://${requestHost}/dashboard`
+      )
+      expect(host.getLocalAPIHostURL('/v1/graphql')).toBe(
+        `http://${requestHost}/api/v1/graphql`
+      )
+      expect(host.getExternalAPIHostURL('/v1/graphql')).toBe(
+        `http://${requestHost}/api/v1/graphql`
+      )
+    }
+  )
+
+  it('follows the site scheme for the site host', () => {
+    const host = loadHostScenario({
+      testSiteUrl: 'http://platform.internal',
+    })
+
+    expect(host.getLocalAPIHostURL('/v1/graphql')).toBe(
+      'http://platform.internal/api/v1/graphql'
+    )
+    expect(host.getExternalAPIHostURL('/v1/graphql')).toBe(
+      'http://platform.internal/api/v1/graphql'
+    )
+  })
+
+  it('follows the request scheme for a plain http request host', () => {
+    const host = loadHostScenario({
+      testSiteUrl: 'https://platform.example.com',
+      requestHost: 'customer.example.org',
+      requestProtocol: 'http',
+    })
+
+    expect(host.getLocalAPIHostURL('/v1/graphql')).toBe(
+      'http://customer.example.org/api/v1/graphql'
+    )
+    expect(host.getExternalHostURL('/docs')).toBe(
+      'http://customer.example.org/docs'
+    )
+  })
+
+  it('keeps an https site host on https whatever the request scheme', () => {
+    const host = loadHostScenario({
+      testSiteUrl: 'https://platform.example.com',
+      requestHost: 'platform.example.com',
+      requestProtocol: 'http',
+    })
+
+    expect(host.getLocalAPIHostURL('/v1/graphql')).toBe(
+      'https://platform.example.com/api/v1/graphql'
+    )
+  })
+
+  it('defaults to https for a request host without a request scheme', () => {
+    const host = loadHostScenario({
+      testSiteUrl: 'https://platform.example.com',
+      requestHost: 'customer.example.org',
+    })
+
+    expect(host.getLocalAPIHostURL('/v1/graphql')).toBe(
+      'https://customer.example.org/api/v1/graphql'
     )
   })
 })

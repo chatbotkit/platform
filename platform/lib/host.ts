@@ -2,6 +2,7 @@ import {
   apiHostname,
   apiUrl,
   siteHostname,
+  siteUrl,
   staticHostname,
   staticUrl,
   widgetHostname,
@@ -12,10 +13,12 @@ import {
   getContextAPIHost,
   getContextFrontendHost,
   getContextRequestHost,
+  getContextRequestProtocol,
   getContextStaticHost,
   getContextWidgetHost,
 } from '@/lib/context.store'
 import { isDevelopment, isTest } from '@/lib/env'
+import { isLocalhost } from '@/lib/localhost'
 
 import { z } from 'zod'
 
@@ -42,6 +45,30 @@ const env = z
     EXTERNAL_HOST: process.env.EXTERNAL_HOST,
     _ITEST_CHATBOTKIT_BASE_URL: process.env._ITEST_CHATBOTKIT_BASE_URL,
   })
+
+/**
+ * Builds a URL on a host, picking the scheme the host actually answers on.
+ * Loopback and `*.localhost` hosts are plain http (the community stack has
+ * no TLS), the site host follows SITE_URL, the request host follows the
+ * request scheme. Anything else is https.
+ */
+function buildHostURL(path: string, base: string): string {
+  const url = new URL(path, base)
+
+  if (
+    isLocalhost(url.hostname) ||
+    url.hostname === '[::1]' ||
+    url.hostname.endsWith('.localhost')
+  ) {
+    url.protocol = 'http:'
+  } else if (url.hostname === siteHostname) {
+    url.protocol = new URL(siteUrl).protocol
+  } else if (url.host === getContextRequestHost()) {
+    url.protocol = `${getContextRequestProtocol() || 'https'}:`
+  }
+
+  return url.toString()
+}
 
 /**
  * Gets the local host based on the environment. When in development, it will
@@ -79,13 +106,7 @@ export function getLocalHostURL(
   path: string = '/',
   host: string = getLocalHost()
 ): string {
-  const url = new URL(path, `https://${host}`)
-
-  if (url.hostname === 'localhost') {
-    url.protocol = 'http:'
-  }
-
-  return url.toString()
+  return buildHostURL(path, `https://${host}`)
 }
 
 /**
@@ -128,13 +149,7 @@ export function getExternalHostURL(
   path: string = '/',
   host: string = getExternalHost()
 ): string {
-  const url = new URL(path, `https://${host}`)
-
-  if (url.hostname === 'localhost') {
-    url.protocol = 'http:'
-  }
-
-  return url.toString()
+  return buildHostURL(path, `https://${host}`)
 }
 
 /**
@@ -155,13 +170,7 @@ export function getExternalFrontendHostURL(
   path: string = '/',
   host: string = getExternalFrontendHost()
 ): string {
-  const url = new URL(path, `https://${host}`)
-
-  if (url.hostname === 'localhost') {
-    url.protocol = 'http:'
-  }
-
-  return url.toString()
+  return buildHostURL(path, `https://${host}`)
 }
 
 /**
@@ -223,13 +232,7 @@ export function getLocalAPIHostURL(
     path = `/api${path.startsWith('/') ? '' : '/'}${path}`
   }
 
-  const url = new URL(path, `https://${host}`)
-
-  if (url.hostname === 'localhost') {
-    url.protocol = 'http:'
-  }
-
-  return url.toString()
+  return buildHostURL(path, `https://${host}`)
 }
 
 /**
@@ -290,11 +293,5 @@ export function getExternalAPIHostURL(
     path = `/api${path.startsWith('/') ? '' : '/'}${path}`
   }
 
-  const url = new URL(path, host === apiHostname ? apiUrl : `https://${host}`)
-
-  if (url.hostname === 'localhost') {
-    url.protocol = 'http:'
-  }
-
-  return url.toString()
+  return buildHostURL(path, host === apiHostname ? apiUrl : `https://${host}`)
 }
