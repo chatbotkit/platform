@@ -69,11 +69,11 @@ services:
       args:
         # @note override for a real deployment: the site url is baked into the
         # build by Next.js
-        SITE_URL: ${SITE_URL:-http://localhost:3000}
-        SPACE_APEX: ${SPACE_APEX:-space.localhost}
-        PORTAL_APEX: ${PORTAL_APEX:-portal.localhost}
-        APP_MAIN_ORIGIN: ${APP_MAIN_ORIGIN:-http://apps.localhost:3000}
-        APP_LABS_ORIGIN: ${APP_LABS_ORIGIN:-http://labs.localhost:3000}
+        SITE_URL: ${SITE_URL:-http://cbk.localhost:3000}
+        SPACE_APEX: ${SPACE_APEX:-cbk-space.localhost}
+        PORTAL_APEX: ${PORTAL_APEX:-cbk-portal.localhost}
+        APP_MAIN_ORIGIN: ${APP_MAIN_ORIGIN:-http://cbk-apps.localhost:3000}
+        APP_LABS_ORIGIN: ${APP_LABS_ORIGIN:-http://cbk-labs.localhost:3000}
     ports:
       - '3000:3000'
       # @note the built-in realtime relay - see RELAY_URL below
@@ -82,19 +82,20 @@ services:
       <<: *storage-env
       NODE_ENV: production
       PORT: 3000
-      SITE_URL: ${SITE_URL:-http://localhost:3000}
-      NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3000}
+      SITE_URL: ${SITE_URL:-http://cbk.localhost:3000}
+      NEXTAUTH_URL: ${NEXTAUTH_URL:-http://cbk.localhost:3000}
       # @note realtime channels meet at a relay the platform process hosts on
       # RELAY_PORT - see docker/distro/community/compose.yml
       RELAY_PORT: 3001
-      RELAY_URL: ${RELAY_URL:-http://localhost:3001}
-      SPACE_APEX: ${SPACE_APEX:-space.localhost}
-      PORTAL_APEX: ${PORTAL_APEX:-portal.localhost}
+      RELAY_URL: ${RELAY_URL:-http://cbk-relay.localhost:3001}
+      SPACE_APEX: ${SPACE_APEX:-cbk-space.localhost}
+      PORTAL_APEX: ${PORTAL_APEX:-cbk-portal.localhost}
       # @note the app shells, baked the same way: the main shell at
-      # `apps.localhost:3000`, the labs shell at `labs.localhost:3000`. Cookies
-      # do not cross hosts, so sign in on the shell host itself
-      APP_MAIN_ORIGIN: ${APP_MAIN_ORIGIN:-http://apps.localhost:3000}
-      APP_LABS_ORIGIN: ${APP_LABS_ORIGIN:-http://labs.localhost:3000}
+      # `cbk-apps.localhost:3000`, the labs shell at
+      # `cbk-labs.localhost:3000`. Cookies do not cross hosts, so sign in on
+      # the shell host itself
+      APP_MAIN_ORIGIN: ${APP_MAIN_ORIGIN:-http://cbk-apps.localhost:3000}
+      APP_LABS_ORIGIN: ${APP_LABS_ORIGIN:-http://cbk-labs.localhost:3000}
       # @note left empty, the image generates these secrets on first boot and
       # persists them in the platform-data volume - see docker/entrypoint.sh;
       # set explicitly to override

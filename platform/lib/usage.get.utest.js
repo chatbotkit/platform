@@ -284,6 +284,31 @@ describe('usage.get', () => {
       expect(result.conversations[0].total).toBe(10)
       expect(result.messages[0].total).toBe(25)
     })
+
+    it('should sum BigInt token totals as returned by SQLite', async () => {
+      const mockTokenData = [
+        { date: new Date('2023-01-01'), type: 'OPENAI_GPT_4_TOKEN', total: 100n },
+        {
+          date: new Date('2023-01-01'),
+          type: 'OPENAI_GPT_3_5_TURBO_TOKEN',
+          total: 50n,
+        },
+      ]
+
+      prisma.$queryRaw.mockResolvedValueOnce(mockTokenData)
+      prisma.$queryRawTyped
+        .mockResolvedValueOnce([{ date: new Date('2023-01-01'), total: 7n }])
+        .mockResolvedValueOnce([{ date: new Date('2023-01-01'), total: 9n }])
+
+      const result = await getUsageSeries('user123')
+
+      expect(getBaseLanguageModelTokenCount).toHaveBeenCalledWith('gpt-4', 100)
+      expect(result.tokens).toEqual([
+        { date: new Date('2023-01-01'), total: 225 },
+      ])
+      expect(result.conversations[0].total).toBe(7)
+      expect(result.messages[0].total).toBe(9)
+    })
   })
 
   describe('getUsageSeriesFromDate', () => {
@@ -383,6 +408,20 @@ describe('usage.get', () => {
       await getUsageForPeriod('user123', invalidDate1, invalidDate2)
 
       expect(prisma.$queryRaw).toHaveBeenCalled()
+    })
+
+    it('should sum BigInt token totals as returned by SQLite', async () => {
+      prisma.$queryRaw.mockResolvedValueOnce([
+        { date: new Date('2023-01-15'), type: 'OPENAI_GPT_4_TOKEN', total: 40n },
+        { date: new Date('2023-01-15'), type: 'OPENAI_GPT_4_TOKEN', total: 20n },
+      ])
+      prisma.$queryRawTyped.mockResolvedValueOnce([]).mockResolvedValueOnce([])
+
+      const result = await getUsageForPeriod('user123', new Date(), new Date())
+
+      expect(result.tokens).toEqual([
+        { date: new Date('2023-01-15'), total: 90 },
+      ])
     })
 
     it('should group token data by date correctly', async () => {

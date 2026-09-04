@@ -211,7 +211,7 @@ PARTNERS_APEX=example.partners
 
 The apex host rewrites are generated when Next builds, so the runtime values
 must match the ones the image was built with. The community image bakes
-`SPACE_APEX=space.localhost` and `PORTAL_APEX=portal.localhost`; see
+`SPACE_APEX=cbk-space.localhost` and `PORTAL_APEX=cbk-portal.localhost`; see
 [Deployment](./deployment.md#production-boundary).
 
 ## App shell origins
@@ -232,8 +232,8 @@ APP_LABS_ORIGIN=https://labs.example.com
 
 Like the apexes, the shell host rewrites are generated when Next builds, so
 the runtime origins must match the build. The community image bakes
-`APP_MAIN_ORIGIN=http://apps.localhost:3000` and
-`APP_LABS_ORIGIN=http://labs.localhost:3000`.
+`APP_MAIN_ORIGIN=http://cbk-apps.localhost:3000` and
+`APP_LABS_ORIGIN=http://cbk-labs.localhost:3000`.
 
 ## `HOSTS_CONFIG`
 

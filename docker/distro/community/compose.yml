@@ -61,24 +61,25 @@ services:
       <<: *storage-env
       NODE_ENV: production
       PORT: 3000
-      SITE_URL: ${SITE_URL:-http://localhost:3000}
-      NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3000}
+      SITE_URL: ${SITE_URL:-http://cbk.localhost:3000}
+      NEXTAUTH_URL: ${NEXTAUTH_URL:-http://cbk.localhost:3000}
       # @note realtime channels (voice, avatars) meet at a relay the platform
       # process hosts itself on RELAY_PORT. Both that process and a host
       # browser dial RELAY_URL, so loopback serves both; a browser elsewhere
       # needs an address it can reach instead (and TLS if the site has it)
       RELAY_PORT: 3001
-      RELAY_URL: ${RELAY_URL:-http://localhost:3001}
+      RELAY_URL: ${RELAY_URL:-http://cbk-relay.localhost:3001}
       # @note deployment-issued subdomains; must match the apexes baked into
       # the image (docker/Dockerfile). Browsers resolve `*.localhost` to
-      # loopback, so `acme.space.localhost:3000` works with no DNS setup
-      SPACE_APEX: ${SPACE_APEX:-space.localhost}
-      PORTAL_APEX: ${PORTAL_APEX:-portal.localhost}
+      # loopback, so `acme.cbk-space.localhost:3000` works with no DNS setup
+      SPACE_APEX: ${SPACE_APEX:-cbk-space.localhost}
+      PORTAL_APEX: ${PORTAL_APEX:-cbk-portal.localhost}
       # @note the app shells, baked the same way: the main shell at
-      # `apps.localhost:3000`, the labs shell at `labs.localhost:3000`. Cookies
-      # do not cross hosts, so sign in on the shell host itself
-      APP_MAIN_ORIGIN: ${APP_MAIN_ORIGIN:-http://apps.localhost:3000}
-      APP_LABS_ORIGIN: ${APP_LABS_ORIGIN:-http://labs.localhost:3000}
+      # `cbk-apps.localhost:3000`, the labs shell at
+      # `cbk-labs.localhost:3000`. Cookies do not cross hosts, so sign in on
+      # the shell host itself
+      APP_MAIN_ORIGIN: ${APP_MAIN_ORIGIN:-http://cbk-apps.localhost:3000}
+      APP_LABS_ORIGIN: ${APP_LABS_ORIGIN:-http://cbk-labs.localhost:3000}
       # @note left empty, the image generates these secrets on first boot and
       # persists them in the platform-data volume; set explicitly to override
       NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:-}

@@ -8,9 +8,26 @@ import { fromOpenApi } from '@msw/source/open-api'
 
 import { readFileSync } from 'fs'
 import { JSONSchemaFaker } from 'json-schema-faker'
+import { HttpResponse, http } from 'msw'
+import { setupServer as setupMswServer } from 'msw/node'
 import { convertObj } from 'swagger2openapi'
 
-export { setupServer } from 'msw/node'
+/**
+ * Creates an MSW server that never forwards to the network. A request without
+ * a matching handler resolves to a mocked 404 instead of being passed through,
+ * so no suite can depend on a live upstream answering.
+ *
+ * @param {...import('msw').RequestHandler} handlers - Initial request handlers
+ * @returns {ReturnType<typeof setupMswServer>} The MSW server
+ */
+export function setupServer(...handlers) {
+  return setupMswServer(
+    ...handlers,
+    http.all('*', () => {
+      return HttpResponse.json({ error: 'Not found' }, { status: 404 })
+    })
+  )
+}
 
 const fetchOpenApiDefinition = withRetry(withTimeout(fetch, { timeout: 10000 }), {
   retries: 5,

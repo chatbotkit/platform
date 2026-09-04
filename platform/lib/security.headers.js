@@ -1,4 +1,6 @@
+/* eslint-disable import/extensions -- loaded by next.config.d at build time, where the alias does not resolve */
 // @ts-check
+import { siteUrl } from '../config/site.js'
 
 /**
  * @type {string}
@@ -31,10 +33,22 @@ const ALLOWED_FONTS = ['https:', 'blob:', 'data:'].join(' ')
 const ALLOWED_MEDIA = ['https:', 'blob:', 'data:'].join(' ')
 
 /**
- * @type {string}
+ * @note `http:` and `ws:` join the list only when the site itself is served
+ * without TLS. Such a deployment has no transport security for the policy to
+ * preserve, and its local relay (RELAY_URL) speaks plain websockets. An
+ * https site never gets them - browsers refuse that mixed content anyway.
  *
+ * @type {string}
  */
-const ALLOWED_CONNECTS = ['https:', 'blob:', 'data:', 'wss:'].join(' ')
+const ALLOWED_CONNECTS = [
+  'https:',
+  'wss:',
+
+  ...(new URL(siteUrl).protocol === 'http:' ? ['http:', 'ws:'] : []),
+
+  'blob:',
+  'data:',
+].join(' ')
 
 /**
  * @type {string}

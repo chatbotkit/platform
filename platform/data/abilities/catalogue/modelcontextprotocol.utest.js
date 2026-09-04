@@ -25,7 +25,16 @@ const DEFINITION =
 const server = setupServer()
 
 beforeAll(async () => {
-  const { handlers } = await createOpenApiHandlers(DEFINITION)
+  const { handlers } = await createOpenApiHandlers(DEFINITION, {
+    transformDefinition: (definition) => {
+      // @note the spec declares no servers, so the handlers would never match
+      if (!definition.servers?.length) {
+        definition.servers = [{ url: 'https://registry.modelcontextprotocol.io' }]
+      }
+
+      return definition
+    },
+  })
 
   server.use(...handlers)
   server.listen()
