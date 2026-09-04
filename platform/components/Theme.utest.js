@@ -87,13 +87,13 @@ describe('Theme', () => {
       expect(props.attribute).toBe('class')
     })
 
-    it('should disable system theme detection', () => {
+    it('should enable system theme detection', () => {
       render(<Theme>Content</Theme>)
 
       const provider = screen.getByTestId('theme-provider')
       const props = JSON.parse(provider.getAttribute('data-props'))
 
-      expect(props.enableSystem).toBe(false)
+      expect(props.enableSystem).toBe(true)
     })
 
     it('should enable color scheme', () => {
