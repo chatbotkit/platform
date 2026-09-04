@@ -8,7 +8,6 @@ import tailwindcssBgPatterns from 'tailwindcss-bg-patterns'
 import tailwindcssHighlights from 'tailwindcss-highlights'
 import tailwindcssMotion from 'tailwindcss-motion'
 import tailwindcssTextRendering from 'tailwindcss-text-rendering'
-import tailwindcssTextshadow from 'tailwindcss-textshadow'
 import colors from 'tailwindcss/colors'
 import defaultTheme from 'tailwindcss/defaultTheme'
 
@@ -296,10 +295,18 @@ export default {
     tailwindGradientMaskImage,
     tailwindcssBgPatterns,
     tailwindcssTextRendering,
-    tailwindcssTextshadow,
     tailwindcssMotion,
     tailwindcssHighlights,
     tailwindcssContainerQueries,
+
+    // @note text-shadow utilities driven by theme.textShadow; replaces the
+    // tailwindcss-textshadow package, which dragged in a whole Tailwind 1 tree
+    function ({ matchUtilities, theme }) {
+      matchUtilities(
+        { 'text-shadow': (value) => ({ textShadow: value }) },
+        { values: theme('textShadow') }
+      )
+    },
 
     function ({ addVariant }) {
       addVariant('not-focus', '&:not(:focus)')

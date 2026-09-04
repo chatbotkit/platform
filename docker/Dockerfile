@@ -22,11 +22,15 @@
 # Stage 0: Base
 # -----------------------------------------------------------------------------
 
-FROM node:24.20.0-alpine AS base
+# @note Debian rather than Alpine: the sandbox module's native sidecar ships
+# glibc builds only, and musl cannot load them
+FROM node:24.20.0-bookworm-slim AS base
 
 # Required system dependencies for native modules (better-sqlite3 builds from
-# source on alpine)
-RUN apk add --no-cache libc6-compat python3 make g++
+# source when no prebuilt binary matches)
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends python3 make g++ ca-certificates \
+  && rm -rf /var/lib/apt/lists/*
 
 # Enable the pnpm version required by package.json's packageManager field.
 RUN corepack enable && corepack prepare pnpm@11.24.0 --activate
@@ -91,8 +95,8 @@ ENV NODE_OPTIONS="--max-old-space-size=$NODE_HEAP_MB --require /app/platform/scr
 ARG SITE_URL=http://localhost:3000
 ENV SITE_URL=$SITE_URL
 
-# @note apex host rewrites are generated at build time, so the image bakes a
-# `.localhost` pair browsers resolve to loopback without DNS: space sites at
+# @note apex host rewrites are generated at build time, so the image bakes
+# `.localhost` names browsers resolve to loopback without DNS: space sites at
 # `<slug>.space.localhost`, portals at `<slug>.portal.localhost`. The runtime
 # environment must name the same apexes (the compose files do).
 # @todo move the apex host rewrites out of next.config.d into a runtime proxy
@@ -105,6 +109,14 @@ ARG APP_APEX=
 ENV APP_APEX=$APP_APEX
 ARG PARTNERS_APEX=
 ENV PARTNERS_APEX=$PARTNERS_APEX
+
+# @note the app-shell hosts are rewrites of the same kind: the main shell at
+# `apps.localhost`, the labs shell at `labs.localhost`. The runtime origins
+# must match these too
+ARG APP_MAIN_ORIGIN=http://apps.localhost:3000
+ENV APP_MAIN_ORIGIN=$APP_MAIN_ORIGIN
+ARG APP_LABS_ORIGIN=http://labs.localhost:3000
+ENV APP_LABS_ORIGIN=$APP_LABS_ORIGIN
 
 # @note source maps ship without source content by default; pass 'full'
 # explicitly to embed the source for debuggable self-hosted images
@@ -159,9 +171,7 @@ WORKDIR /app
 
 RUN pnpm --filter @chatbotkit-dev/db deploy --legacy /initializer
 
-FROM node:24.20.0-alpine AS initializer
-
-RUN apk add --no-cache libc6-compat
+FROM node:24.20.0-bookworm-slim AS initializer
 
 WORKDIR /app
 
@@ -184,12 +194,12 @@ CMD ["sh", "-c", "npm run db:push && chown -R 1001:1001 /data"]
 # Stage 4: Application
 # -----------------------------------------------------------------------------
 
-FROM node:24.20.0-alpine AS application
+FROM node:24.20.0-bookworm-slim AS application
 
 WORKDIR /app
 
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
+RUN groupadd --system --gid 1001 nodejs
+RUN useradd --system --uid 1001 --gid nodejs --create-home nextjs
 
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1

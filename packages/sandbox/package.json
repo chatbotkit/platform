@@ -20,14 +20,13 @@
     "clean:03-node_modules": "rimraf node_modules",
     "format": "true",
     "lint": "eslint src --ext .ts,.js",
-    "script:verify-interpreters": "tsx ./scripts/verify-interpreters.js",
     "test": "NODE_OPTIONS=--experimental-vm-modules jest"
   },
   "access": "restricted",
   "types": "./types/src/index.d.ts",
   "dependencies": {
     "@chatbotkit-dev/sandbox-spec": "workspace:*",
-    "just-bash": "^3.3.0"
+    "@rivet-dev/agentos-core": "0.2.19"
   },
   "devDependencies": {
     "@chatbotkit-dev/eslint-config": "workspace:*",

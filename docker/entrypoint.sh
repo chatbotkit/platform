@@ -120,12 +120,19 @@ fi
 
 config_load
 
-# Fills empty NEXTAUTH_SECRET / QUEUE_SECRET / JWT_TOKEN_SECRET_KEY with values
-# generated once and persisted in $DATA_DIR, so sessions, queue signatures and
-# issued tokens survive restarts as long as it is a volume.
-if [ -z "$NEXTAUTH_SECRET" ] || [ -z "$QUEUE_SECRET" ] || [ -z "$JWT_TOKEN_SECRET_KEY" ]; then
+# Fills empty NEXTAUTH_SECRET / QUEUE_SECRET / JWT_TOKEN_SECRET_KEY /
+# CLOAK_ENCRYPTION_KEY with values generated once and persisted in $DATA_DIR,
+# so sessions, queue signatures, issued tokens and encrypted values survive
+# restarts as long as it is a volume.
+if [ -z "$NEXTAUTH_SECRET" ] || [ -z "$QUEUE_SECRET" ] || [ -z "$JWT_TOKEN_SECRET_KEY" ] || [ -z "$CLOAK_ENCRYPTION_KEY" ]; then
   generate_secret() {
     node -e 'process.stdout.write(require("node:crypto").randomBytes(32).toString("hex"))'
+  }
+
+  # @note the k1.aesgcm256 format @chatbotkit-dev/cloak expects: 32 random
+  # bytes, base64url without padding
+  generate_cloak_key() {
+    node -e 'process.stdout.write("k1.aesgcm256." + require("node:crypto").randomBytes(32).toString("base64url"))'
   }
 
   if [ ! -f "$SECRETS_FILE" ]; then
@@ -141,6 +148,14 @@ if [ -z "$NEXTAUTH_SECRET" ] || [ -z "$QUEUE_SECRET" ] || [ -z "$JWT_TOKEN_SECRE
     printf 'GENERATED_JWT_TOKEN_SECRET_KEY=%s\n' "$GENERATED_JWT_TOKEN_SECRET_KEY" >> "$SECRETS_FILE"
   fi
 
+  # @note likewise for the cloak key. Without it the application refused every
+  # skillset call with an unrelated-looking TypeError, because the module that
+  # parses it threw at import inside a require cycle
+  if [ -z "$GENERATED_CLOAK_ENCRYPTION_KEY" ]; then
+    GENERATED_CLOAK_ENCRYPTION_KEY="$(generate_cloak_key)"
+    printf 'GENERATED_CLOAK_ENCRYPTION_KEY=%s\n' "$GENERATED_CLOAK_ENCRYPTION_KEY" >> "$SECRETS_FILE"
+  fi
+
   if [ -z "$NEXTAUTH_SECRET" ]; then
     echo "WARNING: NEXTAUTH_SECRET is not set - using a generated value persisted in $SECRETS_FILE" >&2
     export NEXTAUTH_SECRET="$GENERATED_NEXTAUTH_SECRET"
@@ -154,6 +169,11 @@ if [ -z "$NEXTAUTH_SECRET" ] || [ -z "$QUEUE_SECRET" ] || [ -z "$JWT_TOKEN_SECRE
   if [ -z "$JWT_TOKEN_SECRET_KEY" ]; then
     echo "WARNING: JWT_TOKEN_SECRET_KEY is not set - using a generated value persisted in $SECRETS_FILE" >&2
     export JWT_TOKEN_SECRET_KEY="$GENERATED_JWT_TOKEN_SECRET_KEY"
+  fi
+
+  if [ -z "$CLOAK_ENCRYPTION_KEY" ]; then
+    echo "WARNING: CLOAK_ENCRYPTION_KEY is not set - using a generated value persisted in $SECRETS_FILE" >&2
+    export CLOAK_ENCRYPTION_KEY="$GENERATED_CLOAK_ENCRYPTION_KEY"
   fi
 fi
 

@@ -5,6 +5,7 @@ import {
 
 import { withPost } from '@/lib/method'
 import { ok } from '@/lib/response'
+import { expiredRunasCookie } from '@/lib/runas'
 import { withSession } from '@/lib/session.handler'
 
 export default withPost(
@@ -15,11 +16,11 @@ export default withPost(
 
     headers.append(
       'Set-Cookie',
-      `${RUNAS_USERID_COOKIE_NAME}=; Path=/; Secure; SameSite=Lax; expires=Thu, 01 Jan 1970 00:00:00 GMT`
+      expiredRunasCookie(RUNAS_USERID_COOKIE_NAME)
     )
     headers.append(
       'Set-Cookie',
-      `${RUNAS_USERNAME_COOKIE_NAME}=; Path=/; Secure; SameSite=Lax; expires=Thu, 01 Jan 1970 00:00:00 GMT`
+      expiredRunasCookie(RUNAS_USERNAME_COOKIE_NAME)
     )
 
     return ok({ redirectUrl: `/overview` }, headers)

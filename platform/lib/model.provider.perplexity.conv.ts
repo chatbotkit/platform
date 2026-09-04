@@ -70,7 +70,7 @@ async function* wrapModel(it: ConversationOutput): ConversationOutput {
           type: 'message',
           data: {
             type: item.data.type,
-            text: item.data.text.replace(/^<think>(.|\s)*?<\/think>\s*/m, ''),
+            text: item.data.text.replace(/^<think>[\s\S]*?<\/think>\s*/m, ''),
           },
         }
       } else {

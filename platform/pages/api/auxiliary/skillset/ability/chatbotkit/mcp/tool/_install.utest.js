@@ -85,6 +85,7 @@ describe('auxiliary/skillset/ability/chatbotkit/mcp/tool/install', () => {
         sessionId: 'session-abc',
         url: 'https://mcp.example.com',
         headers: undefined,
+        headerSource: undefined,
         tools: undefined,
         prefix: undefined,
       })

@@ -6,7 +6,11 @@ import { prompt } from 'react-prompt-kit/src'
 import { ONE_MINUTE_IN_SECONDS } from '@chatbotkit-dev/time'
 import type { UnwrapPromise } from '@chatbotkit-dev/typescript-utils/promise'
 
-import { visibleLanguageModels } from '@/config/models'
+import {
+  defaultLanguageModel,
+  languageModels,
+  visibleLanguageModels,
+} from '@/config/models'
 
 import {
   MAX_DB_STRING_BYTES_LENGTH,
@@ -34,6 +38,7 @@ import { runTasks } from '@/lib/job'
 import { getBaseLanguageModelTokenCount } from '@/lib/model.utils'
 import { nameToIcon } from '@/lib/name.icon'
 import { execPrompt } from '@/lib/prompt'
+import { parse as parseStructStr } from '@/lib/structstr'
 import {
   NOT_AUTHORIZED_CODE,
   NOT_FOUND_CODE,
@@ -240,6 +245,20 @@ export const listBots = appActionHandler(
     return bots
   }
 )
+
+/**
+ * The auto agent prompt pins a model, but a deployment may not serve that
+ * model's provider. Fall back to the default language model in that case.
+ */
+function resolveAutoAgentModel(): string {
+  const { name } = parseStructStr(autoAgentPrompt.model)
+
+  if (languageModels[name]) {
+    return autoAgentPrompt.model
+  }
+
+  return defaultLanguageModel
+}
 
 /**
  * Represents a language model configuration in the chat application.
@@ -1756,7 +1775,7 @@ export const completeThread = appActionHandler(
         }
       } else {
         if (selectedBot.auto === true) {
-          theModel = autoAgentPrompt.model
+          theModel = resolveAutoAgentModel()
         }
       }
     }

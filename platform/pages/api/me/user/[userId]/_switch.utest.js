@@ -30,6 +30,7 @@ jest.mock('@/lib/session.handler', () => ({
 }))
 
 jest.mock('@/lib/runas', () => ({
+  ...jest.requireActual('@/lib/runas'),
   withoutUserRunasCookies: (fn) => fn,
 }))
 

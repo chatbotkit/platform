@@ -1,100 +1,95 @@
 # @chatbotkit-dev/sandbox
 
 The community default implementation of `@chatbotkit-dev/sandbox-spec`. Runs an
-agent's shell commands and code in this process, against an in-memory
-filesystem, using [`just-bash`](https://github.com/vercel-labs/just-bash).
+agent's shell commands and code in [AgentOS](https://github.com/rivet-dev/agentos):
+a userspace Linux - virtual filesystem, process table, PTYs and a virtual
+network stack - owned by a native sidecar process that brokers every guest
+syscall. Nothing the guest does touches the host filesystem, host sockets or
+host processes.
 
-There is nothing to configure and nothing to install. `shell/exec` works on a
-laptop with no container runtime, no daemon and no credentials, which is the
-reason the sandbox module was made swappable in the first place.
+There is nothing to configure. `shell/exec` works on a laptop with no container
+runtime, no daemon and no credentials, and it works the same way in the
+community image.
 
-## This one actually works
+## What an agent gets
 
-The other community defaults in this repository are placeholders with a pulse:
-`@chatbotkit-dev/email` logs to the console, `@chatbotkit-dev/respond`
-refuses outright. This package is not one of those. `just-bash`
-implements bash — parser, interpreter, 70-plus commands including `grep`, `sed`,
-`awk` and `jq` — in TypeScript, and vendors CPython and QuickJS builds for
-`runCode`. Agents run real commands and get real output.
+- **A shell and coreutils**, as WebAssembly: `sh`, `bash`, the GNU coreutils,
+  `sed`, `grep`, `awk`, `find`, `diff`, `tar`, `gzip`.
+- **Node.js**, on V8 with a Node surface, and a working `npm`. `npm install`
+  in `/workspace` installs real packages that `node` and `import` resolve.
+- **Network**, open by default. The sidecar refuses loopback, private and
+  link-local destinations by resolved address whatever policy says, so the
+  application, its database, cache and object store are unreachable from
+  inside a sandbox, and so is a cloud metadata endpoint.
+- **A workspace that lasts.** `/workspace` is the working directory of every
+  command and a real directory on the host, mounted read-write, so what an
+  agent writes or installs there survives the VM being reaped and the
+  application restarting.
+- **`runCode` sessions that carry state.** A `runCode` session names a live
+  interpreter context, so a binding made by one call is there on the next.
+  Shell `exec` does not: each command runs in a fresh process (see below).
 
-It is still not a production sandbox, and the reasons are structural rather than
-incidental:
+## What it does not have
 
-- **Nothing is isolated from this process.** The interpreter's own boundaries are
-  the only boundaries. Agent code cannot reach the host filesystem or the
-  network, but it shares the heap and the event loop with the application.
-- **Nothing survives a restart.** Every environment lives in a `Map`.
-- **Nothing bounds the blast radius.** A runaway script consumes this process's
-  CPU. `just-bash` execution limits cap command counts and output size, not wall
-  clock across the whole process.
+- **Python.** AgentOS documents CPython through Pyodide, but the published
+  sidecar builds at the pinned version ship without it. The package probes
+  once and reports Python as `UNSUPPORTED_OPERATION` with a message saying so,
+  rather than shelling out to something approximate. Bumping the runtime the
+  day it ships turns Python on with no change here.
+- **`git`, `curl` and the other registry command packages.** They resolve and
+  project into the VM, but their binaries arrive without the executable bit at
+  this version and refuse to run. Node's `fetch` and `npx` cover most of what
+  agents reached for them for.
+- **Storage mounts.** `mountedPaths` is always empty and the mount plan's
+  `resolve()` is never called, so no scoped credentials are minted for a mount
+  that will not happen, and the platform does not offer the model a `/space`
+  that is not there.
+- **A clean `ls -la` of `/workspace`.** The listing prints, then the command
+  exits 1 with `Invalid argument` from the mount's directory entries at this
+  version. `ls -l` is unaffected.
+- **Kernel isolation.** The boundary is the sidecar, a Rust process, not the
+  kernel. That removes the kernel-escape class of bug and adds the sidecar's
+  own. CPU is shared with the application, and limits are per-VM budgets
+  rather than cgroups.
 
-An implementation that puts each environment in its own VM is what those three
-points are worth, and is what a hosted deployment should install.
+## Persistence, precisely
 
-The package enforces that itself. Under `NODE_ENV=production` every operation
-throws `SANDBOX_UNAVAILABLE` before a shell is created, `assertConfigured`
-fails with the same message, and the platform's configuration suite therefore
-fails on a production install that still resolves to this package. There is no
-switch: this package is for `pnpm dev`, and a deployment that wants agent code
-execution overrides `@chatbotkit-dev/sandbox` with an isolated implementation.
+| | persists |
+| --- | --- |
+| files under `/workspace` | across calls, VM reaping and restarts |
+| files elsewhere (`/tmp`, `$HOME`) | across calls, until the VM is reaped |
+| `cd` and shell variables between `exec` calls | no - each command is a fresh process |
+| interpreter bindings in a `runCode` session | until the VM is reaped |
 
-## What differs from a real machine
+A VM is reaped after fifteen minutes without a call. A workspace nobody has
+used for thirty days is removed from disk.
 
-Everything an agent does through this package is real, except that **nothing
-survives a call except the filesystem**:
+Shell `exec` runs each command in its own process rather than a live shell, so
+a `cd` or a variable ends with the command that made it - the same divergence
+from a real machine the previous in-process default had. It is not only
+faithful to what a fresh process can offer: a lingering shell is the one thing
+a published sidecar at this version hangs on, so every operation on a VM is run
+one at a time and none is left running between calls.
 
-| | here | a VM-backed backend |
+## Configuration
+
+Documented here because the package owns it; the platform does not need it to
+run.
+
+| Variable | Default | Meaning |
 | --- | --- | --- |
-| files written by a command | persist | persist |
-| `cd` | ends with the command | persists in the session |
-| shell variables | end with the command | persist in the session |
-| `runCode` bindings | end with the call | persist in the session |
-| storage mounts | none | `/space`, `/conversation` |
+| `SANDBOX_DATA_DIR` | `<tmpdir>/chatbotkit-sandbox` | Where workspaces live, one directory per `sandboxId`. Point it at a volume in a deployment; the compose files use `/data/sandbox` |
 
-The first four are pinned by tests, so a future version of `just-bash` that
-starts carrying shell state has to come and update this table.
+## Requirements
 
-The mount row matters more than it looks. This package reports `mountedPaths: []`
-and never calls `resolve()` on a mount plan, so no scoped credentials are ever
-issued for a mount that will not happen — and the platform, which builds the
-model's view of reachable folders from what came back, does not offer the agent a
-`/space` that is not there.
+The sidecar is a native binary the package resolves for the current platform:
+Linux x64 and arm64 with glibc, and macOS. Alpine images cannot load it; the
+platform image builds on Debian for this reason. `assertConfigured` starts a VM
+and runs a command, so a host that cannot run the sidecar fails the
+configuration suite rather than the first agent turn.
 
-`sessionId` is accepted and changes nothing about where a command runs. That is
-deliberate: the state a session exists to isolate is not carried between calls
-under any arrangement, so a shell per session would have implied an isolation it
-could not provide. Sessions of one sandbox share its filesystem, which is the one
-thing they genuinely do share.
-
-## Running the interpreters
-
-Python and JavaScript are enabled. Two things are worth knowing:
-
-- **They need the Node build.** `just-bash` selects a bundle from the resolver's
-  export conditions, and its browser build ships a `python3` that reports
-  `command not available in browser environments`. Anything running this under a
-  jsdom-flavoured resolver gets that build.
-- **Bundlers should leave it alone.** The CPython loader resolves its wasm
-  relative to `import.meta.url`. Under a bundler that rewrites or inlines the
-  module, that resolution fails with `TypeError: Invalid URL`. A deployment
-  serving on this default should keep `just-bash` external — for Next.js, add it
-  to `serverComponentsExternalPackages`.
-
-The package itself imports `just-bash` lazily, so the vendored interpreters are
-not loaded by merely importing the platform.
-
-Both constraints are why the interpreter tests are not in the jest suite: jest's
-experimental VM module loader hits exactly the second one. They live in
-`scripts/verify-interpreters.js`:
-
-```bash
-pnpm script:verify-interpreters
-```
-
-The JavaScript interpreter runs on a QuickJS worker that keeps the event loop
-alive after the command finishes, which is why that script exits explicitly. A
-long-lived process calling `runCode` with `language: 'javascript'` should expect
-the same.
+The package imports AgentOS lazily, so the sidecar and its command packages are
+not touched by merely importing the platform.
 
 ## Installing something else
 

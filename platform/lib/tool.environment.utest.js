@@ -27,6 +27,9 @@ jest.mock('@/prisma/client', () => ({
     skillset: {
       findUnique: jest.fn(),
     },
+    ability: {
+      findUnique: jest.fn(),
+    },
   },
 }))
 
@@ -938,6 +941,130 @@ body:
         }),
         'pack-template-list_buffer_channels',
         '{"organizationId":"66e1960459bcf53793d87a33"}'
+      )
+    })
+    it('should re-read linked resources from the installing ability at call time', async () => {
+      getContextConversation.mockReturnValue({ id: 'conv-123' })
+
+      const storedTools = [
+        {
+          handler: 'ability-template',
+          name: 'pack-template-execute_shell_command',
+          inputSchema: {},
+          options: {
+            userId: 'user-123',
+            instruction: '@shell/exec',
+            abilityId: 'ability-123',
+            // the snapshot taken at install time predates the space link
+            linkedResources: {},
+          },
+        },
+      ]
+
+      memcache.hgetall.mockResolvedValue({ tools: storedTools })
+      prisma.ability.findUnique.mockResolvedValue({
+        linkedSecretId: null,
+        linkedFileId: null,
+        linkedBotId: null,
+        linkedSpaceId: 'space-456',
+      })
+      applySkillset.mockResolvedValue({ error: null, result: 'ok' })
+
+      const tools = await getEnvironmentTools()
+
+      await tools[0].handler({ command: 'ls /space' })
+
+      expect(prisma.ability.findUnique).toHaveBeenCalledWith({
+        where: { id: 'ability-123' },
+        select: {
+          linkedSecretId: true,
+          linkedFileId: true,
+          linkedBotId: true,
+          linkedSpaceId: true,
+        },
+      })
+
+      expect(applySkillset).toHaveBeenCalledWith(
+        'user-123',
+        expect.objectContaining({
+          abilities: [
+            expect.objectContaining({
+              linkedSpaceId: 'space-456',
+              linkedSecretId: null,
+            }),
+          ],
+        }),
+        'pack-template-execute_shell_command',
+        expect.any(String)
+      )
+    })
+
+    it('should fall back to the install-time snapshot when the ability is gone', async () => {
+      getContextConversation.mockReturnValue({ id: 'conv-123' })
+
+      const storedTools = [
+        {
+          handler: 'ability-template',
+          name: 'pack-template-execute_shell_command',
+          inputSchema: {},
+          options: {
+            userId: 'user-123',
+            instruction: '@shell/exec',
+            abilityId: 'ability-deleted',
+            linkedResources: { spaceId: 'space-snapshot' },
+          },
+        },
+      ]
+
+      memcache.hgetall.mockResolvedValue({ tools: storedTools })
+      prisma.ability.findUnique.mockResolvedValue(null)
+      applySkillset.mockResolvedValue({ error: null, result: 'ok' })
+
+      const tools = await getEnvironmentTools()
+
+      await tools[0].handler({ command: 'ls /space' })
+
+      expect(applySkillset).toHaveBeenCalledWith(
+        'user-123',
+        expect.objectContaining({
+          abilities: [expect.objectContaining({ linkedSpaceId: 'space-snapshot' })],
+        }),
+        'pack-template-execute_shell_command',
+        expect.any(String)
+      )
+    })
+
+    it('should not query the ability when the tool carries no abilityId', async () => {
+      getContextConversation.mockReturnValue({ id: 'conv-123' })
+
+      memcache.hgetall.mockResolvedValue({
+        tools: [
+          {
+            handler: 'ability-template',
+            name: 'pack-template-inline',
+            inputSchema: {},
+            options: {
+              userId: 'user-123',
+              instruction: 'inline instruction',
+              linkedResources: { spaceId: 'space-inline' },
+            },
+          },
+        ],
+      })
+      applySkillset.mockResolvedValue({ error: null, result: 'ok' })
+
+      const tools = await getEnvironmentTools()
+
+      await tools[0].handler({})
+
+      expect(prisma.ability.findUnique).not.toHaveBeenCalled()
+      expect(applySkillset).toHaveBeenCalledWith(
+        'user-123',
+        expect.objectContaining({
+          abilities: [expect.objectContaining({ linkedSpaceId: 'space-inline' })],
+        }),
+        'pack-template-inline',
+        expect.any(String)
       )
     })
   })

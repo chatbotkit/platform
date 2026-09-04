@@ -173,7 +173,8 @@ A flavor is the baseline of [module defaults](./module-defaults.md) plus the
 backing services its stack provisions. Everything not listed keeps the
 default - in the community flavor the database is SQLite in the platform data
 volume, the queue is immediate and non-durable, sign-in codes are read from
-the container log, and the sandbox refuses under `NODE_ENV=production`.
+the container log, and agent code runs in the default in-process sandbox with
+its workspaces kept under `/data/sandbox` in the same volume.
 
 | Flavor      | Database                | Cache | Vector | Storage |
 | ----------- | ----------------------- | ----- | ------ | ------- |
@@ -193,8 +194,10 @@ production infrastructure. A production deployment still needs:
   platform data volume, or explicit operator-provided values
 - durable database, object-storage and backup policies
 - a durable queue when delayed delivery, retries, callbacks or ordering matter
-- a production-safe isolated sandbox implementation if agent code execution is
-  enabled
+- a sandbox with kernel-level isolation and per-tenant resource accounting if
+  agent code execution is exposed to untrusted users; the default runs agent
+  code in a userspace VM inside the application process - see
+  [module defaults](./module-defaults.md)
 - monitoring, restore testing and an upgrade and rollback procedure
 
 The repository does not yet publish versioned releases, SBOMs or signed
@@ -210,15 +213,16 @@ parts of host and subscription configuration, is therefore not baked into the
 and keep secrets out of image layers.
 
 The current community image deliberately bakes the neutral single-host
-topology: `SITE_URL=http://localhost:3000`, with no app-shell origins or
-external zones. Two apexes are baked alongside it so deployment-issued
-subdomains work out of the box: `SPACE_APEX=space.localhost` and
-`PORTAL_APEX=portal.localhost`. Browsers resolve any `*.localhost` name to
-loopback, so a space site published as `acme` answers at
-`http://acme.space.localhost:3000` with no DNS or hosts-file setup (`curl`
-needs `--resolve`). The runtime `SPACE_APEX` and `PORTAL_APEX` must name the
-same apexes as the build, which the compose files ensure; a different apex
-needs a rebuild with the matching build arguments. Runtime service variables
+topology: `SITE_URL=http://localhost:3000`, with no external zones. Two apexes
+are baked alongside it so deployment-issued subdomains work out of the box:
+`SPACE_APEX=space.localhost` and `PORTAL_APEX=portal.localhost`, and the two
+app shells answer at `http://apps.localhost:3000` and
+`http://labs.localhost:3000` through `APP_MAIN_ORIGIN` and `APP_LABS_ORIGIN`.
+Browsers resolve any `*.localhost` name to loopback, so a space site published
+as `acme` answers at `http://acme.space.localhost:3000` with no DNS or
+hosts-file setup (`curl` needs `--resolve`). The runtime apexes and shell
+origins must name the same hosts as the build, which the compose files ensure;
+a different host needs a rebuild with the matching build arguments. Runtime service variables
 such as the database, Redis, Qdrant and S3-compatible storage endpoints remain
 configurable. Deployment identity that Next currently exposes through
 `next.config.js` is still frozen at build time; do not present the same digest

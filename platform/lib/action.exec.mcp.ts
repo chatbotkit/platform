@@ -9,10 +9,10 @@ import type {
 } from '@/lib/action.exec.all'
 import debug from '@/lib/debug'
 import { UserInputError } from '@/lib/error'
-import { cleanupEmptyHeaders, toHeadersHashMap } from '@/lib/header'
 import { logEvent } from '@/lib/log'
 import { installMcpTools } from '@/lib/mcp.edge'
-import { hasSecrets, swapSecrets } from '@/lib/secret.value'
+import { swapMcpHeaders } from '@/lib/mcp.headers'
+import type { McpHeaderSource } from '@/lib/tool.environment'
 import { uninstallEnvironmentTools } from '@/lib/tool.environment'
 import { fastGetUserById } from '@/lib/user.get'
 import { z } from '@/lib/zod.schema'
@@ -91,50 +91,24 @@ export async function doMcpInstall({
     'action.exec.mcp.doMcpInstall'
   )
 
-  let headers: Record<string, string> | undefined
+  // @note the template keeps its secret placeholders: the install-time swap
+  // below only serves the connection that lists the tools, while the source is
+  // what the installed tools store and swap again on every call
 
-  {
-    // @note build header object from config, converting all values to strings
-
-    const configHeaders = _headers
+  const headerSource: McpHeaderSource = {
+    headerTemplate: _headers
       ? Object.fromEntries(
           Object.entries(_headers).map(([key, value]) => [key, String(value)])
         )
-      : {}
+      : {},
 
-    // @note if secretId is linked but headers don't reference any secrets,
-    // auto-inject the Authorization header with the default secret
+    abilityId: options.contextResources?.abilityId,
+    secretId: options.linkedResources?.secretId,
 
-    if (
-      options.linkedResources?.secretId &&
-      !hasSecrets(configHeaders) &&
-      !configHeaders['authorization'] &&
-      !configHeaders['Authorization']
-    ) {
-      configHeaders['Authorization'] = '${SECRET_DEFAULT}'
-    }
-
-    // @note swap secret placeholders with actual values
-
-    if (Object.keys(configHeaders).length > 0) {
-      headers = toHeadersHashMap(
-        cleanupEmptyHeaders(
-          await swapSecrets(configHeaders, {
-            userId: options.userId,
-
-            abilityId: options.contextResources?.abilityId,
-            secretId: options.linkedResources?.secretId,
-
-            inlineSecrets: options.inlineSecrets,
-
-            // @note remove secret placeholders we could not replace
-
-            discardSecretPlaceholders: true,
-          })
-        )
-      )
-    }
+    inlineSecrets: options.inlineSecrets,
   }
+
+  const headers = await swapMcpHeaders({ id: options.userId }, headerSource)
 
   const tools = _tools
     ? Array.isArray(_tools)
@@ -150,6 +124,7 @@ export async function doMcpInstall({
     {
       url,
       headers,
+      headerSource,
 
       tools,
 

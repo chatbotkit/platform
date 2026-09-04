@@ -100,6 +100,20 @@ export interface RelayProvider {
   ): string
 
   /**
+   * Host a meeting point in this process, when the implementation is one that
+   * can.
+   *
+   * @note called once at server start. The platform is the one long-lived
+   * process a single-node deployment has, so an implementation whose relay is
+   * a process rather than a service can run it here and needs no second
+   * container. An implementation whose meeting point is elsewhere resolves
+   * and does nothing - the contract asks the question, it does not require a
+   * yes. What it must not do is throw for lack of anything to host: that is
+   * `assertConfigured`'s job.
+   */
+  listen(): Promise<void>
+
+  /**
    * @note the convention every swappable module follows. See
    * packages/AGENTS.md.
    */

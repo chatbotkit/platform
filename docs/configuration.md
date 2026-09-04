@@ -230,6 +230,11 @@ APP_MAIN_ORIGIN=https://apps.example.com
 APP_LABS_ORIGIN=https://labs.example.com
 ```
 
+Like the apexes, the shell host rewrites are generated when Next builds, so
+the runtime origins must match the build. The community image bakes
+`APP_MAIN_ORIGIN=http://apps.localhost:3000` and
+`APP_LABS_ORIGIN=http://labs.localhost:3000`.
+
 ## `HOSTS_CONFIG`
 
 Optional request-affine host mappings. Each operator-defined key groups the

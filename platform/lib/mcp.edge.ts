@@ -23,7 +23,13 @@ import type { SerializableTool } from '@/lib/tool.environment'
 
 export async function installMcpTools(
   user: Pick<User, 'id'>,
-  { url, headers, tools, prefix }: Omit<McpInstallOptions, 'sessionId'>
+  {
+    url,
+    headers,
+    headerSource,
+    tools,
+    prefix,
+  }: Omit<McpInstallOptions, 'sessionId'>
 ): Promise<McpInstallResponse> {
   debug('installing mcp tools', {
     url,
@@ -90,6 +96,7 @@ export async function installMcpTools(
         sessionId,
         url,
         headers,
+        headerSource,
         tools,
         prefix,
       } satisfies McpInstallRequest),

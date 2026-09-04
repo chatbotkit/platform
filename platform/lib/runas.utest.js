@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports -- isolateModules reload of the site url */
 import {
   RUNAS_TEAMID_COOKIE_NAME,
   RUNAS_TEAMNAME_COOKIE_NAME,
@@ -264,5 +265,66 @@ describe('runas', () => {
 
       expect(mockFn).toHaveBeenCalledWith(mockReq)
     })
+  })
+})
+
+describe('runas cookie attributes', () => {
+  function load({ siteUrl, requestProtocol = null }) {
+    let mod
+
+    jest.isolateModules(() => {
+      jest.doMock('@/config/site', () => ({ siteUrl }))
+      jest.doMock('@/lib/context.store', () => ({
+        getContextRequestProtocol: () => requestProtocol,
+      }))
+
+      mod = require('./runas')
+    })
+
+    return mod
+  }
+
+  it('should set Secure on https origins', () => {
+    const { runasCookie, expiredRunasCookie } = load({
+      siteUrl: 'https://app.example.com',
+    })
+
+    expect(runasCookie('runas_userid', 'user 1')).toBe(
+      'runas_userid=user%201; Path=/; Secure; SameSite=Lax'
+    )
+    expect(expiredRunasCookie('runas_userid')).toBe(
+      'runas_userid=; Path=/; Secure; SameSite=Lax; expires=Thu, 01 Jan 1970 00:00:00 GMT'
+    )
+  })
+
+  it('should omit Secure on http origins so Safari keeps the cookie', () => {
+    const { runasCookie, expiredRunasCookie } = load({
+      siteUrl: 'http://localhost:3000',
+    })
+
+    expect(runasCookie('runas_userid', 'user1')).toBe(
+      'runas_userid=user1; Path=/; SameSite=Lax'
+    )
+    expect(expiredRunasCookie('runas_userid')).toBe(
+      'runas_userid=; Path=/; SameSite=Lax; expires=Thu, 01 Jan 1970 00:00:00 GMT'
+    )
+  })
+
+  it('should prefer the request protocol over the site url', () => {
+    const https = load({
+      siteUrl: 'http://localhost:3000',
+      requestProtocol: 'https',
+    })
+    const http = load({
+      siteUrl: 'https://app.example.com',
+      requestProtocol: 'http',
+    })
+
+    expect(https.runasCookie('runas_userid', 'user1')).toBe(
+      'runas_userid=user1; Path=/; Secure; SameSite=Lax'
+    )
+    expect(http.runasCookie('runas_userid', 'user1')).toBe(
+      'runas_userid=user1; Path=/; SameSite=Lax'
+    )
   })
 })

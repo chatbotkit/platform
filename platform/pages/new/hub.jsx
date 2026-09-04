@@ -41,7 +41,7 @@ export default function Page({ instance }) {
             className="cursor-default"
             icon={
               <DynamicIcon
-                className="w-16 h-16 text-6xl pt-2 text-shadow-solid-outline"
+                className="w-16 h-16 text-6xl pt-2"
                 icon={instance.icon || '🤖'}
               />
             }

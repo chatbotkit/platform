@@ -25,6 +25,32 @@ describe('parseSingle', () => {
     })
   })
 
+  it('should parse a show query with database', () => {
+    const query = 'SHOW myDatabase.myTable'
+    const result = parseSingle(query)
+
+    expect(result).toEqual({
+      type: 'show',
+      table: {
+        database: 'myDatabase',
+        name: 'myTable',
+      },
+    })
+  })
+
+  it('should reject show and describe with long whitespace runs in linear time', () => {
+    // @note the database group used to accept whitespace, which overlapped
+    // with the separator and made a failed match quadratic in the run length
+    const padding = '\t'.repeat(100000)
+
+    for (const keyword of ['SHOW', 'DESCRIBE']) {
+      const started = Date.now()
+
+      expect(() => parseSingle(`${keyword}${padding}my Table`)).toThrow()
+      expect(Date.now() - started).toBeLessThan(1000)
+    }
+  })
+
   it('should parse a simple query with database', () => {
     const query = 'DESCRIBE myDatabase.myTable'
     const result = parseSingle(query)
