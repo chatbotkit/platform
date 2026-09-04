@@ -407,6 +407,13 @@ export default async function () {
       // lucide - ships esm only, and NestedAccordion draws its chevrons with it
 
       'lucide-react',
+
+      // agentos - the public sandbox module's runtime ships esm only, and the
+      // providers test boots it through a dynamic import
+
+      '@rivet-dev/agentos-.+?',
+      '@agentos-software/.+?',
+      '@rivetkit/bare-ts',
     ]
 
     // @note this is a MINEFIELD - for whatever reason this is the only way to

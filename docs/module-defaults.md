@@ -65,19 +65,36 @@ an inbound implementation replaces the module.
 
 ### Sandbox
 
-The public sandbox runs code in the application process for development and
-refuses under `NODE_ENV=production`. Production code execution requires an
-isolated implementation with explicit CPU, memory, disk, network, lifetime and
-tenant boundaries.
+The public sandbox runs agent commands in [AgentOS](https://github.com/rivet-dev/agentos):
+a userspace Linux with its own filesystem, process table and network stack,
+owned by a native sidecar process that brokers every guest syscall. Shell,
+coreutils, Node.js and `npm` work; outbound network is open, with loopback,
+private and link-local destinations refused; each sandbox keeps a `/workspace`
+directory under `SANDBOX_DATA_DIR` that survives restarts. Python is reported as
+unsupported until the sidecar ships its runtime. The isolation is the
+sidecar's, not the kernel's, and CPU is shared with the application, so a
+deployment exposing code execution to untrusted tenants at scale still wants
+an implementation with kernel-level isolation and per-tenant accounting.
+
+### Realtime relay
+
+The public relay module builds channel addresses for any relay speaking the
+platform's channel protocol, from `RELAY_URL`. It is also a relay: when
+`RELAY_PORT` is set its `listen` hosts a single-node one inside the
+application process, which the compose stacks do, so realtime voice and
+avatar sessions work locally. Unset, the module refuses
+at the point of use and fails the readiness check. Meeting bots and telephony
+are dialled in from outside and need a relay that party can reach - see
+`packages/relay/README.md`.
 
 ### Unavailable service defaults
 
-The public batch runner, realtime relay, screenshot capture and response
-delivery modules keep the application importable but refuse their service
-operations. Their `assertConfigured` checks fail so deployment readiness tests
-cannot mistake an unavailable capability for a production backend. Features
-that need scheduled batch work, live relay channels, captured pages, or
-outbound response delivery require an operator implementation.
+The public batch runner, screenshot capture and response delivery modules keep
+the application importable but refuse their service operations. Their
+`assertConfigured` checks fail so deployment readiness tests cannot mistake an
+unavailable capability for a production backend. Features that need scheduled
+batch work, captured pages, or outbound response delivery require an operator
+implementation.
 
 ### Optional and no-op defaults
 

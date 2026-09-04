@@ -23,12 +23,36 @@ export interface AbilityToolOptions {
   abilityId: string
 }
 
-export interface McpToolOptions {
+/**
+ * What an MCP tool needs to rebuild its request headers on every call: the
+ * headers as the user configured them, secret placeholders unresolved, plus
+ * the context `swapSecrets` resolves them against. Storing this rather than
+ * the swapped headers keeps secret values out of the tool store and lets a
+ * rotated secret or a re-linked ability take effect without a re-install.
+ */
+export interface McpHeaderSource {
+  headerTemplate: Record<string, string>
+
+  /**
+   * The persisted ability that installed the server. When present the linked
+   * secret is re-read from it at call time; inline abilities carry none.
+   */
+  abilityId?: string
+  secretId?: string
+  inlineSecrets?: Record<string, { value: string }>
+}
+
+export interface McpToolOptions extends Partial<McpHeaderSource> {
   userId: string
 
   sessionId: string
 
   url: string
+
+  /**
+   * Swapped headers captured at install time. Only present on tools installed
+   * before `headerTemplate` existed; new installs resolve headers per call.
+   */
   headers?: Record<string, string>
 
   toolName: string
@@ -82,6 +106,15 @@ export interface AbilityTemplateToolOptions {
 
   instruction: string
 
+  /**
+   * The ability that installed this tool, when it is a persisted one. The
+   * handler re-reads that ability's linked resources on every call, so a link
+   * edited after the install (a space attached later, a secret swapped) takes
+   * effect without a re-install. Absent for inline abilities, which fall back
+   * to the `linkedResources` snapshot taken at install time.
+   */
+  abilityId?: string
+
   linkedResources?: {
     secretId?: string
     fileId?: string
@@ -112,6 +145,44 @@ export interface CallableTool {
   outputSchema?: JsonSchema | Record<string, unknown> // @todo make it more specific
 
   handler: (...args: unknown[]) => Promise<unknown>
+}
+
+/**
+ * The linked resources an ability-template tool should run with. Prefers the
+ * current ability row over the install-time snapshot so a stale tool store
+ * (a namespace-keyed one in particular, which outlives the chat that filled it)
+ * never pins a tool to links the user has since changed.
+ */
+async function resolveAbilityTemplateLinkedResources(
+  options: AbilityTemplateToolOptions
+): Promise<AbilityTemplateToolOptions['linkedResources']> {
+  if (!options.abilityId) {
+    return options.linkedResources
+  }
+
+  const ability = await prisma.ability.findUnique({
+    where: {
+      id: options.abilityId,
+    },
+
+    select: {
+      linkedSecretId: true,
+      linkedFileId: true,
+      linkedBotId: true,
+      linkedSpaceId: true,
+    },
+  })
+
+  if (!ability) {
+    return options.linkedResources
+  }
+
+  return {
+    secretId: ability.linkedSecretId ?? undefined,
+    fileId: ability.linkedFileId ?? undefined,
+    botId: ability.linkedBotId ?? undefined,
+    spaceId: ability.linkedSpaceId ?? undefined,
+  }
 }
 
 export async function getEnvironmentKey(): Promise<string | null> {
@@ -437,6 +508,10 @@ export async function getEnvironmentTools(): Promise<CallableTool[]> {
           // @note create a synthetic skillset and ability to reuse the
           // existing instruction execution pipeline via applySkillset
 
+          const linkedResources = await resolveAbilityTemplateLinkedResources(
+            tool.options
+          )
+
           const syntheticAbility: Ability & {
             inlineSecrets?: Record<string, { value: string }>
           } = {
@@ -450,10 +525,10 @@ export async function getEnvironmentTools(): Promise<CallableTool[]> {
             instruction: tool.options.instruction,
             state: ResourceState.enabled,
             meta: null,
-            linkedSecretId: tool.options.linkedResources?.secretId || null,
-            linkedFileId: tool.options.linkedResources?.fileId || null,
-            linkedBotId: tool.options.linkedResources?.botId || null,
-            linkedSpaceId: tool.options.linkedResources?.spaceId || null,
+            linkedSecretId: linkedResources?.secretId || null,
+            linkedFileId: linkedResources?.fileId || null,
+            linkedBotId: linkedResources?.botId || null,
+            linkedSpaceId: linkedResources?.spaceId || null,
             createdAt: new Date(),
             updatedAt: new Date(),
             inlineSecrets: tool.options.inlineSecrets,

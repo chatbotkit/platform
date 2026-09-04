@@ -175,4 +175,23 @@ describe('Pagedown', () => {
       expect(img.closest('p')).toBeInTheDocument()
     })
   })
+
+  describe('typography', () => {
+    it('should replace em dashes with regular dashes', () => {
+      const markdown = 'one \u2014 two \u2014 three'
+
+      const { container } = render(<Pagedown>{markdown}</Pagedown>)
+
+      expect(container.textContent).toBe('one - two - three')
+      expect(container.textContent).not.toContain('\u2014')
+    })
+
+    it('should leave regular dashes untouched', () => {
+      const markdown = 'well-known - as is'
+
+      const { container } = render(<Pagedown>{markdown}</Pagedown>)
+
+      expect(container.textContent).toBe('well-known - as is')
+    })
+  })
 })

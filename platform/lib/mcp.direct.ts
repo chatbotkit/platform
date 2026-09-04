@@ -3,6 +3,7 @@ import type { User } from '@/prisma/types'
 import { getAbilityFunctionName } from '@/lib/ability.function'
 import debug from '@/lib/debug'
 import { UserAuthError, UserInputError, captureError } from '@/lib/error'
+import { resolveMcpHeaders } from '@/lib/mcp.headers'
 import type { McpStreamableHTTPClientTransport } from '@/lib/mcp.oauth'
 import { McpOAuthProvider } from '@/lib/mcp.oauth'
 import type { McpInstallOptions, McpInstallResponse } from '@/lib/mcp.types'
@@ -23,12 +24,13 @@ const MCP_REQUEST_TIMEOUT_MS = 60_000 // 60 seconds
 
 export async function installMcpTools(
   user: Pick<User, 'id'>,
-  { sessionId, url, headers, tools, prefix }: McpInstallOptions
+  { sessionId, url, headers, headerSource, tools, prefix }: McpInstallOptions
 ): Promise<McpInstallResponse> {
   debug('install mcp tools', {
     sessionId,
     url,
     headers,
+    headerSource,
     tools,
     prefix,
   }).log('mcp.direct.installMcpTools')
@@ -107,7 +109,11 @@ export async function installMcpTools(
             sessionId,
 
             url,
-            headers,
+
+            // @note store the unswapped source when we have one so the swapped
+            // headers never sit in the tool store and each call swaps afresh
+
+            ...(headerSource ? headerSource : { headers }),
 
             toolName: tool.name,
           },
@@ -146,11 +152,15 @@ export async function callMcpTool(
 ): Promise<unknown> {
   debug('calling mcp tool', { tool, args }).log('mcp.direct.callMcpTool')
 
-  const { sessionId, url, headers, toolName } = tool.options
+  const { sessionId, url, headerTemplate, toolName } = tool.options
 
   if (!sessionId || !url || !toolName) {
     throw new UserInputError(`Missing required MCP tool options`)
   }
+
+  const headers = headerTemplate
+    ? await resolveMcpHeaders(user, { ...tool.options, headerTemplate })
+    : tool.options.headers
 
   debug('connecting to MCP server', {
     sessionId,

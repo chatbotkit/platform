@@ -22,6 +22,15 @@ const schema = z.object({
   url: z.string(),
   headers: z.record(z.string()).optional(),
 
+  headerSource: z
+    .object({
+      headerTemplate: z.record(z.string()),
+      abilityId: z.string().optional(),
+      secretId: z.string().optional(),
+      inlineSecrets: z.record(z.object({ value: z.string() })).optional(),
+    })
+    .optional(),
+
   tools: z.array(z.string()).optional(),
 
   prefix: z.string().optional(),
@@ -51,6 +60,8 @@ export default authenticatedHandler(
 
       url: mcpUrl,
       headers: mcpHeaders,
+
+      headerSource,
 
       tools,
 
@@ -98,6 +109,8 @@ export default authenticatedHandler(
 
       url: mcpUrl,
       headers: mcpHeaders,
+
+      headerSource,
 
       tools,
 

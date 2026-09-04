@@ -34,7 +34,8 @@ const itIfBatchConfigured = [
 
 const itIfVectorConfigured = process.env.OPENAI_API_KEY ? it : it.skip
 
-const itIfRelayConfigured = process.env.CFWSRELAY_BASE_URL ? it : it.skip
+const itIfRelayConfigured =
+  process.env.RELAY_URL || process.env.CFWSRELAY_BASE_URL ? it : it.skip
 
 const itIfScreenshotConfigured = process.env.CFWEBSHOT_BASE_URL ? it : it.skip
 

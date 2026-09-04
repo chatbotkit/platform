@@ -11,7 +11,7 @@ import prisma from '@/prisma/client'
 import { withPost } from '@/lib/method'
 import { requiredUrlParam } from '@/lib/query.get'
 import { notAuthorized, notFound, ok } from '@/lib/response'
-import { withoutTeamAndUserRunasCookies } from '@/lib/runas'
+import { expiredRunasCookie, runasCookie, withoutTeamAndUserRunasCookies } from '@/lib/runas'
 import { withSession } from '@/lib/session.handler'
 
 // Team Switch Flow
@@ -74,26 +74,22 @@ export default withPost(
 
       headers.append(
         'Set-Cookie',
-        `${RUNAS_TEAMID_COOKIE_NAME}=${encodeURIComponent(
-          team.id
-        )}; Path=/; Secure; SameSite=Lax`
+        runasCookie(RUNAS_TEAMID_COOKIE_NAME, team.id)
       )
       headers.append(
         'Set-Cookie',
-        `${RUNAS_TEAMNAME_COOKIE_NAME}=${encodeURIComponent(
-          team.name || ''
-        )}; Path=/; Secure; SameSite=Lax`
+        runasCookie(RUNAS_TEAMNAME_COOKIE_NAME, team.name || '')
       )
 
       // also clear the user switch cookies
 
       headers.append(
         'Set-Cookie',
-        `${RUNAS_USERID_COOKIE_NAME}=; Path=/; Secure; SameSite=Lax; expires=Thu, 01 Jan 1970 00:00:00 GMT`
+        expiredRunasCookie(RUNAS_USERID_COOKIE_NAME)
       )
       headers.append(
         'Set-Cookie',
-        `${RUNAS_USERNAME_COOKIE_NAME}=; Path=/; Secure; SameSite=Lax; expires=Thu, 01 Jan 1970 00:00:00 GMT`
+        expiredRunasCookie(RUNAS_USERNAME_COOKIE_NAME)
       )
 
       return ok({ redirectUrl: `/overview` }, headers)

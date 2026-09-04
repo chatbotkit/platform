@@ -25,9 +25,15 @@ const allowedAsyncModuleFiles = []
 const allowedExternalSpecifiers = [
   '@prisma/client/runtime/query_compiler_fast_bg.mysql.mjs',
   '@prisma/client/runtime/query_compiler_fast_bg.mysql.wasm-base64.mjs',
+  // @note the sandbox runtime is ESM-only and cannot be bundled - it spawns a
+  // native sidecar and resolves its command packages against its own
+  // directory - and the sandbox module imports it lazily inside a function,
+  // awaited at every call site, never at module scope
+  '@rivet-dev/agentos-core',
 ]
 
 const EXTERNAL_RE = /\b[a-zA-Z_$][\w$]*\.exports\s*=\s*import\("([^"]+)"\)/g
+
 const ASYNC_MODULE_RE =
   /\b[a-zA-Z_$][\w$]*\.a\([a-zA-Z_$][\w$]*,\s*async\([a-zA-Z_$][\w$]*,[a-zA-Z_$][\w$]*\)=>\{try\{/g
 

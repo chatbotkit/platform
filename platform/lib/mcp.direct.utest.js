@@ -1,5 +1,6 @@
 import { getAbilityFunctionName } from '@/lib/ability.function'
 import { captureError } from '@/lib/error'
+import { resolveMcpHeaders } from '@/lib/mcp.headers'
 import { McpOAuthProvider } from '@/lib/mcp.oauth'
 import { installEnvironmentTools } from '@/lib/tool.environment'
 
@@ -29,6 +30,10 @@ jest.mock('@/lib/tool.environment', () => ({
   installEnvironmentTools: jest.fn(async () => true),
   makeEnvironmentToolSource: (kind, id, prefix) =>
     [kind, id, prefix].filter(Boolean).join(':'),
+}))
+
+jest.mock('@/lib/mcp.headers', () => ({
+  resolveMcpHeaders: jest.fn(),
 }))
 
 jest.mock('@/lib/mcp.oauth', () => ({
@@ -146,6 +151,33 @@ describe('mcp.direct', () => {
       )
     })
 
+    it('should store the header source instead of the swapped headers', async () => {
+      const headers = { Authorization: 'Bearer swapped' }
+      const headerSource = {
+        headerTemplate: { Authorization: '${SECRET_DEFAULT}' },
+        abilityId: 'ability-1',
+        secretId: 'secret-1',
+      }
+
+      await installMcpTools(mockUser, {
+        sessionId: mockSessionId,
+        url: mockUrl,
+        headers,
+        headerSource,
+      })
+
+      // the swapped headers still open the install-time connection
+      expect(McpOAuthProvider.getClientTransport).toHaveBeenCalledWith(
+        mockUser,
+        { sessionId: mockSessionId, url: mockUrl, headers }
+      )
+
+      const installCall = installEnvironmentTools.mock.calls[0][0]
+
+      expect(installCall[0].options).toMatchObject(headerSource)
+      expect(installCall[0].options.headers).toBeUndefined()
+    })
+
     it('should close client even on error', async () => {
       mockClient.listTools.mockRejectedValue(new Error('Connection failed'))
 
@@ -228,9 +260,49 @@ describe('mcp.direct', () => {
       Client.mockImplementation(() => mockClient)
     })
 
+    it('should resolve headers from the stored source on every call', async () => {
+      const resolved = { Authorization: 'Bearer fresh' }
+
+      resolveMcpHeaders.mockResolvedValue(resolved)
+
+      const tool = {
+        name: 'test-tool',
+        options: {
+          sessionId: 'session-456',
+          url: 'https://mcp.example.com',
+          headerTemplate: { Authorization: '${SECRET_DEFAULT}' },
+          abilityId: 'ability-1',
+          secretId: 'secret-1',
+          toolName: 'originalToolName',
+        },
+      }
+
+      await callMcpTool(mockUser, tool, {})
+
+      expect(resolveMcpHeaders).toHaveBeenCalledWith(
+        mockUser,
+        expect.objectContaining({
+          headerTemplate: tool.options.headerTemplate,
+          abilityId: 'ability-1',
+          secretId: 'secret-1',
+        })
+      )
+      expect(McpOAuthProvider.getClientTransport).toHaveBeenCalledWith(
+        mockUser,
+        {
+          sessionId: 'session-456',
+          url: 'https://mcp.example.com',
+          headers: resolved,
+        }
+      )
+    })
+
     it('should call mcp tool successfully', async () => {
       const args = { param1: 'value1' }
       const result = await callMcpTool(mockUser, mockTool, args)
+
+      // a legacy tool without a template keeps its stored headers
+      expect(resolveMcpHeaders).not.toHaveBeenCalled()
 
       expect(result).toEqual({ result: 'success' })
       expect(McpOAuthProvider.getClientTransport).toHaveBeenCalledWith(

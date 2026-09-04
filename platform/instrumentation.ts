@@ -2,6 +2,7 @@ import {
   onRequestError,
   register as registerObservability,
 } from '@chatbotkit-dev/observability/next/server'
+import relay from '@chatbotkit-dev/relay'
 
 import { BANNER } from '@/lib/banner'
 import { startClock } from '@/lib/clock'
@@ -35,6 +36,11 @@ export async function register() {
     // @note the one place the platform has that outlives a request - see
     // lib/clock.ts.
     startClock()
+
+    // @note a relay that is a process rather than a service runs here, in the
+    // one long-lived process a single-node deployment has; a deployment whose
+    // meeting point is elsewhere resolves without doing anything
+    await relay.listen()
   }
 
   return registerObservability()

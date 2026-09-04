@@ -147,6 +147,7 @@ async function doPackInstall({
         options: {
           userId: user.id,
           instruction: `@${template}`,
+          abilityId: options.contextResources?.abilityId,
           linkedResources: options.linkedResources,
           inlineSecrets: options.inlineSecrets,
         },
@@ -171,6 +172,7 @@ async function doPackInstall({
         options: {
           userId: user.id,
           instruction: template.instruction,
+          abilityId: options.contextResources?.abilityId,
           linkedResources: options.linkedResources,
           inlineSecrets: options.inlineSecrets,
         },

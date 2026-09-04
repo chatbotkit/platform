@@ -1,4 +1,4 @@
-import type { SerializableTool } from '@/lib/tool.environment'
+import type { McpHeaderSource, SerializableTool } from '@/lib/tool.environment'
 
 /**
  * Common options for MCP tool installation.
@@ -6,7 +6,12 @@ import type { SerializableTool } from '@/lib/tool.environment'
 export interface McpInstallOptions {
   sessionId: string
   url: string
+  /**
+   * Swapped headers for the install-time connection. When `headerSource` is
+   * given the installed tools store that instead and swap again on each call.
+   */
   headers?: Record<string, string>
+  headerSource?: McpHeaderSource
   tools?: string[]
   prefix?: string
 }

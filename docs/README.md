@@ -19,6 +19,8 @@ The documents here cover the operational detail needed to run and evaluate it.
   and operator responsibilities
 - [Module defaults](./module-defaults.md) - what each public module does with
   nothing set, and what the distribution flavors change
+- [SDKs](./sdks.md) - point the Node.js, Python, Go and Terraform clients at
+  your own deployment
 
 ## Project guides
 

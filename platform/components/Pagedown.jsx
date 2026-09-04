@@ -224,7 +224,7 @@ export default function Pagedown({
     return (
       _children
         // @note replace em dash with regular dash
-        .replaceAll('-', '-')
+        .replaceAll('\u2014', '-')
     )
   }, [_children])
 

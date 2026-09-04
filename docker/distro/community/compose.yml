@@ -55,23 +55,40 @@ services:
     image: ${PLATFORM_IMAGE:-ghcr.io/chatbotkit/platform-community-app:next}
     ports:
       - '3000:3000'
+      # @note the built-in realtime relay - see RELAY_URL below
+      - '${RELAY_PORT:-3001}:3001'
     environment:
       <<: *storage-env
       NODE_ENV: production
       PORT: 3000
       SITE_URL: ${SITE_URL:-http://localhost:3000}
       NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3000}
+      # @note realtime channels (voice, avatars) meet at a relay the platform
+      # process hosts itself on RELAY_PORT. Both that process and a host
+      # browser dial RELAY_URL, so loopback serves both; a browser elsewhere
+      # needs an address it can reach instead (and TLS if the site has it)
+      RELAY_PORT: 3001
+      RELAY_URL: ${RELAY_URL:-http://localhost:3001}
       # @note deployment-issued subdomains; must match the apexes baked into
       # the image (docker/Dockerfile). Browsers resolve `*.localhost` to
       # loopback, so `acme.space.localhost:3000` works with no DNS setup
       SPACE_APEX: ${SPACE_APEX:-space.localhost}
       PORTAL_APEX: ${PORTAL_APEX:-portal.localhost}
+      # @note the app shells, baked the same way: the main shell at
+      # `apps.localhost:3000`, the labs shell at `labs.localhost:3000`. Cookies
+      # do not cross hosts, so sign in on the shell host itself
+      APP_MAIN_ORIGIN: ${APP_MAIN_ORIGIN:-http://apps.localhost:3000}
+      APP_LABS_ORIGIN: ${APP_LABS_ORIGIN:-http://labs.localhost:3000}
       # @note left empty, the image generates these secrets on first boot and
       # persists them in the platform-data volume; set explicitly to override
       NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:-}
       QUEUE_SECRET: ${QUEUE_SECRET:-}
       JWT_TOKEN_SECRET_KEY: ${JWT_TOKEN_SECRET_KEY:-}
+      CLOAK_ENCRYPTION_KEY: ${CLOAK_ENCRYPTION_KEY:-}
       PRISMA_DATABASE_URL: file:/data/chatbotkit.db
+      # @note sandbox workspaces - what agents write and install - live in the
+      # data volume so they survive restarts
+      SANDBOX_DATA_DIR: /data/sandbox
       # @note optional: encrypts stored credentials in the database; unset,
       # they are stored as given. See docs/configuration.md, "Encryption at rest"
       PRISMA_FIELD_ENCRYPTION_KEY: ${PRISMA_FIELD_ENCRYPTION_KEY:-}
@@ -103,7 +120,7 @@ services:
         condition: service_completed_successfully
     restart: unless-stopped
     healthcheck:
-      # Use node for the healthcheck since the alpine image has no wget/curl
+      # Use node for the healthcheck since the slim image has no wget/curl
       test:
         [
           'CMD',
@@ -151,6 +168,10 @@ services:
 
   garage:
     image: dxflrs/garage:v2.1.0
+    environment:
+      # @note the 10s healthcheck logs three INFO lines per run; keep only
+      # warnings and errors
+      RUST_LOG: warn
     ports:
       # @note published on localhost so presigned URLs (which carry the
       # garage:3900 endpoint) work from a host browser with the /etc/hosts

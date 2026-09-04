@@ -30,6 +30,9 @@ export default function Page({ error, error_description, secretId }) {
     // @note it is normal for this to be called twice in non-production
     // environments so you will see the same message twice
 
+    // @note the target stays '*' because portal custom domains open the popup
+    // on the customer host while the OAuth redirect lands on the portal apex;
+    // the payload carries no credentials and receivers verify event.source
     window.opener?.postMessage(
       { type: 'oauth', params: { error, error_description, secretId } },
       '*'

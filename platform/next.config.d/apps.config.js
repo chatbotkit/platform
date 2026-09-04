@@ -1,11 +1,11 @@
-/* eslint-disable import/extensions, import/no-anonymous-default-export */
+/* eslint-disable import/extensions */
 // @ts-check
+import { APEXES } from '../config/apexes.js'
+import { ORIGINS } from '../config/origins.js'
 import {
   buildCaptureAllSource,
   escapeRegex,
 } from '../lib/nextjs.config.rewrites.js'
-import { APEXES } from '../config/apexes.js'
-import { ORIGIN_HOSTS } from '../config/origins.js'
 
 import fs from 'fs'
 import path from 'path'
@@ -152,19 +152,18 @@ if (process.env.NODE_ENV === 'test') {
 // --- host routing -----------------------------------------------------------
 // Every rule below exists only when the deployment names the domain it routes.
 
-const shellHostList = [
-  ...(ORIGIN_HOSTS.appMain ? [ORIGIN_HOSTS.appMain] : []),
-  ...(ORIGIN_HOSTS.appLabs ? [ORIGIN_HOSTS.appLabs] : []),
-]
+// @note next strips the port before matching a `has: host` rule, so the
+// pattern is built from the origin hostname, not its port-carrying host
+const shellHostList = [ORIGINS.appMain, ORIGINS.appLabs].flatMap((origin) =>
+  origin ? [new URL(origin).hostname] : []
+)
 
 const shellHostPattern = shellHostList.length
   ? `(?<host>(?:${shellHostList.map(escapeRegex).join('|')}))`
   : ''
 
 const appApexHostPattern = APEXES.app
-  ? `(?<slug>(?:${builtinAppSlugs.join('|')})).${escapeRegex(
-      APEXES.app
-    )}`
+  ? `(?<slug>(?:${builtinAppSlugs.join('|')})).${escapeRegex(APEXES.app)}`
   : ''
 
 /**

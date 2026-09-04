@@ -441,6 +441,27 @@ describe('action.exec.pack', () => {
       })
     })
 
+    it('should carry the installing abilityId so tools can refresh their links', async () => {
+      unpackTemplateInstruction.mockReturnValue({
+        name: 'Test Ability',
+        description: 'A test ability',
+        instruction: 'test',
+      })
+
+      await executePackAction(
+        JSON.stringify({ abilities: ['ability1'] }),
+        { install: { abilities: ['ability1'] } },
+        {
+          ...mockOptions,
+          contextResources: { abilityId: 'ab1', skillsetId: 'ss1' },
+        }
+      )
+
+      const tools = installEnvironmentTools.mock.calls[0][0]
+
+      expect(tools[0].options.abilityId).toBe('ab1')
+    })
+
     it('should return tool names in result', async () => {
       unpackTemplateInstruction
         .mockReturnValueOnce({

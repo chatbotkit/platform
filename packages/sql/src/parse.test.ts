@@ -25,6 +25,48 @@ describe('parseSingle', () => {
     })
   })
 
+  it('should parse a show query with database', () => {
+    const query = 'SHOW myDatabase.myTable'
+    const result = parseSingle(query)
+
+    expect(result).toEqual({
+      type: 'show',
+      table: {
+        database: 'myDatabase',
+        name: 'myTable',
+      },
+    })
+  })
+
+  it('should reject show and describe with long whitespace runs in linear time', () => {
+    // @note the database group used to accept whitespace, which overlapped
+    // with the separator and made a failed match quadratic in the run length;
+    // compare two run lengths rather than a wall-clock budget so loaded CI
+    // runners do not fail the test - a quadratic match scales 16x here
+    const measure = (keyword: string, length: number) => {
+      const query = `${keyword}${'\t'.repeat(length)}my Table`
+
+      let best = Infinity
+
+      for (let i = 0; i < 3; i++) {
+        const started = performance.now()
+
+        expect(() => parseSingle(query)).toThrow()
+
+        best = Math.min(best, performance.now() - started)
+      }
+
+      return best
+    }
+
+    for (const keyword of ['SHOW', 'DESCRIBE']) {
+      const small = measure(keyword, 50000)
+      const large = measure(keyword, 200000)
+
+      expect(large).toBeLessThan(Math.max(small, 1) * 8)
+    }
+  })
+
   it('should parse a simple query with database', () => {
     const query = 'DESCRIBE myDatabase.myTable'
     const result = parseSingle(query)

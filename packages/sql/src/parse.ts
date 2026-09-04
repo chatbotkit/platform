@@ -368,7 +368,7 @@ export type Statement =
 export function parse(sql: string): Statement[] {
   // handle show in a different way because it is not supported
   {
-    const match = sql.match(/^show\s+(?<database>[^.]+\.)?(?<table>[^\s]+)$/i)
+    const match = sql.match(/^show\s+(?<database>[^.\s]+\.)?(?<table>[^\s]+)$/i)
 
     if (match) {
       const database = match.groups?.database?.slice(0, -1)
@@ -389,7 +389,7 @@ export function parse(sql: string): Statement[] {
   // handle describe in a different way because it is not supported
   {
     const match = sql.match(
-      /^describe\s+(?<database>[^.]+\.)?(?<table>[^\s]+)$/i
+      /^describe\s+(?<database>[^.\s]+\.)?(?<table>[^\s]+)$/i
     )
 
     if (match) {

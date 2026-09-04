@@ -9,7 +9,7 @@ import prisma from '@/prisma/client'
 import { withPost } from '@/lib/method'
 import { requiredUrlParam } from '@/lib/query.get'
 import { notAuthorized, notFound, ok } from '@/lib/response'
-import { withoutUserRunasCookies } from '@/lib/runas'
+import { runasCookie, withoutUserRunasCookies } from '@/lib/runas'
 import { withSession } from '@/lib/session.handler'
 
 // User Switch Flow
@@ -67,15 +67,11 @@ export default withPost(
 
       headers.append(
         'Set-Cookie',
-        `${RUNAS_USERID_COOKIE_NAME}=${encodeURIComponent(
-          user.id
-        )}; Path=/; Secure; SameSite=Lax`
+        runasCookie(RUNAS_USERID_COOKIE_NAME, user.id)
       )
       headers.append(
         'Set-Cookie',
-        `${RUNAS_USERNAME_COOKIE_NAME}=${encodeURIComponent(
-          user.name || user.email
-        )}; Path=/; Secure; SameSite=Lax`
+        runasCookie(RUNAS_USERNAME_COOKIE_NAME, user.name || user.email)
       )
 
       return ok({ redirectUrl: `/overview` }, headers)

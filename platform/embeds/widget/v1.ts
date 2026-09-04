@@ -369,6 +369,10 @@
     }
 
     for (const key in source) {
+      if (key === '__proto__' || key === 'constructor' || key === 'prototype') {
+        continue
+      }
+
       if (source.hasOwnProperty(key)) {
         if (
           typeof target[key] === 'object' &&

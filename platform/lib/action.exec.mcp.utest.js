@@ -7,6 +7,11 @@ import { installMcpTools } from '@/lib/mcp.edge'
 import { hasSecrets, swapSecrets } from '@/lib/secret.value'
 import { fastGetUserById } from '@/lib/user.get'
 
+jest.mock('@/prisma/client', () => ({
+  __esModule: true,
+  default: { ability: { findUnique: jest.fn() } },
+}))
+
 jest.mock('@/lib/action.config', () => ({
   getConfigBySchema: jest.fn(),
 }))
@@ -167,6 +172,15 @@ describe('action.exec.mcp', () => {
           {
             url: 'https://example.com/mcp',
             headers: processedHeaders,
+            // the unswapped template travels with the install so each call
+            // swaps afresh instead of reusing the values above
+            headerSource: {
+              headerTemplate: mockHeaders,
+              abilityId: 'ability-012',
+              secretId: 'secret-345',
+              inlineSecrets: {},
+            },
+            tools: undefined,
             prefix: 'test',
           }
         )

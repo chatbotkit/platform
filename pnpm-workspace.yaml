@@ -261,7 +261,15 @@ minimumReleaseAgeExclude:
   - 'hono@4.13.2'
   - 'isomorphic-git@1.41.4'
   - 'js-yaml@3.15.1 || 4.3.1'
-  - 'just-bash@3.3.0'
+  # @note security patches pulled forward by the GHSA overrides below
+  - 'fast-uri@3.1.6'
+  - 'immutable@3.8.4'
+  - 'qs@6.16.0'
+  # @note the sandbox runtime and its command packages are pinned exactly in
+  # packages/sandbox; releases are days apart, so the age gate would never
+  # let a pin resolve
+  - '@rivet-dev/*'
+  - '@agentos-software/*'
   - 'libmime@5.4.2'
   - 'libphonenumber-js@1.13.11'
   - 'mailparser@3.9.15'
@@ -347,6 +355,14 @@ publicHoistPattern:
   - '*eslint-plugin-*'
   - '@typescript-eslint/eslint-plugin'
   - better-sqlite3
+  # @note the sandbox module reaches its AgentOS runtime through a dynamic
+  # import of an ESM, transitive dependency. Next's standalone file tracing
+  # only lays down a resolvable path for packages it can resolve from the
+  # application at build time, as it does for better-sqlite3 above; hoisted,
+  # the runtime, its native sidecar and its command packages travel into the
+  # image
+  - '@rivet-dev/*'
+  - '@agentos-software/*'
 
 # Workspace packages
 packages:
@@ -373,6 +389,18 @@ overrides:
   '@prisma/client': 7.3.0
   # GHSA-3f6p-5ww8-9rcr: prisma pins mysql2 3.15.3; patched >=3.22.0
   mysql2: 3.23.2
+  # GHSA-4mjr-xmp4-gh2g, GHSA-x5fp-wj9c-mxmx: express/body-parser under the
+  # MCP SDK resolve qs 6.15.3; patched >=6.16.0
+  qs: 6.16.0
+  # GHSA-jqff-g426-hqxp and siblings: ajv resolves fast-uri 3.1.5; patched
+  # >=3.1.6
+  fast-uri: 3.1.6
+  # GHSA-52cp-r559-cp3m, GHSA-5p4m-2wfm-xmqj: jest-transform-yaml resolves
+  # js-yaml 4.1.0; patched >=4.3.1
+  'js-yaml@>=4.0.0 <4.3.1': 4.3.1
+  # GHSA-wf6x-7x77-mvgw, GHSA-xvcm-6775-5m9r: relay-compiler 12 pins immutable
+  # 3.7.6; patched >=3.8.4
+  'immutable@>=3.0.0 <3.8.4': 3.8.4
   graphql: 16.11.0
   graphql-yoga: 5.15.1
   openai: 6.21.0
@@ -390,6 +418,15 @@ overrides:
   # sharp dependency is dead weight that drags libvips advisories in
   'colorthief>sharp': '-'
   'ndarray-pixels>sharp': '-'
+  # @note the sandbox module needs AgentOS's VM runtime only; the coding-agent
+  # adapters and cloud SDKs the package also declares are never imported by
+  # the platform and would add ~600MB to every install
+  '@rivet-dev/agentos-core>@agentos-software/claude-code': '-'
+  '@rivet-dev/agentos-core>@agentos-software/codex-cli': '-'
+  '@rivet-dev/agentos-core>@agentos-software/opencode': '-'
+  '@rivet-dev/agentos-core>@agentos-software/pi': '-'
+  '@rivet-dev/agentos-core>googleapis': '-'
+  '@rivet-dev/agentos-core>@aws-sdk/client-s3': '-'
   # @note swagger-jsdoc pins deprecated glob 11 although its glob usage remains
   # compatible with the maintained release
   'swagger-jsdoc>glob': ^13.0.6
