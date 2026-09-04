@@ -1,5 +1,10 @@
 import debug, { createSpan, warn } from '@/lib/debug'
-import { awaitDeferred, defer, runInDeferred } from '@/lib/defer'
+import {
+  awaitDeferred,
+  defer,
+  deferPastResponse,
+  runInDeferred,
+} from '@/lib/defer'
 import { captureError, captureException } from '@/lib/error'
 
 // @note the runtime hook `defer` uses to keep work alive past the response:
@@ -777,5 +782,87 @@ describe('defer module', () => {
       expect(results).toContain('task1-deferred')
       expect(results).toContain('task2-deferred')
     })
+  })
+})
+
+describe('deferPastResponse', () => {
+  beforeEach(() => {
+    jest.clearAllMocks()
+  })
+
+  it('hands the work to waitUntil and resolves before the work settles', async () => {
+    let finish
+    const work = jest.fn(
+      () =>
+        new Promise((resolve) => {
+          finish = resolve
+        })
+    )
+
+    await deferPastResponse(work)
+
+    expect(work).toHaveBeenCalledTimes(1)
+    expect(waitUntil).toHaveBeenCalledTimes(1)
+
+    finish()
+
+    await waitUntil.mock.calls[0][0]
+  })
+
+  it('does not hold a runInDeferred response for work the handed function defers', async () => {
+    let finish
+    const inner = new Promise((resolve) => {
+      finish = resolve
+    })
+
+    const wrapped = runInDeferred(async () => {
+      await deferPastResponse(async () => {
+        await defer(inner)
+      })
+
+      return new Response('ok', { status: 200 })
+    })
+
+    // @note would hang if `inner` had landed on the request store
+    const result = await wrapped()
+
+    expect(result.status).toBe(200)
+
+    finish()
+
+    await Promise.all(waitUntil.mock.calls.map(([promise]) => promise))
+  })
+
+  it('captures a failure of the handed work', async () => {
+    const error = new Error('publish failed')
+
+    await deferPastResponse(() => Promise.reject(error))
+
+    await waitUntil.mock.calls[0][0]
+
+    expect(captureError).toHaveBeenCalledWith(error)
+  })
+
+  it('awaits the work in place when the runtime has no waitUntil', async () => {
+    const context = global[Symbol.for('@vercel/request-context')]
+
+    delete global[Symbol.for('@vercel/request-context')]
+
+    try {
+      const order = []
+
+      await deferPastResponse(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 5))
+
+        order.push('work')
+      })
+
+      order.push('returned')
+
+      expect(order).toEqual(['work', 'returned'])
+      expect(waitUntil).not.toHaveBeenCalled()
+    } finally {
+      global[Symbol.for('@vercel/request-context')] = context
+    }
   })
 })

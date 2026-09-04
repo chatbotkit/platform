@@ -6,7 +6,7 @@
 #   - pull-request.yaml, where it gates every pull request (including forks;
 #     see the security notes there - this workflow uses no secrets and only
 #     ever needs `contents: read`)
-#   - publish-ghcr-platform.yaml, where it gates image builds on `next`
+#   - publish-ghcr-platform.yaml, where it gates image publication on `next`
 #     pushes, which land directly without a pull request
 
 name: Verify

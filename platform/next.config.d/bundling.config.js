@@ -61,6 +61,15 @@ export default {
   webpack(config, options) {
     if (options.isServer && options.nextRuntime !== 'edge') {
       config.externals.push({ 'better-sqlite3': 'commonjs better-sqlite3' })
+      // @note ws probes its optional native addons inside a try/catch and
+      // falls back to pure JS only when the require throws. Webpack replaces
+      // the uninstalled packages with empty modules instead, so ws wires
+      // `{}.unmask` / `{}(buf)` and every masked frame over 32 bytes (audio
+      // streaming) crashes the process. Externalizing keeps the require real.
+      config.externals.push({
+        bufferutil: 'commonjs bufferutil',
+        'utf-8-validate': 'commonjs utf-8-validate',
+      })
       // @note no mirror for @rivet-dev/agentos-core: it is ESM-only, so the
       // list above externalizes it as an import() the sandbox module awaits
       // lazily - allowed by name in scripts/verify-bundle-modules.js

@@ -71,11 +71,14 @@ jobs:
           fi
 
   # @note `next` receives direct pushes, so nothing has vetted the code yet -
-  # run the quality gate before spending build minutes on it. It runs on
-  # every next push, not just build-relevant ones, so the promotion pull
-  # request always finds a verify check on the head SHA. `main` only moves
-  # through pull requests that already passed the same gate, so the job is
-  # skipped there and the build starts immediately.
+  # the quality gate runs alongside the image build and blocks publication,
+  # not the build itself: build only pushes untagged per-architecture digests,
+  # so nothing a consumer can reach exists until publish tags them. Running
+  # both in parallel halves the wall-clock at the cost of build minutes spent
+  # on a red gate. It runs on every next push, not just build-relevant ones,
+  # so the promotion pull request always finds a verify check on the head
+  # SHA. `main` only moves through pull requests that already passed the same
+  # gate, so the job is skipped there.
   verify:
     if: >-
       (github.repository == 'chatbotkit/platform' || startsWith(github.repository, 'chatbotkit/platform-')) &&
@@ -86,14 +89,12 @@ jobs:
   build:
     needs:
       - changes
-      - verify
-    # @note !cancelled() + accepting the skipped verify keeps main builds
-    # running while a failed gate on next still blocks them
+    # @note deliberately not gated on verify: the two run in parallel and the
+    # gate is applied at publish, the only job that makes an image reachable
     if: >-
       !cancelled() &&
       (github.repository == 'chatbotkit/platform' || startsWith(github.repository, 'chatbotkit/platform-')) &&
       needs.changes.outputs.build == 'true' &&
-      (needs.verify.result == 'success' || needs.verify.result == 'skipped') &&
       github.actor != 'github-actions[bot]' &&
       (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/next')
     name: Build ${{ matrix.flavor.name }} (${{ matrix.architecture.name }})
@@ -278,16 +279,22 @@ jobs:
           retention-days: 1
 
   publish:
-    # @note !cancelled() is required: the implicit success() looks at the
-    # whole needs chain, and verify is skipped on main
+    # @note this is where the quality gate bites: a failed verify on next
+    # leaves the build's untagged digests unreachable in the registry and
+    # publishes nothing. !cancelled() + accepting the skipped verify is
+    # required: the implicit success() looks at the whole needs chain, and
+    # verify is skipped on main
     if: >-
       !cancelled() &&
       (github.repository == 'chatbotkit/platform' || startsWith(github.repository, 'chatbotkit/platform-')) &&
       needs.build.result == 'success' &&
+      (needs.verify.result == 'success' || needs.verify.result == 'skipped') &&
       github.actor != 'github-actions[bot]' &&
       (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/next')
     name: Publish ${{ matrix.flavor.name }}
-    needs: build
+    needs:
+      - build
+      - verify
     runs-on: ${{ matrix.flavor.runner }}
     strategy:
       fail-fast: false

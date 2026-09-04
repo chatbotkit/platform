@@ -21,10 +21,9 @@ export default function Theme({ themes = availableThemes, theme, children }) {
     <ThemeProvider
       attribute="class"
       themes={themes}
-      // defaultTheme="light"
       defaultTheme="system"
       forcedTheme={effectiveForcedTheme}
-      enableSystem={false}
+      enableSystem={true}
       enableColorScheme={true}
       disableTransitionOnChange={true}
     >
