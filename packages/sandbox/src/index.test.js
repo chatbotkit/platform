@@ -9,9 +9,21 @@ import { join } from 'node:path'
 
 import { jest } from '@jest/globals'
 
+import { createFakeStore } from './store.fake.js'
+
 const dataDir = mkdtempSync(join(tmpdir(), 'sandbox-test-'))
 
 process.env.SANDBOX_DATA_DIR = dataDir
+
+// @note the storage module is replaced before the provider loads it - lazily,
+// on the first call that asks for a store - so the mounts below are served
+// from memory rather than from whichever store this environment has
+
+const fakeStore = createFakeStore({
+  'spaces/s1/data/readme.txt': 'from the space\n',
+})
+
+jest.unstable_mockModule('@chatbotkit-dev/storage', () => fakeStore)
 
 const { default: provider, reset } = await import('./index.ts')
 
@@ -229,24 +241,65 @@ describe('timeouts', () => {
 })
 
 describe('mounts', () => {
-  // @note the platform is told the truth about what it can reach. A backend
-  // that cannot mount reports nothing mounted, and never asks storage to mint
-  // credentials for a mount that is not going to happen.
+  // @note the platform is told the truth about what it can reach: the paths a
+  // driver in this process is behind, and no others. Credentials are never
+  // asked for, because the driver speaks the storage contract itself.
 
-  it('reports nothing mounted and never resolves credentials', async () => {
-    const resolve = jest.fn()
+  const plan = () => ({
+    requests: [{ path: '/space', scope: 'space', prefix: 'spaces/s1/data' }],
+    resolve: jest.fn(),
+  })
 
-    const result = await provider.exec({
-      sandboxId: 'a',
-      cmd: 'echo hello',
-      mounts: {
-        requests: [{ path: '/space', scope: 'space', prefix: 'spaces/1' }],
-        resolve,
-      },
-    })
+  it('reports nothing mounted when nothing was asked for', async () => {
+    const result = await provider.exec({ sandboxId: 'm', cmd: 'echo hello' })
 
     expect(result.mountedPaths).toEqual([])
-    expect(resolve).not.toHaveBeenCalled()
+  })
+
+  it('serves a requested store at its path without minting credentials', async () => {
+    const mounts = plan()
+
+    const result = await provider.exec({
+      sandboxId: 'm',
+      cmd: 'cat /space/readme.txt',
+      mounts,
+    })
+
+    expect(result.exitCode).toBe(0)
+    expect(result.stdout).toBe('from the space\n')
+    expect(result.mountedPaths).toEqual(['/space'])
+    expect(mounts.resolve).not.toHaveBeenCalled()
+  })
+
+  it('writes through to the store', async () => {
+    await provider.exec({
+      sandboxId: 'm',
+      cmd: 'echo agent > /space/note.txt',
+      mounts: plan(),
+    })
+
+    expect(fakeStore.text('spaces/s1/data/note.txt')).toBe('agent\n')
+  })
+
+  it('keeps the mount for a call that asks for nothing', async () => {
+    const result = await provider.exec({
+      sandboxId: 'm',
+      cmd: 'cat /space/note.txt',
+    })
+
+    expect(result.stdout).toBe('agent\n')
+    expect(result.mountedPaths).toEqual(['/space'])
+  })
+
+  it('reaches the store through the file operations too', async () => {
+    const result = await provider.readFile({
+      sandboxId: 'm',
+      path: '/space/readme.txt',
+      mounts: plan(),
+    })
+
+    expect(result.contents).toBe('from the space\n')
+    expect(result.mountedPaths).toEqual(['/space'])
   })
 })
 
@@ -371,6 +424,26 @@ describe('runCode', () => {
         code: 'UNSUPPORTED_OPERATION',
       })
       expect(error.message).toMatch(/python/i)
+    }
+  })
+})
+
+describe('python in a shell command', () => {
+  // @note whichever way the probe goes, `python3` in a shell must never be a
+  // silent no-op: the runtime's placeholder stub runs nothing and exits 0,
+  // which is the one outcome an agent cannot detect.
+
+  it('either runs python or fails with command not found', async () => {
+    const result = await provider.exec({
+      sandboxId: 'a',
+      cmd: "python3 -c 'print(42)'",
+    })
+
+    if (result.exitCode === 0) {
+      expect(result.stdout.trim()).toBe('42')
+    } else {
+      expect(result.exitCode).toBe(127)
+      expect(result.stderr).toMatch(/command not found/)
     }
   })
 })

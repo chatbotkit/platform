@@ -12,10 +12,14 @@
 // ephemeral overlay per VM. The working directory, `/workspace`, is a real
 // directory on the host under `SANDBOX_DATA_DIR`, mounted read-write, so what
 // an agent writes or installs there survives the VM being reaped for idleness
-// and the application restarting. Nothing else does: each command runs in a
-// fresh process, so a `cd` or a shell variable ends with the command that made
-// it, and a `runCode` binding ends with the call - the same shape the previous
-// in-process default had, and pinned by the tests.
+// and the application restarting. The stores the platform asks for - a space
+// at `/space`, a conversation's files at `/conversation` - are served live
+// from the object store by a host-side driver (see mount.ts), so they are as
+// durable as the store and visible to the rest of the platform at once.
+// Nothing else does: each command runs in a fresh process, so a `cd` or a
+// shell variable ends with the command that made it, and a `runCode` binding
+// ends with the call - the same shape the previous in-process default had,
+// and pinned by the tests.
 //
 // Two things about the runtime shape the code more than the contract does, and
 // both are here rather than discovered:
@@ -35,6 +39,8 @@ import type {
   SandboxErrorLike,
   SandboxExecOptions,
   SandboxExecResult,
+  SandboxMountPlan,
+  SandboxMountRequest,
   SandboxProvider,
   SandboxReadFileOptions,
   SandboxReadFileResult,
@@ -47,6 +53,8 @@ import type {
 
 import type { AgentOs } from '@rivet-dev/agentos-core'
 import type * as AgentOsNamespace from '@rivet-dev/agentos-core'
+
+import { createStorageDriver } from './mount'
 
 import { createHash } from 'node:crypto'
 import { mkdirSync, readdirSync, rmSync, statSync, utimesSync } from 'node:fs'
@@ -211,22 +219,46 @@ interface Entry {
   vm: Promise<AgentOs>
   workspace: string
   contexts: Set<string>
+  /** The stores this VM was created with, by `mountKey`. */
+  mounts: Set<string>
+  /** The guest paths those stores appear at. */
+  mountedPaths: string[]
   /** Serializes operations; see the module header on why overlap is a hang. */
   queue: Promise<unknown>
   timer?: ReturnType<typeof setTimeout>
 }
 
+function mountKey(request: SandboxMountRequest): string {
+  return `${request.path}\0${request.scope}\0${request.prefix}`
+}
+
 const entries = new Map<string, Entry>()
 
+/**
+ * @note the store mounts are host-side drivers, so they exist only for the
+ * life of the VM and are declared at its creation - the runtime has no way to
+ * attach one later. That is why a call asking for a store the VM lacks
+ * replaces the VM (see `getEntry`) rather than adding to it.
+ */
 async function createVm(
   workspace: string,
-  resources: SandboxResources | undefined
+  resources: SandboxResources | undefined,
+  requests: SandboxMountRequest[]
 ): Promise<AgentOs> {
   const { AgentOs, createHostDirBackend } = await load()
 
+  const uid = process.getuid?.() ?? 1000
+  const gid = process.getgid?.() ?? 1000
+
+  // @note the storage module is whichever the deployment installed; the driver
+  // needs the contract and never a credential
+
+  const store =
+    requests.length > 0 ? await import('@chatbotkit-dev/storage') : undefined
+
   mkdirSync(workspace, { recursive: true })
 
-  return await AgentOs.create({
+  const vm = await AgentOs.create({
     permissions: PERMISSIONS,
 
     // @note the guest runs as the same uid and gid as this process. The
@@ -234,9 +266,7 @@ async function createVm(
     // non-root process cannot hand a file to any uid but its own - so with
     // the runtime's default of 1000, every write from a container running as
     // another user is created empty and then refused
-    ...(process.getuid && process.getgid
-      ? { user: { uid: process.getuid(), gid: process.getgid() } }
-      : {}),
+    user: { uid, gid },
 
     mounts: [
       {
@@ -244,6 +274,20 @@ async function createVm(
         plugin: createHostDirBackend({ hostPath: workspace, readOnly: false }),
         readOnly: false,
       },
+
+      ...requests.map((request) => ({
+        path: request.path,
+        driver: createStorageDriver({
+          store: store!,
+          scope: request.scope,
+          prefix: request.prefix,
+          uid,
+          gid,
+        }),
+        guestFstype: 'chatbotkit',
+        guestSource: `${request.scope}:${request.prefix}`,
+        readOnly: false,
+      })),
     ],
 
     // @note advisory in the contract, honoured where the runtime has a knob:
@@ -260,6 +304,10 @@ async function createVm(
         : {}),
     },
   })
+
+  await hideAbsentPython(vm)
+
+  return vm
 }
 
 function touch(sandboxId: string, entry: Entry): void {
@@ -284,9 +332,26 @@ function touch(sandboxId: string, entry: Entry): void {
 
 function getEntry(
   sandboxId: string,
-  resources: SandboxResources | undefined
+  resources: SandboxResources | undefined,
+  plan: SandboxMountPlan | undefined
 ): Entry {
+  const requests = plan?.requests ?? []
+
   let entry = entries.get(sandboxId)
+
+  // @note a VM that lacks a store this call asks for is replaced by one that
+  // has it. The workspace is on the host and the stores are live, so nothing
+  // the agent kept is lost; interpreter contexts are, which is the same as a
+  // reap. A call asking for nothing keeps whatever the VM already has.
+
+  if (
+    entry &&
+    requests.some((request) => !entry!.mounts.has(mountKey(request)))
+  ) {
+    void disposeEntry(sandboxId)
+
+    entry = undefined
+  }
 
   if (!entry) {
     const dataDir = getDataDir()
@@ -296,9 +361,11 @@ function getEntry(
     const workspace = toWorkspacePath(sandboxId)
 
     entry = {
-      vm: createVm(workspace, resources),
+      vm: createVm(workspace, resources, requests),
       workspace,
       contexts: new Set(),
+      mounts: new Set(requests.map(mountKey)),
+      mountedPaths: requests.map((request) => request.path),
       queue: Promise.resolve(),
     }
 
@@ -407,13 +474,17 @@ function toSandboxError(
  * VM, so two commands never have processes alive at once.
  */
 function withVm<T>(
-  options: { sandboxId: string; resources?: SandboxResources },
+  options: {
+    sandboxId: string
+    resources?: SandboxResources
+    mounts?: SandboxMountPlan
+  },
   fallback: SandboxErrorCode,
   fn: (vm: AgentOs, entry: Entry) => Promise<T>
 ): Promise<T> {
-  const { sandboxId, resources } = options
+  const { sandboxId, resources, mounts } = options
 
-  const entry = getEntry(sandboxId, resources)
+  const entry = getEntry(sandboxId, resources, mounts)
 
   const run = async (): Promise<T> => {
     try {
@@ -502,10 +573,8 @@ let pythonAvailable: Promise<boolean> | undefined
  * day the sidecar ships its Python runtime nothing here has to change. A probe
  * that fails for a reason other than the runtime being absent is not cached,
  * since that is the sidecar having a bad moment rather than a fact about it.
- *
- * @throws UNSUPPORTED_OPERATION when the sidecar has no Python runtime
  */
-async function assertPython(vm: AgentOs): Promise<void> {
+function isPythonAvailable(vm: AgentOs): Promise<boolean> {
   if (!pythonAvailable) {
     pythonAvailable = vm.python
       .execute('print(1)', { output: { capture: 'all' }, timeoutMs: 60_000 })
@@ -526,9 +595,38 @@ async function assertPython(vm: AgentOs): Promise<void> {
     })
   }
 
-  if (!(await pythonAvailable)) {
+  return pythonAvailable
+}
+
+/**
+ * @throws UNSUPPORTED_OPERATION when the sidecar has no Python runtime
+ */
+async function assertPython(vm: AgentOs): Promise<void> {
+  if (!(await isPythonAvailable(vm))) {
     throw new SandboxError('UNSUPPORTED_OPERATION', PYTHON_UNAVAILABLE_MESSAGE)
   }
+}
+
+/**
+ * Removes the `python` and `python3` names from a VM whose sidecar has no
+ * Python runtime.
+ *
+ * @note the runtime installs those names as empty shell stubs so a future
+ * interpreter can be routed to them. Without the interpreter, `python3 script.py`
+ * in a shell command runs nothing and exits 0 - an agent's script silently
+ * produces no file and no error, which is worse than any failure. Gone, the
+ * shell says `command not found` and `command -v python3` is false, which the
+ * model can act on.
+ */
+async function hideAbsentPython(vm: AgentOs): Promise<void> {
+  if (await isPythonAvailable(vm)) {
+    return
+  }
+
+  await vm.process.exec('rm -f /bin/python /bin/python3', {
+    output: { capture: 'none' },
+    timeoutMs: 10_000,
+  })
 }
 
 async function ensureContext(
@@ -626,16 +724,16 @@ async function exec(options: SandboxExecOptions): Promise<SandboxExecResult> {
     env,
     files,
     resources,
+    mounts,
   } = options
 
-  // @note `options.mounts` is deliberately never read. Nothing is mounted and
-  // nothing pretends to be: `mountedPaths` comes back empty, which is how the
-  // platform knows not to tell the model about a `/space` that is not there,
-  // and `resolve` is never called, so no credentials are minted for a mount
-  // that will not happen.
+  // @note the plan's `resolve` is never called. The stores are served by a
+  // driver in this process through the storage contract, so no scoped
+  // credential is ever minted, and `mountedPaths` reports exactly the paths
+  // that driver is behind.
 
   return await withVm(
-    { sandboxId, resources },
+    { sandboxId, resources, mounts },
     'EXEC_FAILED',
     async (vm, entry) => {
       if (files) {
@@ -656,7 +754,7 @@ async function exec(options: SandboxExecOptions): Promise<SandboxExecResult> {
           timeout,
         })
 
-        return { ...result, mountedPaths: [] }
+        return { ...result, mountedPaths: entry.mountedPaths }
       }
 
       // @note `sessionId` shares the filesystem and nothing else: the command
@@ -672,7 +770,7 @@ async function exec(options: SandboxExecOptions): Promise<SandboxExecResult> {
         ...(timeout ? { timeoutMs: timeout } : {}),
       })
 
-      return { ...toRunResult(result, timeout), mountedPaths: [] }
+      return { ...toRunResult(result, timeout), mountedPaths: entry.mountedPaths }
     }
   )
 }
@@ -680,11 +778,19 @@ async function exec(options: SandboxExecOptions): Promise<SandboxExecResult> {
 async function runCode(
   options: SandboxRunCodeOptions
 ): Promise<SandboxRunCodeResult> {
-  const { sandboxId, sessionId, code, language, timeout, env, resources } =
-    options
+  const {
+    sandboxId,
+    sessionId,
+    code,
+    language,
+    timeout,
+    env,
+    resources,
+    mounts,
+  } = options
 
   return await withVm(
-    { sandboxId, resources },
+    { sandboxId, resources, mounts },
     'EXEC_FAILED',
     async (vm, entry) => {
       const result = await interpret(vm, entry, {
@@ -699,7 +805,7 @@ async function runCode(
         exitCode: result.exitCode,
         stdout: result.stdout,
         stderr: result.stderr,
-        mountedPaths: [],
+        mountedPaths: entry.mountedPaths,
       }
     }
   )
@@ -708,17 +814,17 @@ async function runCode(
 async function readFile(
   options: SandboxReadFileOptions
 ): Promise<SandboxReadFileResult> {
-  const { sandboxId, path, resources } = options
+  const { sandboxId, path, resources, mounts } = options
 
   return await withVm(
-    { sandboxId, resources },
+    { sandboxId, resources, mounts },
     'FILE_READ_FAILED',
-    async (vm) => {
+    async (vm, entry) => {
       const contents = new TextDecoder().decode(
         await vm.filesystem.readFile(path)
       )
 
-      return { contents, mountedPaths: [] }
+      return { contents, mountedPaths: entry.mountedPaths }
     }
   )
 }
@@ -726,19 +832,19 @@ async function readFile(
 async function writeFile(
   options: SandboxWriteFileOptions
 ): Promise<SandboxWriteFileResult> {
-  const { sandboxId, path, contents, resources } = options
+  const { sandboxId, path, contents, resources, mounts } = options
 
   // @note `mode` and `owner` are accepted and ignored. Every process in the VM
   // runs as its one user, so honouring them would mean inventing a permission
   // model the guest does not enforce.
 
   return await withVm(
-    { sandboxId, resources },
+    { sandboxId, resources, mounts },
     'FILE_WRITE_FAILED',
-    async (vm) => {
+    async (vm, entry) => {
       await vm.filesystem.writeFile(path, contents)
 
-      return { mountedPaths: [] }
+      return { mountedPaths: entry.mountedPaths }
     }
   )
 }

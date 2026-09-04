@@ -2293,6 +2293,12 @@ importers:
       '@chatbotkit-dev/sandbox-spec':
         specifier: workspace:*
         version: link:../sandbox-spec
+      '@chatbotkit-dev/storage':
+        specifier: workspace:*
+        version: link:../storage
+      '@chatbotkit-dev/storage-spec':
+        specifier: workspace:*
+        version: link:../storage-spec
       '@rivet-dev/agentos-core':
         specifier: 0.2.19
         version: 0.2.19

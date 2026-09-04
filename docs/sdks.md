@@ -11,12 +11,12 @@ Go and Terraform. It is not an SDK reference; each SDK's README and
 Every deployment serves the API on its own origin under `/api/v1`, with no
 configuration. The origin depends on how you run the platform:
 
-| How it runs                                  | Origin                  |
-| -------------------------------------------- | ----------------------- |
-| Host-side `pnpm dev`                         | `http://127.0.0.1:8080` |
-| `docker compose up` in a checkout            | `http://127.0.0.1:8080` |
-| Prebuilt community stack                     | `http://localhost:3000` |
-| A deployment with `API_URL` set              | that URL                |
+| How it runs                                  | Origin                      |
+| -------------------------------------------- | --------------------------- |
+| Host-side `pnpm dev`                         | `http://127.0.0.1:8080`     |
+| `docker compose up` in a checkout            | `http://127.0.0.1:8080`     |
+| Prebuilt community stack                     | `http://cbk.localhost:3000` |
+| A deployment with `API_URL` set              | that URL                    |
 
 The two entry points are:
 

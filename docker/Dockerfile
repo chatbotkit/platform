@@ -92,18 +92,18 @@ ENV NODE_OPTIONS="--max-old-space-size=$NODE_HEAP_MB --require /app/platform/scr
 
 # @note the build asserts a site url; override for a real deployment. Secrets
 # should NOT be passed as build args - use BuildKit secret mounts.
-ARG SITE_URL=http://localhost:3000
+ARG SITE_URL=http://cbk.localhost:3000
 ENV SITE_URL=$SITE_URL
 
 # @note apex host rewrites are generated at build time, so the image bakes
 # `.localhost` names browsers resolve to loopback without DNS: space sites at
-# `<slug>.space.localhost`, portals at `<slug>.portal.localhost`. The runtime
-# environment must name the same apexes (the compose files do).
+# `<slug>.cbk-space.localhost`, portals at `<slug>.cbk-portal.localhost`.
+# The runtime environment must name the same apexes (the compose files do).
 # @todo move the apex host rewrites out of next.config.d into a runtime proxy
 # so one image digest serves any domain without a rebuild
-ARG SPACE_APEX=space.localhost
+ARG SPACE_APEX=cbk-space.localhost
 ENV SPACE_APEX=$SPACE_APEX
-ARG PORTAL_APEX=portal.localhost
+ARG PORTAL_APEX=cbk-portal.localhost
 ENV PORTAL_APEX=$PORTAL_APEX
 ARG APP_APEX=
 ENV APP_APEX=$APP_APEX
@@ -111,11 +111,11 @@ ARG PARTNERS_APEX=
 ENV PARTNERS_APEX=$PARTNERS_APEX
 
 # @note the app-shell hosts are rewrites of the same kind: the main shell at
-# `apps.localhost`, the labs shell at `labs.localhost`. The runtime origins
-# must match these too
-ARG APP_MAIN_ORIGIN=http://apps.localhost:3000
+# `cbk-apps.localhost`, the labs shell at `cbk-labs.localhost`. The runtime
+# origins must match these too
+ARG APP_MAIN_ORIGIN=http://cbk-apps.localhost:3000
 ENV APP_MAIN_ORIGIN=$APP_MAIN_ORIGIN
-ARG APP_LABS_ORIGIN=http://labs.localhost:3000
+ARG APP_LABS_ORIGIN=http://cbk-labs.localhost:3000
 ENV APP_LABS_ORIGIN=$APP_LABS_ORIGIN
 
 # @note source maps ship without source content by default; pass 'full'

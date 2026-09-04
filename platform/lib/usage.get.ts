@@ -189,7 +189,8 @@ export async function getUsageSeriesNow(
       // @ts-ignore
       tokens
         .map(({ total, date, type, ...rest }) => {
-          total = total.toNumber?.() ?? total
+          // @note MySQL returns SUM() as Decimal, SQLite as BigInt
+          total = toNumber(total)
 
           total = getBaseLanguageModelTokenCount(
             useTypeToLanguageModelMapping[type],
@@ -298,7 +299,8 @@ export async function getUsageForPeriod(
       // @ts-ignore
       tokens
         .map(({ total, date, type, ...rest }) => {
-          total = total.toNumber?.() ?? total
+          // @note MySQL returns SUM() as Decimal, SQLite as BigInt
+          total = toNumber(total)
 
           total = getBaseLanguageModelTokenCount(
             useTypeToLanguageModelMapping[type],

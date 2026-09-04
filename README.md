@@ -65,7 +65,7 @@ Run the complete prebuilt stack with one command - no checkout, no build:
 docker compose -f oci://ghcr.io/chatbotkit/platform-community:latest up
 ```
 
-Open <http://localhost:3000>. Sign in with any email address and read the
+Open <http://cbk.localhost:3000>. Sign in with any email address and read the
 six-digit code from the platform container log:
 
 ```bash

@@ -7,6 +7,8 @@ import {
   buildOriginRestrictedCsp,
 } from '@/lib/security.headers'
 
+import { siteUrl } from '@/config/site'
+
 describe('Security Headers Configuration', () => {
   describe('DEFAULT_SECURITY_HEADERS', () => {
     it('should be defined as an object with security properties', () => {
@@ -79,6 +81,15 @@ describe('Security Headers Configuration', () => {
       const { 'frame-ancestors': _b, ...defaultRest } = defaultDirectives
 
       expect(rest).toEqual(defaultRest)
+    })
+
+    it('allows plain websockets only on a site served without TLS', () => {
+      const connects = directives['connect-src'].split(' ')
+
+      expect(connects).toContain('wss:')
+      expect(connects.includes('ws:')).toBe(
+        new URL(siteUrl).protocol === 'http:'
+      )
     })
 
     it('constrains scripts, connections, forms and base URL', () => {

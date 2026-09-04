@@ -213,13 +213,14 @@ parts of host and subscription configuration, is therefore not baked into the
 and keep secrets out of image layers.
 
 The current community image deliberately bakes the neutral single-host
-topology: `SITE_URL=http://localhost:3000`, with no external zones. Two apexes
-are baked alongside it so deployment-issued subdomains work out of the box:
-`SPACE_APEX=space.localhost` and `PORTAL_APEX=portal.localhost`, and the two
-app shells answer at `http://apps.localhost:3000` and
-`http://labs.localhost:3000` through `APP_MAIN_ORIGIN` and `APP_LABS_ORIGIN`.
+topology: `SITE_URL=http://cbk.localhost:3000`, with no external zones. Two
+apexes are baked alongside it so deployment-issued subdomains work out of the
+box: `SPACE_APEX=cbk-space.localhost` and `PORTAL_APEX=cbk-portal.localhost`,
+and the two app shells answer at `http://cbk-apps.localhost:3000` and
+`http://cbk-labs.localhost:3000` through `APP_MAIN_ORIGIN` and
+`APP_LABS_ORIGIN`.
 Browsers resolve any `*.localhost` name to loopback, so a space site published
-as `acme` answers at `http://acme.space.localhost:3000` with no DNS or
+as `acme` answers at `http://acme.cbk-space.localhost:3000` with no DNS or
 hosts-file setup (`curl` needs `--resolve`). The runtime apexes and shell
 origins must name the same hosts as the build, which the compose files ensure;
 a different host needs a rebuild with the matching build arguments. Runtime service variables

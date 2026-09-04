@@ -25,6 +25,13 @@ community image.
   command and a real directory on the host, mounted read-write, so what an
   agent writes or installs there survives the VM being reaped and the
   application restarting.
+- **The platform's stores, live.** When the platform asks for a space at
+  `/space` or a conversation's files at `/conversation`, a host-side driver
+  serves that path straight from the object store through the storage
+  contract: an object is a file, a prefix is a directory, an empty directory
+  is the marker the space browser writes. What the agent writes is what the
+  platform reads back, at once, and no store credential ever enters the VM.
+  `mountedPaths` reports exactly these paths.
 - **`runCode` sessions that carry state.** A `runCode` session names a live
   interpreter context, so a binding made by one call is there on the next.
   Shell `exec` does not: each command runs in a fresh process (see below).
@@ -34,16 +41,25 @@ community image.
 - **Python.** AgentOS documents CPython through Pyodide, but the published
   sidecar builds at the pinned version ship without it. The package probes
   once and reports Python as `UNSUPPORTED_OPERATION` with a message saying so,
-  rather than shelling out to something approximate. Bumping the runtime the
-  day it ships turns Python on with no change here.
+  rather than shelling out to something approximate, and removes the
+  runtime's empty `python`/`python3` placeholder stubs from each VM so a
+  `python3` in a shell command fails with `command not found` instead of
+  running nothing and exiting 0. Bumping the runtime the day it ships turns
+  Python on with no change here.
 - **`git`, `curl` and the other registry command packages.** They resolve and
   project into the VM, but their binaries arrive without the executable bit at
   this version and refuse to run. Node's `fetch` and `npx` cover most of what
   agents reached for them for.
-- **Storage mounts.** `mountedPaths` is always empty and the mount plan's
-  `resolve()` is never called, so no scoped credentials are minted for a mount
-  that will not happen, and the platform does not offer the model a `/space`
-  that is not there.
+- **Storage mounts with the store's own semantics.** See below: they are
+  served by a driver in this process, so they are as slow as the store and as
+  plain as an object store is - no symlinks, no partial writes, a rename is a
+  copy and a delete.
+- **Fast pipelines.** A pipe between two commands can stall for the
+  runtime's ten-second blocking-read limit at end of stream, once per stage.
+  Upstream defect, tracked in
+  [rivet-dev/agentos#1959](https://github.com/rivet-dev/agentos/issues/1959).
+  @todo check the ticket when bumping the runtime and drop this entry once
+  a release fixes it.
 - **A clean `ls -la` of `/workspace`.** The listing prints, then the command
   exits 1 with `Invalid argument` from the mount's directory entries at this
   version. `ls -l` is unaffected.
@@ -60,6 +76,7 @@ community image.
 | files elsewhere (`/tmp`, `$HOME`) | across calls, until the VM is reaped |
 | `cd` and shell variables between `exec` calls | no - each command is a fresh process |
 | interpreter bindings in a `runCode` session | until the VM is reaped |
+| `/space` and `/conversation` | in the object store, shared with the platform |
 
 A VM is reaped after fifteen minutes without a call. A workspace nobody has
 used for thirty days is removed from disk.

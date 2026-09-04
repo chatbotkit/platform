@@ -26,6 +26,8 @@
   "types": "./types/src/index.d.ts",
   "dependencies": {
     "@chatbotkit-dev/sandbox-spec": "workspace:*",
+    "@chatbotkit-dev/storage": "workspace:*",
+    "@chatbotkit-dev/storage-spec": "workspace:*",
     "@rivet-dev/agentos-core": "0.2.19"
   },
   "devDependencies": {
