@@ -30,16 +30,15 @@
 # volume (garage-init provisions it, the application entrypoint sources it);
 # set STORAGE_ACCESS_KEY_ID / STORAGE_SECRET_ACCESS_KEY to use a fixed pair.
 #
-# @note the store is a separate, published service: the application reaches
-# it as garage:3900 inside the network, while browsers upload and download
-# through presigned URLs minted against STORAGE_PUBLIC_ENDPOINT - the
-# store's own name from the browser's point of view. Like the relay and the
-# app shells it gets a `*.localhost` name, which browsers resolve to loopback
-# with no DNS setup; set STORAGE_URL to an address the browser can reach (and
-# TLS if the site has it) when that is not the machine itself.
+# @note the store is a separate, published service with one name everywhere,
+# like the relay and the app shells: browsers resolve `cbk-storage.localhost`
+# to loopback with no DNS setup, and inside the network the garage service
+# carries it as an alias on the same port (STORAGE_PORT). Presigned URLs embed
+# this endpoint and are fetched by both browsers and the application itself,
+# so the two must agree. Set STORAGE_URL to an address both can reach (and
+# TLS if the site has it) when browsers do not reach the machine itself.
 x-storage-env: &storage-env
-  STORAGE_ENDPOINT: http://garage:3900
-  STORAGE_PUBLIC_ENDPOINT: ${STORAGE_URL:-http://cbk-storage.localhost:${STORAGE_PORT:-3900}}
+  STORAGE_ENDPOINT: ${STORAGE_URL:-http://cbk-storage.localhost:${STORAGE_PORT:-3900}}
   STORAGE_REGION: garage
   STORAGE_ACCESS_KEY_ID: ${STORAGE_ACCESS_KEY_ID:-}
   STORAGE_SECRET_ACCESS_KEY: ${STORAGE_SECRET_ACCESS_KEY:-}
@@ -181,8 +180,13 @@ services:
       RUST_LOG: warn
     ports:
       # @note published on every interface: browsers talk to the store
-      # directly through presigned URLs (see x-storage-env)
-      - '${STORAGE_PORT:-3900}:3900'
+      # directly through presigned URLs (see x-storage-env). Same port on
+      # both sides, so the one endpoint works from inside the network too
+      - '${STORAGE_PORT:-3900}:${STORAGE_PORT:-3900}'
+    networks:
+      default:
+        aliases:
+          - cbk-storage.localhost
     configs:
       - source: garage-config
         target: /etc/garage.toml
@@ -208,7 +212,7 @@ services:
     environment:
       GARAGE_ADMIN_URL: http://garage:3903
       GARAGE_ADMIN_TOKEN: ${GARAGE_ADMIN_TOKEN:-dev-admin-token}
-      GARAGE_S3_URL: http://garage:3900
+      GARAGE_S3_URL: http://garage:${STORAGE_PORT:-3900}
       # @note origins allowed to use presigned URLs from a browser; the URLs
       # themselves are the access control
       STORAGE_CORS_ORIGINS: ${STORAGE_CORS_ORIGINS:-*}
@@ -251,7 +255,7 @@ configs:
       # @note the region is part of every SigV4 signature: STORAGE_REGION
       # must match it, or every request fails authentication
       s3_region = "garage"
-      api_bind_addr = "[::]:3900"
+      api_bind_addr = "[::]:${STORAGE_PORT:-3900}"
       root_domain = ".s3.garage.localhost"
 
       [admin]

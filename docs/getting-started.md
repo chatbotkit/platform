@@ -30,11 +30,11 @@ This command starts:
 The checkout is mounted read-only and synchronized into the development
 container. Editing the host working tree still triggers hot reload.
 
-Browser-facing file flows use presigned URLs against the store itself, which
-is published on port 3900 (`STORAGE_PORT`) under its own name,
-`http://cbk-storage.localhost:3900` - a `*.localhost` name browsers resolve to
-loopback with no DNS setup, like the relay and app shells. Set `STORAGE_URL`
-when the browser reaches the machine by another address.
+File flows use presigned URLs against the store itself, published on port 3900
+under its own name, `http://cbk-storage.localhost:3900` - a `*.localhost` name
+browsers resolve to loopback with no DNS setup, like the relay and app shells,
+and an alias of the `garage` service inside the Compose network so the
+application reaches the same URLs.
 
 No hosted account, billing configuration or vendor credential is required to
 boot. Model-backed agent responses require at least one model provider key.
