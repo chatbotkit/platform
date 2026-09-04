@@ -40,14 +40,30 @@ describe('parseSingle', () => {
 
   it('should reject show and describe with long whitespace runs in linear time', () => {
     // @note the database group used to accept whitespace, which overlapped
-    // with the separator and made a failed match quadratic in the run length
-    const padding = '\t'.repeat(100000)
+    // with the separator and made a failed match quadratic in the run length;
+    // compare two run lengths rather than a wall-clock budget so loaded CI
+    // runners do not fail the test - a quadratic match scales 16x here
+    const measure = (keyword: string, length: number) => {
+      const query = `${keyword}${'\t'.repeat(length)}my Table`
+
+      let best = Infinity
+
+      for (let i = 0; i < 3; i++) {
+        const started = performance.now()
+
+        expect(() => parseSingle(query)).toThrow()
+
+        best = Math.min(best, performance.now() - started)
+      }
+
+      return best
+    }
 
     for (const keyword of ['SHOW', 'DESCRIBE']) {
-      const started = Date.now()
+      const small = measure(keyword, 50000)
+      const large = measure(keyword, 200000)
 
-      expect(() => parseSingle(`${keyword}${padding}my Table`)).toThrow()
-      expect(Date.now() - started).toBeLessThan(1000)
+      expect(large).toBeLessThan(Math.max(small, 1) * 8)
     }
   })
 
