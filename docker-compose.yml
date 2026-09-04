@@ -37,17 +37,15 @@
 # is Garage, spoken to over the plain S3 protocol - see docker/garage/.
 # The credentials are the known development values garage-init provisions.
 #
-# @note the store is a separate, published service: the application reaches
-# it as garage:3900 inside the network, while browsers upload and download
-# through presigned URLs minted against STORAGE_PUBLIC_ENDPOINT - the
-# store's own name from the browser's point of view. Like the relay and the
-# app shells it gets a `*.localhost` name, which browsers resolve to loopback
-# with no DNS setup; set STORAGE_URL when the browser reaches the machine by
-# another address. (When running `pnpm dev` on the host instead,
-# STORAGE_ENDPOINT=http://localhost:3900 in platform/.env serves both roles.)
+# @note the store is a separate, published service with one name everywhere,
+# like the relay and the app shells: browsers resolve `cbk-storage.localhost`
+# to loopback with no DNS setup, and inside the network the garage service
+# carries it as an alias. Presigned URLs embed this endpoint and are fetched
+# by both browsers and the application itself, so the two must agree. (When
+# running `pnpm dev` on the host instead, STORAGE_ENDPOINT=http://localhost:3900
+# in platform/.env does the same job.)
 x-storage-env: &storage-env
-  STORAGE_ENDPOINT: http://garage:3900
-  STORAGE_PUBLIC_ENDPOINT: ${STORAGE_URL:-http://cbk-storage.localhost:${STORAGE_PORT:-3900}}
+  STORAGE_ENDPOINT: http://cbk-storage.localhost:3900
   STORAGE_REGION: garage
   STORAGE_ACCESS_KEY_ID: GK31e57eba9df26b2e7e1b0eaa
   STORAGE_SECRET_ACCESS_KEY: 9f3c1e2b8a4d5f6071829304a5b6c7d8e9f00112233445566778899aabbccdde
@@ -256,8 +254,13 @@ services:
     ports:
       # @note published on every interface: browsers talk to the store
       # directly through presigned URLs (see x-storage-env), and `pnpm dev`
-      # on the host uses the same port
-      - '${STORAGE_PORT:-3900}:3900'
+      # on the host uses the same port. Same port on both sides, so the one
+      # endpoint works from inside the network too
+      - '3900:3900'
+    networks:
+      default:
+        aliases:
+          - cbk-storage.localhost
     volumes:
       - ./docker/garage/garage.toml:/etc/garage.toml:ro
       - garage-data:/var/lib/garage

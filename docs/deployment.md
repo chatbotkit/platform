@@ -140,9 +140,6 @@ services:
   platform:
     ports: !override
       - '3001:3000'
-  garage:
-    ports: !override
-      - '3901:3900'
 ```
 
 ```bash
@@ -153,8 +150,8 @@ docker compose -p cbk-staging \
 ```
 
 Set `SITE_URL` and `NEXTAUTH_URL` to the instance's published address
-(`http://localhost:3001` here) and `STORAGE_URL` to its store
-(`http://cbk-storage.localhost:3901`) - in the shell or through `--env-file`, since a
+(`http://localhost:3001` here) and `STORAGE_PORT` to a free store port
+(`3901`) - in the shell or through `--env-file`, since a
 single `.env` in the working directory cannot describe both instances. Volumes,
 networks and container names are all prefixed with the project name, so each
 instance keeps its own database, generated secrets, object store and vector
@@ -168,11 +165,12 @@ under `docker/distro/`; a future PostgreSQL flavor publishes as
 matching image flavor.
 
 Browser-facing file upload and download flows presign URLs against the
-in-stack store, which the stack publishes on port 3900 (`STORAGE_PORT`) under
-its own name: the URLs are minted against `STORAGE_PUBLIC_ENDPOINT`,
-`http://cbk-storage.localhost:3900` by default, a `*.localhost` name browsers
-resolve to loopback like the relay and app shells. Set `STORAGE_URL` to the
-address browsers actually reach the host on (with TLS if the site has it). `garage-init` grants every bucket a CORS
+in-stack store, published on port 3900 (`STORAGE_PORT`) under one name,
+`http://cbk-storage.localhost:3900`: a `*.localhost` name browsers resolve to
+loopback like the relay and app shells, and an alias of the `garage` service
+inside the Compose network, since the application fetches the same URLs. Set
+`STORAGE_URL` to an address both browsers and the containers can reach (with
+TLS if the site has it) when browsers do not reach the host itself. `garage-init` grants every bucket a CORS
 rule for `STORAGE_CORS_ORIGINS` (default `*` - the presigned URL is the access
 control; narrow it for a store reachable beyond the host).
 
