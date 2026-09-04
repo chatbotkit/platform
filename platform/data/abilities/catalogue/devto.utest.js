@@ -43,7 +43,16 @@ const DEFINITION = join(__dirname, 'devto.openapi.yaml')
 const server = setupServer()
 
 beforeAll(async () => {
-  const { handlers } = await createOpenApiHandlers(DEFINITION)
+  const { handlers } = await createOpenApiHandlers(DEFINITION, {
+    transformDefinition: (definition) => {
+      // @note the spec paths already carry the /api prefix the server URL repeats
+      if (definition.servers?.[0]?.url === 'https://dev.to/api') {
+        definition.servers[0].url = 'https://dev.to'
+      }
+
+      return definition
+    },
+  })
 
   server.use(...handlers)
 

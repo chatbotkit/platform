@@ -6,6 +6,10 @@ import {
   setupServer,
 } from './ability'
 
+import fetch from '@/lib/fetch'
+
+import { HttpResponse, http } from 'msw'
+
 const OPENAPI_DEFINITION = {
   openapi: '3.0.0',
   info: {
@@ -145,6 +149,55 @@ describe('createOpenApiHandlers', () => {
 
     expect(handlers.length).toBeGreaterThan(0)
     expect(definition.openapi).toBe('3.0.0')
+  })
+})
+
+describe('setupServer', () => {
+  const server = setupServer(
+    http.get('https://initial.example.test/ok', () => {
+      return HttpResponse.json({ source: 'initial' })
+    })
+  )
+
+  beforeAll(() => server.listen())
+  afterEach(() => server.resetHandlers())
+  afterAll(() => server.close())
+
+  it('answers unmatched requests with a mocked 404 instead of the network', async () => {
+    const response = await fetch(
+      'https://unmatched.invalid/some/path/that-does-not-exist'
+    )
+
+    expect(response.status).toBe(404)
+    expect(await response.json()).toEqual({ error: 'Not found' })
+  })
+
+  it('lets initial handlers win over the catch-all', async () => {
+    const response = await fetch('https://initial.example.test/ok')
+
+    expect(response.status).toBe(200)
+    expect(await response.json()).toEqual({ source: 'initial' })
+  })
+
+  it('lets runtime handlers win over the catch-all', async () => {
+    server.use(
+      http.get('https://runtime.example.test/ok', () => {
+        return HttpResponse.json({ source: 'runtime' })
+      })
+    )
+
+    const response = await fetch('https://runtime.example.test/ok')
+
+    expect(response.status).toBe(200)
+    expect(await response.json()).toEqual({ source: 'runtime' })
+  })
+
+  it('keeps the catch-all after handlers are reset', async () => {
+    server.resetHandlers()
+
+    const response = await fetch('https://unmatched.invalid/after-reset')
+
+    expect(response.status).toBe(404)
   })
 })
 
