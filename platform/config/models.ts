@@ -371,6 +371,50 @@ export const openaiLanguageModels: Record<
         addedDate: '2025-10-06',
       },
 
+      // GPT-6
+      'gpt-6-astra': {
+        description: `GPT-6 Astra is OpenAI's most capable model, built for complex reasoning, coding, computer use, research, and document creation across demanding end-to-end workflows.`,
+
+        provider: 'openai',
+
+        family: 'gpt-6',
+
+        features: ['chat', 'functions', 'image', 'reasoning', 'responses'],
+
+        region: 'us',
+        availableRegions: ['us', 'eu'],
+
+        featured: true,
+
+        maxTokens: 1_050_000,
+        maxInputTokens: 922_000,
+        maxOutputTokens: 128_000,
+
+        pricing: {
+          tokenRatio: 2.7778,
+          inputTokenRatio: 0.7143,
+          outputTokenRatio: 2.7778,
+          inputPrice: 10.0,
+          outputPrice: 50.0,
+        },
+
+        interactionMaxMessages: DEFAULT_INTERACTION_MAX_MESSAGES,
+
+        thresholdStrategy: 'truncate',
+
+        visible: true,
+        deprecated: false,
+
+        temperature: DEFAULT_TEMPERATURE,
+
+        frequencyPenalty: 0,
+        presencePenalty: 0,
+
+        tags: [],
+
+        addedDate: '2026-09-04',
+      },
+
       // GPT-5
       'gpt-5.6-sol': {
         description: `GPT-5.6 Sol is OpenAI's newest frontier model for the most complex professional work, leading the GPT-5.6 series with advanced reasoning and the strongest coding performance for high-stakes tasks.`,

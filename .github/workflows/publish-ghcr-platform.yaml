@@ -35,6 +35,13 @@ jobs:
   # here from the actual diff of the push. Anything that prevents computing
   # that diff (a brand-new branch, a force push, a manual dispatch) falls back
   # to building - a spurious build is cheap, a silently skipped one is not.
+  #
+  # A build-relevant push whose tree was already built is not rebuilt either:
+  # main only moves through the promotion pull request (next -> main), so its
+  # merge commit carries the exact tree of a next head that build, verify and
+  # publish already tagged as sha-<short>. That tag is reused and retagged by
+  # the publish job instead of spending two 8-core runners on an identical
+  # image. Any tree that no published tag matches falls back to a full build.
   changes:
     if: >-
       (github.repository == 'chatbotkit/platform' || startsWith(github.repository, 'chatbotkit/platform-')) &&
@@ -43,6 +50,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       build: ${{ steps.diff.outputs.build }}
+      reuse: ${{ steps.reuse.outputs.reuse }}
     steps:
       - uses: actions/checkout@v7
 
@@ -70,6 +78,72 @@ jobs:
             echo "build=false" >> "$GITHUB_OUTPUT"
           fi
 
+      # @note reuse is decided once for the single flavor; a second flavor
+      # needs a per-flavor lookup and output here
+      - name: Resolve image names
+        if: steps.diff.outputs.build == 'true'
+        id: image
+        env:
+          FLAVOR: community
+          REPOSITORY_NAME: ${{ github.event.repository.name }}
+          REPOSITORY_OWNER: ${{ github.repository_owner }}
+        run: |
+          owner="${REPOSITORY_OWNER,,}"
+          repository="${REPOSITORY_NAME,,}"
+          stack="${REGISTRY}/${owner}/${repository}-${FLAVOR}"
+          echo "application=${stack}-app" >> "$GITHUB_OUTPUT"
+          echo "initializer=${stack}-init" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Docker Buildx
+        if: steps.diff.outputs.build == 'true'
+        uses: docker/setup-buildx-action@v4
+
+      - name: Log in to GitHub Container Registry
+        if: steps.diff.outputs.build == 'true'
+        uses: docker/login-action@v4
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # @note candidates are the pushed commit (a fast-forward or a re-run)
+      # and its parents (the promotion merge, whose second parent is the next
+      # head). A candidate counts only when its tree is byte-identical to the
+      # pushed tree and both component images carry its sha- tag, which only
+      # publish creates and only after verify passed
+      - name: Find a published image of the same tree
+        if: steps.diff.outputs.build == 'true'
+        id: reuse
+        env:
+          APPLICATION_IMAGE: ${{ steps.image.outputs.application }}
+          INITIALIZER_IMAGE: ${{ steps.image.outputs.initializer }}
+        run: |
+          tree=$(git rev-parse "${GITHUB_SHA}^{tree}")
+
+          # @note the checkout is shallow, so parents are read from the raw
+          # commit object; rev-list would report the grafted commit as a root
+          parents=$(git cat-file -p "$GITHUB_SHA" | awk '/^parent /{print $2}')
+
+          for candidate in "$GITHUB_SHA" $parents; do
+            if [ "$candidate" != "$GITHUB_SHA" ]; then
+              git fetch --quiet --depth=1 origin "$candidate" || continue
+            fi
+
+            [ "$(git rev-parse "${candidate}^{tree}")" = "$tree" ] || continue
+
+            short="${candidate:0:7}"
+
+            if docker buildx imagetools inspect "${APPLICATION_IMAGE}:sha-${short}" >/dev/null 2>&1 \
+              && docker buildx imagetools inspect "${INITIALIZER_IMAGE}:sha-${short}" >/dev/null 2>&1
+            then
+              echo "Reusing images built from ${candidate}"
+              echo "reuse=${short}" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+          done
+
+          echo "reuse=" >> "$GITHUB_OUTPUT"
+
   # @note `next` receives direct pushes, so nothing has vetted the code yet -
   # the quality gate runs alongside the image build and blocks publication,
   # not the build itself: build only pushes untagged per-architecture digests,
@@ -95,6 +169,7 @@ jobs:
       !cancelled() &&
       (github.repository == 'chatbotkit/platform' || startsWith(github.repository, 'chatbotkit/platform-')) &&
       needs.changes.outputs.build == 'true' &&
+      needs.changes.outputs.reuse == '' &&
       github.actor != 'github-actions[bot]' &&
       (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/next')
     name: Build ${{ matrix.flavor.name }} (${{ matrix.architecture.name }})
@@ -283,16 +358,18 @@ jobs:
     # leaves the build's untagged digests unreachable in the registry and
     # publishes nothing. !cancelled() + accepting the skipped verify is
     # required: the implicit success() looks at the whole needs chain, and
-    # verify is skipped on main
+    # verify is skipped on main. A skipped build is accepted only when the
+    # changes job found a published sha- tag of the same tree to retag.
     if: >-
       !cancelled() &&
       (github.repository == 'chatbotkit/platform' || startsWith(github.repository, 'chatbotkit/platform-')) &&
-      needs.build.result == 'success' &&
+      (needs.build.result == 'success' || (needs.build.result == 'skipped' && needs.changes.outputs.reuse != '')) &&
       (needs.verify.result == 'success' || needs.verify.result == 'skipped') &&
       github.actor != 'github-actions[bot]' &&
       (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/next')
     name: Publish ${{ matrix.flavor.name }}
     needs:
+      - changes
       - build
       - verify
     runs-on: ${{ matrix.flavor.runner }}
@@ -339,12 +416,16 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Download image digests
+        if: needs.build.result == 'success'
         uses: actions/download-artifact@v7
         with:
           pattern: platform-digests-${{ matrix.flavor.name }}-*
           path: ${{ runner.temp }}/platform-digests
           merge-multiple: true
 
+      # @note with a reused build the source is the already multi-platform
+      # sha- manifest list, which imagetools copies under the new tags; a
+      # fresh build supplies one per-architecture digest per image instead
       - name: Create multi-platform image manifests
         id: manifest
         env:
@@ -352,22 +433,28 @@ jobs:
           CHANNEL: ${{ github.ref_name }}
           DIGESTS_DIR: ${{ runner.temp }}/platform-digests
           INITIALIZER_IMAGE: ${{ steps.image.outputs.initializer }}
+          REUSE: ${{ needs.changes.outputs.reuse }}
         run: |
-          application_sources=()
-          for digest_file in "$DIGESTS_DIR"/application/*; do
-            [ -f "$digest_file" ] || continue
-            application_sources+=("${APPLICATION_IMAGE}@sha256:$(basename "$digest_file")")
-          done
+          if [ -n "$REUSE" ]; then
+            application_sources=("${APPLICATION_IMAGE}:sha-${REUSE}")
+            initializer_sources=("${INITIALIZER_IMAGE}:sha-${REUSE}")
+          else
+            application_sources=()
+            for digest_file in "$DIGESTS_DIR"/application/*; do
+              [ -f "$digest_file" ] || continue
+              application_sources+=("${APPLICATION_IMAGE}@sha256:$(basename "$digest_file")")
+            done
 
-          initializer_sources=()
-          for digest_file in "$DIGESTS_DIR"/initializer/*; do
-            [ -f "$digest_file" ] || continue
-            initializer_sources+=("${INITIALIZER_IMAGE}@sha256:$(basename "$digest_file")")
-          done
+            initializer_sources=()
+            for digest_file in "$DIGESTS_DIR"/initializer/*; do
+              [ -f "$digest_file" ] || continue
+              initializer_sources+=("${INITIALIZER_IMAGE}@sha256:$(basename "$digest_file")")
+            done
 
-          if [ "${#application_sources[@]}" -ne 2 ] || [ "${#initializer_sources[@]}" -ne 2 ]; then
-            echo "Expected two architecture digests for each image" >&2
-            exit 1
+            if [ "${#application_sources[@]}" -ne 2 ] || [ "${#initializer_sources[@]}" -ne 2 ]; then
+              echo "Expected two architecture digests for each image" >&2
+              exit 1
+            fi
           fi
 
           short_sha="${GITHUB_SHA:0:7}"

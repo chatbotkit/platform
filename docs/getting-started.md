@@ -30,10 +30,11 @@ This command starts:
 The checkout is mounted read-only and synchronized into the development
 container. Editing the host working tree still triggers hot reload.
 
-Browser-facing file flows use presigned URLs containing the Compose service
-hostname. Add `127.0.0.1 garage` to the host machine's hosts file before testing
-uploads or downloads in a containerized mode. Host-side development configured
-with `SERVICE_AWS_ENDPOINT=http://localhost:3900` does not need that entry.
+Browser-facing file flows use presigned URLs against the store itself, which
+is published on port 3900 (`STORAGE_PORT`) under its own name,
+`http://cbk-storage.localhost:3900` - a `*.localhost` name browsers resolve to
+loopback with no DNS setup, like the relay and app shells. Set `STORAGE_URL`
+when the browser reaches the machine by another address.
 
 No hosted account, billing configuration or vendor credential is required to
 boot. Model-backed agent responses require at least one model provider key.
@@ -114,19 +115,19 @@ The quickest local option is the Compose Garage service:
 docker compose up garage garage-init
 ```
 
-It publishes a provisioned store on `127.0.0.1:3900`. Uncomment the matching
-block in `.env.example`, including:
+It publishes a provisioned store on port 3900. Uncomment the matching block in
+`.env.example`, including:
 
-- `SERVICE_AWS_ENDPOINT`
-- `SERVICE_AWS_REGION`
-- `SERVICE_AWS_ACCESS_KEY_ID`
-- `SERVICE_AWS_SECRET_ACCESS_KEY`
-- `SERVICE_AWS_FORCE_PATH_STYLE`
+- `STORAGE_ENDPOINT`
+- `STORAGE_REGION`
+- `STORAGE_ACCESS_KEY_ID`
+- `STORAGE_SECRET_ACCESS_KEY`
+- `STORAGE_FORCE_PATH_STYLE`
 - the `*_S3_BUCKET_NAME` variables
 
 AWS S3, Cloudflare R2, SeaweedFS and other S3-compatible stores can be used with
 their own values. Sandbox storage mounts additionally require
-`SERVICE_AWS_STORAGE_ROLE_ARN` and an STS-capable store.
+`STORAGE_ROLE_ARN` and an STS-capable store.
 
 ## Configure shared cache and vector storage
 

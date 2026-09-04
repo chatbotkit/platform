@@ -10,12 +10,13 @@ override; nothing in the platform imports it by name.
 
 | Variable                        | Purpose                                                                |
 | ------------------------------- | ---------------------------------------------------------------------- |
-| `SERVICE_AWS_REGION`            | Region the buckets live in (any non-empty value for stores without regions) |
-| `SERVICE_AWS_ACCESS_KEY_ID`     | Credentials used for every operation                                   |
-| `SERVICE_AWS_SECRET_ACCESS_KEY` |                                                                        |
-| `SERVICE_AWS_ENDPOINT`          | S3-compatible endpoint; unset means AWS proper                         |
-| `SERVICE_AWS_FORCE_PATH_STYLE`  | `true` for stores without wildcard DNS in front (most self-hosted ones) |
-| `SERVICE_AWS_STORAGE_ROLE_ARN`  | Role assumed to mint prefix-scoped credentials for sandbox mounts      |
+| `STORAGE_REGION`            | Region the buckets live in (any non-empty value for stores without regions) |
+| `STORAGE_ACCESS_KEY_ID`     | Credentials used for every operation                                   |
+| `STORAGE_SECRET_ACCESS_KEY` |                                                                        |
+| `STORAGE_ENDPOINT`          | S3-compatible endpoint; unset means AWS proper                         |
+| `STORAGE_FORCE_PATH_STYLE`  | `true` for stores without wildcard DNS in front (most self-hosted ones) |
+| `STORAGE_PUBLIC_ENDPOINT`   | Endpoint browsers reach for presigned upload/download URLs, when it differs from `STORAGE_ENDPOINT`; unset, presigning uses the server endpoint |
+| `STORAGE_ROLE_ARN`          | Role assumed to mint prefix-scoped credentials for sandbox mounts      |
 
 Which bucket backs which logical store is this package's business alone - the
 platform names a scope, and each scope resolves its bucket from its own
@@ -26,7 +27,7 @@ variable: `FILE_S3_BUCKET_NAME`, `IMAGE_S3_BUCKET_NAME`, `VIDEO_S3_BUCKET_NAME`,
 bucket.
 
 Sandbox storage mounts are the one AWS-shaped feature: they mint prefix-scoped
-credentials through STS AssumeRole, so they need `SERVICE_AWS_STORAGE_ROLE_ARN`
+credentials through STS AssumeRole, so they need `STORAGE_ROLE_ARN`
 and a store with a compatible STS behind it. Until that is set, everything
 except sandbox mounts works, and `assertConfigured` fails with a message naming
 it.

@@ -30,15 +30,20 @@
 # volume (garage-init provisions it, the application entrypoint sources it);
 # set STORAGE_ACCESS_KEY_ID / STORAGE_SECRET_ACCESS_KEY to use a fixed pair.
 #
-# @note presigned upload/download URLs carry this endpoint, so a browser on
-# the host needs to resolve it too: add `127.0.0.1 garage` to /etc/hosts to
-# use browser-facing file flows.
+# @note the store is a separate, published service: the application reaches
+# it as garage:3900 inside the network, while browsers upload and download
+# through presigned URLs minted against STORAGE_PUBLIC_ENDPOINT - the
+# store's own name from the browser's point of view. Like the relay and the
+# app shells it gets a `*.localhost` name, which browsers resolve to loopback
+# with no DNS setup; set STORAGE_URL to an address the browser can reach (and
+# TLS if the site has it) when that is not the machine itself.
 x-storage-env: &storage-env
-  SERVICE_AWS_ENDPOINT: http://garage:3900
-  SERVICE_AWS_REGION: garage
-  SERVICE_AWS_ACCESS_KEY_ID: ${STORAGE_ACCESS_KEY_ID:-}
-  SERVICE_AWS_SECRET_ACCESS_KEY: ${STORAGE_SECRET_ACCESS_KEY:-}
-  SERVICE_AWS_FORCE_PATH_STYLE: 'true'
+  STORAGE_ENDPOINT: http://garage:3900
+  STORAGE_PUBLIC_ENDPOINT: ${STORAGE_URL:-http://cbk-storage.localhost:${STORAGE_PORT:-3900}}
+  STORAGE_REGION: garage
+  STORAGE_ACCESS_KEY_ID: ${STORAGE_ACCESS_KEY_ID:-}
+  STORAGE_SECRET_ACCESS_KEY: ${STORAGE_SECRET_ACCESS_KEY:-}
+  STORAGE_FORCE_PATH_STYLE: 'true'
   FILE_S3_BUCKET_NAME: file
   IMAGE_S3_BUCKET_NAME: image
   VIDEO_S3_BUCKET_NAME: video
@@ -100,7 +105,8 @@ services:
       # instead of a .env file, prompted for or set directly:
       #   docker compose -f oci://... run --rm --no-deps platform setup
       #   docker compose -f oci://... run --rm --no-deps platform setup OPENROUTER_MODELS_API_KEY=...
-      # Values given here or in .env win over persisted ones - see
+      # Values given here or in .env win over persisted ones, and a running
+      # service restarts itself when the persisted file changes - see
       # docker/entrypoint.sh. An override file remains the other route:
       #   docker compose -f oci://... -f my-override.yml up -d
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
@@ -174,10 +180,9 @@ services:
       # warnings and errors
       RUST_LOG: warn
     ports:
-      # @note published on localhost so presigned URLs (which carry the
-      # garage:3900 endpoint) work from a host browser with the /etc/hosts
-      # entry described above
-      - '127.0.0.1:3900:3900'
+      # @note published on every interface: browsers talk to the store
+      # directly through presigned URLs (see x-storage-env)
+      - '${STORAGE_PORT:-3900}:3900'
     configs:
       - source: garage-config
         target: /etc/garage.toml
@@ -203,6 +208,10 @@ services:
     environment:
       GARAGE_ADMIN_URL: http://garage:3903
       GARAGE_ADMIN_TOKEN: ${GARAGE_ADMIN_TOKEN:-dev-admin-token}
+      GARAGE_S3_URL: http://garage:3900
+      # @note origins allowed to use presigned URLs from a browser; the URLs
+      # themselves are the access control
+      STORAGE_CORS_ORIGINS: ${STORAGE_CORS_ORIGINS:-*}
       STORAGE_ACCESS_KEY_ID: ${STORAGE_ACCESS_KEY_ID:-}
       STORAGE_SECRET_ACCESS_KEY: ${STORAGE_SECRET_ACCESS_KEY:-}
     volumes:
@@ -222,8 +231,8 @@ configs:
       # Garage (S3-compatible object storage) - single-node configuration.
       #
       # WARNING: the rpc_secret and admin token default to known development
-      # values. Neither port is published outside the compose network, but a
-      # hardened setup overrides them (GARAGE_RPC_SECRET, `openssl rand -hex
+      # values. Neither the RPC nor the admin port is published outside the
+      # compose network (the S3 port is), but a hardened setup overrides them (GARAGE_RPC_SECRET, `openssl rand -hex
       # 32`, and GARAGE_ADMIN_TOKEN) - and a real deployment almost certainly
       # runs a real store with replication rather than this single-node
       # layout.
@@ -239,7 +248,7 @@ configs:
       rpc_secret = "${GARAGE_RPC_SECRET:-1799bccfd7411eddcf9ebd316bc1f5287ad12a68094e1c6ac6abde7e6feae1ec}"
 
       [s3_api]
-      # @note the region is part of every SigV4 signature: SERVICE_AWS_REGION
+      # @note the region is part of every SigV4 signature: STORAGE_REGION
       # must match it, or every request fails authentication
       s3_region = "garage"
       api_bind_addr = "[::]:3900"

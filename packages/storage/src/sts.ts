@@ -12,14 +12,14 @@ import {
 import { z } from 'zod'
 
 const schema = z.object({
-  SERVICE_AWS_REGION: z.string(),
-  SERVICE_AWS_ACCESS_KEY_ID: z.string(),
-  SERVICE_AWS_SECRET_ACCESS_KEY: z.string(),
+  STORAGE_REGION: z.string(),
+  STORAGE_ACCESS_KEY_ID: z.string(),
+  STORAGE_SECRET_ACCESS_KEY: z.string(),
 
   // @note the role the scoped session is assumed into. It was hardcoded in the
   // platform's source as a literal ARN carrying this deployment's AWS account
   // number, which is exactly the kind of thing that must not ship in open code.
-  SERVICE_AWS_STORAGE_ROLE_ARN: z.string().optional(),
+  STORAGE_ROLE_ARN: z.string().optional(),
 })
 
 let cachedEnv: z.infer<typeof schema> | undefined
@@ -39,10 +39,10 @@ function getClient(): STSClient {
     const env = getEnv()
 
     cachedClient = new STSClient({
-      region: env.SERVICE_AWS_REGION,
+      region: env.STORAGE_REGION,
       credentials: {
-        accessKeyId: env.SERVICE_AWS_ACCESS_KEY_ID,
-        secretAccessKey: env.SERVICE_AWS_SECRET_ACCESS_KEY,
+        accessKeyId: env.STORAGE_ACCESS_KEY_ID,
+        secretAccessKey: env.STORAGE_SECRET_ACCESS_KEY,
       },
     })
   }
@@ -54,7 +54,7 @@ function getClient(): STSClient {
  * Get bucket access credentials based on the given bucket:prefix mapping
  */
 export function getStorageRoleArn(): string | undefined {
-  return getEnv().SERVICE_AWS_STORAGE_ROLE_ARN
+  return getEnv().STORAGE_ROLE_ARN
 }
 
 export async function getBucketAccessCredentials(
@@ -68,7 +68,7 @@ export async function getBucketAccessCredentials(
     // it is simply not configured to, and that is a deployment error worth
     // saying out loud rather than degrading past.
     throw new Error(
-      'SERVICE_AWS_STORAGE_ROLE_ARN is not set, so scoped bucket credentials ' +
+      'STORAGE_ROLE_ARN is not set, so scoped bucket credentials ' +
         'cannot be issued and sandboxes cannot mount storage. Set it to the ' +
         'ARN of the role that grants s3:GetObject/PutObject/DeleteObject on ' +
         'the storage buckets.'

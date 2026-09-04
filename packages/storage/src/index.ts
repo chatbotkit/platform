@@ -3,7 +3,7 @@
 // contract's neutral shapes rather than the SDK's, so that callers never
 // depend on which service is behind them.
 //
-// It speaks the protocol, not the vendor: point SERVICE_AWS_ENDPOINT at any
+// It speaks the protocol, not the vendor: point STORAGE_ENDPOINT at any
 // S3-compatible store (Garage, SeaweedFS, R2, or AWS itself, which is also
 // the default when no endpoint is set). Sandbox storage mounts are the one
 // AWS-shaped exception - they mint prefix-scoped credentials through STS
@@ -52,15 +52,22 @@ import { getBucketAccessCredentials, getStorageRoleArn } from './sts'
 export type * from '@chatbotkit-dev/storage-spec'
 
 const schema = z.object({
-  SERVICE_AWS_REGION: z.string(),
-  SERVICE_AWS_ACCESS_KEY_ID: z.string(),
-  SERVICE_AWS_SECRET_ACCESS_KEY: z.string(),
+  STORAGE_REGION: z.string(),
+  STORAGE_ACCESS_KEY_ID: z.string(),
+  STORAGE_SECRET_ACCESS_KEY: z.string(),
 
   // @note unset means AWS proper. Any S3-compatible endpoint works here;
   // self-hosted stores usually need path-style addressing too, since
   // virtual-host style implies wildcard DNS in front of the store.
-  SERVICE_AWS_ENDPOINT: z.string().url().optional(),
-  SERVICE_AWS_FORCE_PATH_STYLE: z.enum(['true', 'false']).optional(),
+  STORAGE_ENDPOINT: z.string().url().optional(),
+  STORAGE_FORCE_PATH_STYLE: z.enum(['true', 'false']).optional(),
+
+  // @note where a browser reaches the store when that differs from where the
+  // server does - a store on a private network, addressed by a name only the
+  // server resolves. SigV4 signs the host, so presigned URLs must be minted
+  // against the address the browser will use. Unset, presigning uses the
+  // server endpoint.
+  STORAGE_PUBLIC_ENDPOINT: z.string().url().optional(),
 })
 
 // @note which bucket backs which logical store is this package's business
@@ -186,20 +193,50 @@ function getClient(): S3Client {
     const env = getEnv()
 
     cachedClient = new S3Client({
-      region: env.SERVICE_AWS_REGION,
+      region: env.STORAGE_REGION,
 
-      ...(env.SERVICE_AWS_ENDPOINT && { endpoint: env.SERVICE_AWS_ENDPOINT }),
+      ...(env.STORAGE_ENDPOINT && { endpoint: env.STORAGE_ENDPOINT }),
 
-      forcePathStyle: env.SERVICE_AWS_FORCE_PATH_STYLE === 'true',
+      forcePathStyle: env.STORAGE_FORCE_PATH_STYLE === 'true',
 
       credentials: {
-        accessKeyId: env.SERVICE_AWS_ACCESS_KEY_ID,
-        secretAccessKey: env.SERVICE_AWS_SECRET_ACCESS_KEY,
+        accessKeyId: env.STORAGE_ACCESS_KEY_ID,
+        secretAccessKey: env.STORAGE_SECRET_ACCESS_KEY,
       },
     })
   }
 
   return cachedClient
+}
+
+let cachedPresignClient: S3Client | undefined
+
+function getPresignClient(): S3Client {
+  if (!cachedPresignClient) {
+    const env = getEnv()
+
+    const endpoint = env.STORAGE_PUBLIC_ENDPOINT ?? env.STORAGE_ENDPOINT
+
+    cachedPresignClient = new S3Client({
+      region: env.STORAGE_REGION,
+
+      ...(endpoint && { endpoint }),
+
+      forcePathStyle: env.STORAGE_FORCE_PATH_STYLE === 'true',
+
+      credentials: {
+        accessKeyId: env.STORAGE_ACCESS_KEY_ID,
+        secretAccessKey: env.STORAGE_SECRET_ACCESS_KEY,
+      },
+
+      // @note the body is unknown when a URL is minted, so a default checksum
+      // would be that of an empty body, baked into the URL - and a store that
+      // honours it rejects the real upload
+      requestChecksumCalculation: 'WHEN_REQUIRED',
+    })
+  }
+
+  return cachedPresignClient
 }
 
 /**
@@ -549,7 +586,7 @@ export async function getObjectDownloadUrl(
     }),
   })
 
-  return await getSignedUrl(getClient(), command, {
+  return await getSignedUrl(getPresignClient(), command, {
     expiresIn: options?.expiresIn || ONE_DAY_IN_SECONDS,
   })
 }
@@ -579,7 +616,7 @@ export async function getObjectUploadUrl(
     ...(options?.metadata && { Metadata: options.metadata }),
   })
 
-  return await getSignedUrl(getClient(), command, {
+  return await getSignedUrl(getPresignClient(), command, {
     expiresIn: options?.expiresIn || ONE_DAY_IN_SECONDS,
   })
 }
@@ -630,10 +667,10 @@ export async function getMounts(
 
   const env = getEnv()
 
-  const region = env.SERVICE_AWS_REGION
+  const region = env.STORAGE_REGION
 
   return {
-    endpoint: env.SERVICE_AWS_ENDPOINT ?? `https://s3.${region}.amazonaws.com`,
+    endpoint: env.STORAGE_ENDPOINT ?? `https://s3.${region}.amazonaws.com`,
     region,
 
     credentials: {
@@ -672,7 +709,7 @@ export async function assertConfigured(): Promise<void> {
 
   if (!getStorageRoleArn()) {
     throw new Error(
-      'SERVICE_AWS_STORAGE_ROLE_ARN is not set, so sandboxes cannot mount ' +
+      'STORAGE_ROLE_ARN is not set, so sandboxes cannot mount ' +
         'storage. It replaces a role ARN that used to be hardcoded in the ' +
         'platform source, so it must be supplied by the environment now.'
     )

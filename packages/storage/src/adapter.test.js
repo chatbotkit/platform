@@ -22,7 +22,7 @@ class Command {
 }
 
 jest.unstable_mockModule('@aws-sdk/client-s3', () => ({
-  S3Client: jest.fn(() => ({ send })),
+  S3Client: jest.fn((config) => ({ send, config })),
   ListObjectsV2Command: class extends Command {},
   HeadObjectCommand: class extends Command {},
   GetObjectCommand: class extends Command {},
@@ -61,9 +61,9 @@ beforeEach(() => {
   getSignedUrl.mockClear()
 
   Object.assign(process.env, {
-    SERVICE_AWS_REGION: 'eu-west-1',
-    SERVICE_AWS_ACCESS_KEY_ID: 'key',
-    SERVICE_AWS_SECRET_ACCESS_KEY: 'secret',
+    STORAGE_REGION: 'eu-west-1',
+    STORAGE_ACCESS_KEY_ID: 'key',
+    STORAGE_SECRET_ACCESS_KEY: 'secret',
 
     FILE_S3_BUCKET_NAME: 'files-bucket',
     SPACE_S3_BUCKET_NAME: 'spaces-bucket',
@@ -406,6 +406,81 @@ describe('getObjectUploadUrl', () => {
 
   it('rejects a traversing key', async () => {
     await expect(getObjectUploadUrl('file', '../escape')).rejects.toThrow()
+  })
+})
+
+describe('public endpoint', () => {
+  // @note SigV4 signs the host, so a URL a browser will use has to be signed
+  // against the address the browser reaches - not the one the server does
+
+  afterEach(() => {
+    delete process.env.STORAGE_ENDPOINT
+    delete process.env.STORAGE_PUBLIC_ENDPOINT
+    delete process.env.STORAGE_FORCE_PATH_STYLE
+  })
+
+  it('presigns against the public endpoint and sends through the server one', async () => {
+    Object.assign(process.env, {
+      STORAGE_ENDPOINT: 'http://garage:3900',
+      STORAGE_PUBLIC_ENDPOINT: 'http://localhost:3900',
+      STORAGE_FORCE_PATH_STYLE: 'true',
+    })
+
+    const storage = await load()
+
+    send.mockResolvedValue({})
+
+    await storage.headObject('file', 'k')
+    await storage.getObjectUploadUrl('file', 'k')
+    await storage.getObjectDownloadUrl('file', 'k')
+
+    const { S3Client } = await import('@aws-sdk/client-s3')
+
+    expect(S3Client.mock.calls.map(([config]) => config.endpoint)).toEqual([
+      'http://garage:3900',
+      'http://localhost:3900',
+    ])
+
+    for (const [client] of getSignedUrl.mock.calls) {
+      expect(client.config).toMatchObject({
+        endpoint: 'http://localhost:3900',
+        forcePathStyle: true,
+        region: 'eu-west-1',
+        credentials: { accessKeyId: 'key', secretAccessKey: 'secret' },
+      })
+    }
+  })
+
+  it('presigns against the server endpoint when no public one is set', async () => {
+    Object.assign(process.env, { STORAGE_ENDPOINT: 'http://garage:3900' })
+
+    delete process.env.STORAGE_PUBLIC_ENDPOINT
+
+    const storage = await load()
+
+    await storage.getObjectUploadUrl('file', 'k')
+
+    expect(getSignedUrl.mock.calls[0][0].config.endpoint).toBe(
+      'http://garage:3900'
+    )
+  })
+
+  it('never bakes a body checksum into a presigned URL', async () => {
+    // @note the body is unknown at minting time; a checksum computed then is
+    // that of an empty body, and a store that honours it rejects the upload
+    const storage = await load()
+
+    send.mockResolvedValue({})
+
+    await storage.putObject('file', 'k', 'b')
+    await storage.getObjectUploadUrl('file', 'k')
+
+    const { S3Client } = await import('@aws-sdk/client-s3')
+
+    expect(S3Client.mock.calls[0][0].requestChecksumCalculation).toBeUndefined()
+    expect(getSignedUrl.mock.calls[0][0].config.requestChecksumCalculation).toBe(
+      'WHEN_REQUIRED'
+    )
   })
 })
 
