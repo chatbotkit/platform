@@ -22,6 +22,19 @@ export const sync = (path, options) => {
     })
   }
 
+  // @note the AgentOS packages export only an `import` entry with no
+  // `default`, so the CommonJS resolver cannot see them; they are transformed
+  // to CommonJS anyway (see jest.utest.config.js), so ask for the ESM entry
+  if (/^(@rivet-dev\/agentos-|@agentos-software\/|@rivetkit\/)/.test(path)) {
+    return options.defaultResolver(path, {
+      ...options,
+      conditions: [
+        'import',
+        ...(options.conditions ?? []).filter((c) => c !== 'browser'),
+      ],
+    })
+  }
+
   // @note try to resolve source files when JavaScript imports fail. This
   // handles cases where a .js request points at a .ts/.jsx/.tsx source file.
   try {
