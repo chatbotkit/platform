@@ -11,10 +11,25 @@
 //
 // The bucket list mirrors the scopes in @chatbotkit-dev/storage; the compose
 // file carries the matching *_S3_BUCKET_NAME variables.
+//
+// Browsers upload and download through presigned URLs straight against the
+// store, so every bucket also gets a CORS rule. Garage only takes CORS over
+// the S3 API, hence the SigV4 signing below.
+import { createHash, createHmac } from 'node:crypto'
 import { chownSync, readFileSync, writeFileSync } from 'node:fs'
 
 const base = process.env.GARAGE_ADMIN_URL
 const token = process.env.GARAGE_ADMIN_TOKEN
+
+const s3Url = process.env.GARAGE_S3_URL || 'http://garage:3900'
+const s3Region = process.env.GARAGE_S3_REGION || 'garage'
+
+// @note presigned URLs are the access control; the rule only lets the
+// browser make the call. Narrow it for a store reachable beyond the host
+const corsOrigins = (process.env.STORAGE_CORS_ORIGINS || '*')
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean)
 
 let accessKeyId = process.env.STORAGE_ACCESS_KEY_ID
 let secretAccessKey = process.env.STORAGE_SECRET_ACCESS_KEY
@@ -141,6 +156,86 @@ if (!keys.some((key) => key.id === accessKeyId)) {
   console.log('[garage-init] access key imported')
 }
 
+function sha256(data) {
+  return createHash('sha256').update(data).digest('hex')
+}
+
+function hmac(key, data, encoding) {
+  return createHmac('sha256', key).update(data).digest(encoding)
+}
+
+// @note minimal SigV4 for one path-style request - enough to avoid pulling
+// the AWS SDK into the initializer image for a single call
+async function s3(method, bucket, query, body) {
+  const url = new URL(`/${bucket}?${query}`, s3Url)
+
+  const amzDate = new Date().toISOString().replace(/[-:]|\.\d{3}/g, '')
+  const date = amzDate.slice(0, 8)
+  const scope = `${date}/${s3Region}/s3/aws4_request`
+  const payloadHash = sha256(body)
+
+  const headers = {
+    host: url.host,
+    'x-amz-content-sha256': payloadHash,
+    'x-amz-date': amzDate,
+  }
+
+  const signedHeaders = Object.keys(headers).sort().join(';')
+
+  const canonicalRequest = [
+    method,
+    url.pathname,
+    `${query}=`,
+    ...Object.keys(headers)
+      .sort()
+      .map((name) => `${name}:${headers[name]}`),
+    '',
+    signedHeaders,
+    payloadHash,
+  ].join('\n')
+
+  const stringToSign = [
+    'AWS4-HMAC-SHA256',
+    amzDate,
+    scope,
+    sha256(canonicalRequest),
+  ].join('\n')
+
+  const signingKey = ['s3', 'aws4_request'].reduce(
+    (key, part) => hmac(key, part),
+    hmac(hmac(`AWS4${secretAccessKey}`, date), s3Region)
+  )
+
+  const signature = hmac(signingKey, stringToSign, 'hex')
+
+  const response = await fetch(url, {
+    method,
+    body,
+    headers: {
+      ...headers,
+      authorization: `AWS4-HMAC-SHA256 Credential=${accessKeyId}/${scope}, SignedHeaders=${signedHeaders}, Signature=${signature}`,
+      'content-type': 'application/xml',
+    },
+  })
+
+  if (!response.ok) {
+    throw new Error(
+      `${method} /${bucket}?${query} -> ${response.status}: ${(await response.text()).slice(0, 200)}`
+    )
+  }
+}
+
+const corsConfiguration =
+  '<CORSConfiguration><CORSRule>' +
+  corsOrigins
+    .map((origin) => `<AllowedOrigin>${origin}</AllowedOrigin>`)
+    .join('') +
+  ['GET', 'PUT', 'HEAD'].map((m) => `<AllowedMethod>${m}</AllowedMethod>`).join('') +
+  '<AllowedHeader>*</AllowedHeader>' +
+  '<ExposeHeader>ETag</ExposeHeader>' +
+  '<MaxAgeSeconds>3600</MaxAgeSeconds>' +
+  '</CORSRule></CORSConfiguration>'
+
 const buckets = await api('/v2/ListBuckets')
 
 for (const alias of BUCKETS) {
@@ -155,6 +250,10 @@ for (const alias of BUCKETS) {
     accessKeyId,
     permissions: { read: true, write: true, owner: true },
   })
+
+  await s3('PUT', alias, 'cors', corsConfiguration)
 }
 
-console.log(`[garage-init] buckets ready: ${BUCKETS.join(' ')}`)
+console.log(
+  `[garage-init] buckets ready: ${BUCKETS.join(' ')} (cors: ${corsOrigins.join(' ')})`
+)

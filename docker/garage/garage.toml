@@ -23,7 +23,7 @@ rpc_public_addr = "127.0.0.1:3901"
 rpc_secret = "1799bccfd7411eddcf9ebd316bc1f5287ad12a68094e1c6ac6abde7e6feae1ec"
 
 [s3_api]
-# @note the region is part of every SigV4 signature: SERVICE_AWS_REGION must
+# @note the region is part of every SigV4 signature: STORAGE_REGION must
 # match it, or every request fails authentication
 s3_region = "garage"
 api_bind_addr = "[::]:3900"

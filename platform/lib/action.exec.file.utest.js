@@ -19,9 +19,9 @@ import * as fileAccess from '@/lib/file.access'
 import * as fileStorage from '@/lib/file.storage'
 
 Object.assign(process.env, {
-  SERVICE_AWS_REGION: 'us-east-1',
-  SERVICE_AWS_ACCESS_KEY_ID: 'test-key',
-  SERVICE_AWS_SECRET_ACCESS_KEY: 'test-secret',
+  STORAGE_REGION: 'us-east-1',
+  STORAGE_ACCESS_KEY_ID: 'test-key',
+  STORAGE_SECRET_ACCESS_KEY: 'test-secret',
 })
 
 jest.mock('@/lib/storage', () => ({

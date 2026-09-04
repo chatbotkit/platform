@@ -34,6 +34,12 @@ export function convertTemperature(
         break
       }
 
+      case isModel(model, [/^gpt-6/]): {
+        temperature = undefined // @note parameter is not supported
+
+        break
+      }
+
       case isModel(model, [/^gpt-5/, /^o4-mini/, /^o3/]): {
         temperature = 1 // @note parameter must be set to 1
 

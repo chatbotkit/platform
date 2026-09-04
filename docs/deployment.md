@@ -110,14 +110,20 @@ docker compose -f oci://ghcr.io/chatbotkit/platform-community:latest run --rm --
 docker compose -f oci://ghcr.io/chatbotkit/platform-community:latest run --rm --no-deps platform setup OPENROUTER_MODELS_API_KEY=sk-or-... OPENAI_API_KEY=
 ```
 
-Restart the `platform` service afterwards. Precedence, highest first: the
-container environment (shell, `.env`, `--env-file`, `-e`), then
-`config.env`, then the secrets generated on first boot. An empty environment
-value counts as unset, so the stack's `${OPENAI_API_KEY:-}` defaults never
-mask a persisted value; to override one for a single run, set it in the
-shell. The file is owned by the application user with mode `0600`; back it
-up with the volume, and prefer `PRISMA_FIELD_ENCRYPTION_KEY` in the
-environment rather than next to the database it protects.
+A running `platform` service applies the change on its own: the entrypoint
+polls `config.env` every `PLATFORM_CONFIG_WATCH_INTERVAL` seconds (default
+5) and restarts the application process when it changes, so expect a short
+interruption rather than a reload. Set the interval to `0` in an override
+file to disable the watch and run the application as the container's main
+process; the service then needs a `docker compose restart platform` after
+each change. Precedence, highest first: the container environment (shell,
+`.env`, `--env-file`, `-e`), then `config.env`, then the secrets generated
+on first boot. An empty environment value counts as unset, so the stack's
+`${OPENAI_API_KEY:-}` defaults never mask a persisted value; to override one
+for a single run, set it in the shell. The file is owned by the application
+user with mode `0600`; back it up with the volume, and prefer
+`PRISMA_FIELD_ENCRYPTION_KEY` in the environment rather than next to the
+database it protects.
 
 ### Several instances on one host
 
@@ -136,7 +142,7 @@ services:
       - '3001:3000'
   garage:
     ports: !override
-      - '127.0.0.1:3901:3900'
+      - '3901:3900'
 ```
 
 ```bash
@@ -147,14 +153,12 @@ docker compose -p cbk-staging \
 ```
 
 Set `SITE_URL` and `NEXTAUTH_URL` to the instance's published address
-(`http://localhost:3001` here) - in the shell or through `--env-file`, since a
+(`http://localhost:3001` here) and `STORAGE_URL` to its store
+(`http://cbk-storage.localhost:3901`) - in the shell or through `--env-file`, since a
 single `.env` in the working directory cannot describe both instances. Volumes,
 networks and container names are all prefixed with the project name, so each
 instance keeps its own database, generated secrets, object store and vector
 index, and `-p` is also how `logs`, `ps` and `down` find the right one.
-Presigned storage URLs carry `garage:3900`, so the `/etc/hosts` entry serves the
-instance that keeps port 3900; browser-facing file flows on the others need
-their own store host name and endpoint.
 
 The artifact is published from
 [docker/distro/community/compose.yml](../docker/distro/community/compose.yml),
@@ -164,8 +168,13 @@ under `docker/distro/`; a future PostgreSQL flavor publishes as
 matching image flavor.
 
 Browser-facing file upload and download flows presign URLs against the
-in-stack store; add `127.0.0.1 garage` to `/etc/hosts` on the host to use
-them, as with the development stack.
+in-stack store, which the stack publishes on port 3900 (`STORAGE_PORT`) under
+its own name: the URLs are minted against `STORAGE_PUBLIC_ENDPOINT`,
+`http://cbk-storage.localhost:3900` by default, a `*.localhost` name browsers
+resolve to loopback like the relay and app shells. Set `STORAGE_URL` to the
+address browsers actually reach the host on (with TLS if the site has it). `garage-init` grants every bucket a CORS
+rule for `STORAGE_CORS_ORIGINS` (default `*` - the presigned URL is the access
+control; narrow it for a store reachable beyond the host).
 
 ### Distribution flavors
 

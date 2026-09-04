@@ -56,10 +56,10 @@ async function load(overrides = {}) {
   }
 
   Object.assign(process.env, {
-    SERVICE_AWS_REGION: 'eu-west-1',
-    SERVICE_AWS_ACCESS_KEY_ID: 'key',
-    SERVICE_AWS_SECRET_ACCESS_KEY: 'secret',
-    SERVICE_AWS_STORAGE_ROLE_ARN: 'arn:aws:iam::123:role/storage',
+    STORAGE_REGION: 'eu-west-1',
+    STORAGE_ACCESS_KEY_ID: 'key',
+    STORAGE_SECRET_ACCESS_KEY: 'secret',
+    STORAGE_ROLE_ARN: 'arn:aws:iam::123:role/storage',
     ...SCOPES,
     ...overrides,
   })
@@ -141,14 +141,14 @@ describe('getMounts', () => {
 
   it('says what to set when the role is not configured', async () => {
     const { getMounts } = await load({
-      SERVICE_AWS_STORAGE_ROLE_ARN: undefined,
+      STORAGE_ROLE_ARN: undefined,
     })
 
     // @note deliberately an error, not null. Null means the backend cannot mint
     // scoped credentials at all and the caller degrades past it; this backend
     // can, and is simply not configured to.
     await expect(getMounts([{ scope: 'space', prefix: 'p' }])).rejects.toThrow(
-      /SERVICE_AWS_STORAGE_ROLE_ARN is not set/
+      /STORAGE_ROLE_ARN is not set/
     )
   })
 })
@@ -176,11 +176,11 @@ describe('assertConfigured', () => {
 
   it('requires the mount role', async () => {
     const { assertConfigured } = await load({
-      SERVICE_AWS_STORAGE_ROLE_ARN: undefined,
+      STORAGE_ROLE_ARN: undefined,
     })
 
     await expect(assertConfigured()).rejects.toThrow(
-      /SERVICE_AWS_STORAGE_ROLE_ARN is not set/
+      /STORAGE_ROLE_ARN is not set/
     )
   })
 

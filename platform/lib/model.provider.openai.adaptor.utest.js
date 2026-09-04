@@ -60,6 +60,16 @@ describe('openai.adaptor', () => {
       expect(result).toBe(1)
     })
 
+    it('should return undefined for gpt-6 models', async () => {
+      isModel.mockImplementation((model, patterns) => {
+        return patterns.some((p) => p.test(model))
+      })
+
+      const result = await convertTemperature(0, 'gpt-6-astra')
+
+      expect(result).toBeUndefined()
+    })
+
     it('should return 1 for o4-mini models', async () => {
       isModel.mockImplementation((model, patterns) => {
         return patterns.some((p) => p.test(model))

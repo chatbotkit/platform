@@ -38,9 +38,9 @@ jest.unstable_mockModule('@aws-sdk/client-sts', () => ({
 }))
 
 Object.assign(process.env, {
-  SERVICE_AWS_REGION: 'eu-west-1',
-  SERVICE_AWS_ACCESS_KEY_ID: 'key',
-  SERVICE_AWS_SECRET_ACCESS_KEY: 'secret',
+  STORAGE_REGION: 'eu-west-1',
+  STORAGE_ACCESS_KEY_ID: 'key',
+  STORAGE_SECRET_ACCESS_KEY: 'secret',
 })
 
 const absentBefore = typeof globalThis.FileReader === 'undefined'

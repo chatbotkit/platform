@@ -23,33 +23,16 @@ export default {
     // @note the egress boundary's dispatcher (lib/egress.ts); left external
     // so Node's global fetch receives undici's own Agent class
     'undici',
-    // @note spawns its native sidecar and resolves its command packages
-    // against its own package directory; bundling it strands those as
-    // relative import() externals
-    '@rivet-dev/agentos-core',
   ],
 
   // @note include Prisma client files (including WASM) in Vercel serverless functions
   // @see https://github.com/prisma/prisma/issues/27754
-  // @note the sandbox runtime's native sidecar, WebAssembly commands and
-  // command packages are read from disk at run time rather than required, so
-  // file tracing cannot see them; the standalone build carries each package
-  // directory whole, manifest included, so the copies resolve. The runtime
-  // package itself is left to the trace on purpose: globbing its store
-  // directory copies its sibling links as flattened files, and the sidecar
-  // link copied that way can no longer find its platform binary package
   outputFileTracingIncludes: {
     '/api/**/*': [
       '../../node_modules/.pnpm/@prisma+client*/node_modules/.prisma/client/**/*',
-      '../node_modules/.pnpm/@rivet-dev+agentos-sidecar*/node_modules/@rivet-dev/**/*',
-      '../node_modules/.pnpm/@rivet-dev+agentos-runtime-*/node_modules/@rivet-dev/**/*',
-      '../node_modules/.pnpm/@agentos-software+*/node_modules/@agentos-software/**/*',
     ],
     '/*': [
       '../../node_modules/.pnpm/@prisma+client*/node_modules/.prisma/client/**/*',
-      '../node_modules/.pnpm/@rivet-dev+agentos-sidecar*/node_modules/@rivet-dev/**/*',
-      '../node_modules/.pnpm/@rivet-dev+agentos-runtime-*/node_modules/@rivet-dev/**/*',
-      '../node_modules/.pnpm/@agentos-software+*/node_modules/@agentos-software/**/*',
     ],
   },
 
@@ -70,9 +53,6 @@ export default {
         bufferutil: 'commonjs bufferutil',
         'utf-8-validate': 'commonjs utf-8-validate',
       })
-      // @note no mirror for @rivet-dev/agentos-core: it is ESM-only, so the
-      // list above externalizes it as an import() the sandbox module awaits
-      // lazily - allowed by name in scripts/verify-bundle-modules.js
     }
 
     return config

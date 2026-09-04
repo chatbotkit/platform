@@ -37,17 +37,21 @@
 # is Garage, spoken to over the plain S3 protocol - see docker/garage/.
 # The credentials are the known development values garage-init provisions.
 #
-# @note presigned upload/download URLs carry this endpoint, so a browser on
-# the host needs to resolve it too: add `127.0.0.1 garage` to /etc/hosts to
-# use browser-facing file flows with the containerized modes. (When running
-# `pnpm dev` on the host instead, point SERVICE_AWS_ENDPOINT at
-# http://localhost:3900 in platform/.env and the question does not arise.)
+# @note the store is a separate, published service: the application reaches
+# it as garage:3900 inside the network, while browsers upload and download
+# through presigned URLs minted against STORAGE_PUBLIC_ENDPOINT - the
+# store's own name from the browser's point of view. Like the relay and the
+# app shells it gets a `*.localhost` name, which browsers resolve to loopback
+# with no DNS setup; set STORAGE_URL when the browser reaches the machine by
+# another address. (When running `pnpm dev` on the host instead,
+# STORAGE_ENDPOINT=http://localhost:3900 in platform/.env serves both roles.)
 x-storage-env: &storage-env
-  SERVICE_AWS_ENDPOINT: http://garage:3900
-  SERVICE_AWS_REGION: garage
-  SERVICE_AWS_ACCESS_KEY_ID: GK31e57eba9df26b2e7e1b0eaa
-  SERVICE_AWS_SECRET_ACCESS_KEY: 9f3c1e2b8a4d5f6071829304a5b6c7d8e9f00112233445566778899aabbccdde
-  SERVICE_AWS_FORCE_PATH_STYLE: 'true'
+  STORAGE_ENDPOINT: http://garage:3900
+  STORAGE_PUBLIC_ENDPOINT: ${STORAGE_URL:-http://cbk-storage.localhost:${STORAGE_PORT:-3900}}
+  STORAGE_REGION: garage
+  STORAGE_ACCESS_KEY_ID: GK31e57eba9df26b2e7e1b0eaa
+  STORAGE_SECRET_ACCESS_KEY: 9f3c1e2b8a4d5f6071829304a5b6c7d8e9f00112233445566778899aabbccdde
+  STORAGE_FORCE_PATH_STYLE: 'true'
   FILE_S3_BUCKET_NAME: file
   IMAGE_S3_BUCKET_NAME: image
   VIDEO_S3_BUCKET_NAME: video
@@ -250,10 +254,10 @@ services:
       # warnings and errors
       RUST_LOG: warn
     ports:
-      # @note published on localhost only, so `pnpm dev` on the host can use
-      # this same store (SERVICE_AWS_ENDPOINT=http://localhost:3900) without
-      # building anything
-      - '127.0.0.1:3900:3900'
+      # @note published on every interface: browsers talk to the store
+      # directly through presigned URLs (see x-storage-env), and `pnpm dev`
+      # on the host uses the same port
+      - '${STORAGE_PORT:-3900}:3900'
     volumes:
       - ./docker/garage/garage.toml:/etc/garage.toml:ro
       - garage-data:/var/lib/garage
@@ -275,6 +279,10 @@ services:
     environment:
       GARAGE_ADMIN_URL: http://garage:3903
       GARAGE_ADMIN_TOKEN: dev-admin-token
+      GARAGE_S3_URL: http://garage:3900
+      # @note origins allowed to use presigned URLs from a browser; the URLs
+      # themselves are the access control
+      STORAGE_CORS_ORIGINS: ${STORAGE_CORS_ORIGINS:-*}
       STORAGE_ACCESS_KEY_ID: GK31e57eba9df26b2e7e1b0eaa
       STORAGE_SECRET_ACCESS_KEY: 9f3c1e2b8a4d5f6071829304a5b6c7d8e9f00112233445566778899aabbccdde
     volumes:
