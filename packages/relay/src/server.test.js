@@ -1,3 +1,5 @@
+import { get } from 'node:http'
+
 import WebSocket from 'ws'
 
 import { RELAY_MAX_PENDING_MESSAGES_PER_SIDE, startRelayServer } from './server'
@@ -50,6 +52,15 @@ function connect(side, options = {}) {
       )
     })
     ws.once('error', reject)
+  })
+}
+
+function status(url) {
+  return new Promise((resolve, reject) => {
+    get(url, (response) => {
+      response.resume()
+      resolve(response.statusCode)
+    }).on('error', reject)
   })
 }
 
@@ -220,10 +231,10 @@ describe('relay server', () => {
   it('answers plain requests with what it expected', async () => {
     const base = `http://127.0.0.1:${server.port}`
 
-    expect((await fetch(`${base}/health`)).status).toBe(200)
-    expect((await fetch(`${base}/nope`)).status).toBe(404)
-    expect((await fetch(`${base}/channel/short`)).status).toBe(400)
-    expect((await fetch(`${base}/channel/${CHANNEL}`)).status).toBe(426)
+    expect(await status(`${base}/health`)).toBe(200)
+    expect(await status(`${base}/nope`)).toBe(404)
+    expect(await status(`${base}/channel/short`)).toBe(400)
+    expect(await status(`${base}/channel/${CHANNEL}`)).toBe(426)
   })
 
   it('forgets a channel once both sides are gone', async () => {
