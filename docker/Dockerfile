@@ -95,16 +95,11 @@ ENV NODE_OPTIONS="--max-old-space-size=$NODE_HEAP_MB --require /app/platform/scr
 ARG SITE_URL=http://cbk.localhost:3000
 ENV SITE_URL=$SITE_URL
 
-# @note apex host rewrites are generated at build time, so the image bakes
-# `.localhost` names browsers resolve to loopback without DNS: space sites at
-# `<slug>.cbk-space.localhost`, portals at `<slug>.cbk-portal.localhost`.
-# The runtime environment must name the same apexes (the compose files do).
-# @todo move the apex host rewrites out of next.config.d into a runtime proxy
+# @note space and portal sites use their apexes at runtime through proxy.ts;
+# the remaining apex rewrites are generated at build time, so their runtime
+# values must match the build
+# @todo move the remaining apex host rewrites into the runtime proxy
 # so one image digest serves any domain without a rebuild
-ARG SPACE_APEX=cbk-space.localhost
-ENV SPACE_APEX=$SPACE_APEX
-ARG PORTAL_APEX=cbk-portal.localhost
-ENV PORTAL_APEX=$PORTAL_APEX
 ARG APP_APEX=
 ENV APP_APEX=$APP_APEX
 ARG PARTNERS_APEX=

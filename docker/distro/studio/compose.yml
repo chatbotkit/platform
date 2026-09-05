@@ -1,16 +1,16 @@
 # =============================================================================
-# ChatBotKit Platform - community distribution stack
+# ChatBotKit Platform - studio distribution stack
 # =============================================================================
 # The self-contained, image-only Compose application published to
-# ghcr.io/chatbotkit/platform-community as an OCI artifact. Consumers run the
+# ghcr.io/chatbotkit/platform-studio as an OCI artifact. Consumers run the
 # whole platform - application, database initialization, Redis, Qdrant and
 # Garage object storage - with a single command and no checkout:
 #
-#   docker compose -f oci://ghcr.io/chatbotkit/platform-community:latest up
+#   docker compose -f oci://ghcr.io/chatbotkit/platform-studio:latest up
 #
 # The same file runs directly from the repository:
 #
-#   docker compose -f docker/distro/community/compose.yml up -d
+#   docker compose -f docker/distro/studio/compose.yml up -d
 #
 # Everything a service needs travels inside this file or inside a published
 # image: configuration is inlined through the top-level `configs` element and
@@ -56,7 +56,7 @@ x-storage-env: &storage-env
 
 services:
   platform:
-    image: ${PLATFORM_IMAGE:-ghcr.io/chatbotkit/platform-community-app:next}
+    image: ${PLATFORM_IMAGE:-ghcr.io/chatbotkit/platform-studio-app:next}
     ports:
       - '3000:3000'
       # @note the built-in realtime relay - see RELAY_URL below
@@ -139,7 +139,7 @@ services:
       start_period: 90s
 
   db-init:
-    image: ${PLATFORM_INIT_IMAGE:-ghcr.io/chatbotkit/platform-community-init:next}
+    image: ${PLATFORM_INIT_IMAGE:-ghcr.io/chatbotkit/platform-studio-init:next}
     environment:
       PRISMA_DATABASE_URL: file:/data/chatbotkit.db
     volumes:
@@ -206,7 +206,7 @@ services:
     # Idempotent, so it reruns harmlessly on every `up`. The script ships
     # inside the initializer image (the same one db-init runs), so this stack
     # needs no bind mount into a checkout.
-    image: ${PLATFORM_INIT_IMAGE:-ghcr.io/chatbotkit/platform-community-init:next}
+    image: ${PLATFORM_INIT_IMAGE:-ghcr.io/chatbotkit/platform-studio-init:next}
     command: ['node', '/garage-init.mjs']
     environment:
       GARAGE_ADMIN_URL: http://garage:3903

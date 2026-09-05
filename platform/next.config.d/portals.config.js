@@ -1,24 +1,17 @@
 /* eslint-disable import/extensions, import/no-anonymous-default-export */
 // @ts-check
-import {
-  buildCaptureAllSource,
-  escapeRegex,
-} from '../lib/nextjs.config.rewrites.js'
-import { APEXES } from '../config/apexes.js'
+import { buildCaptureAllSource } from '../lib/nextjs.config.rewrites.js'
 
 /** @type {import('next').NextConfig} */
 export default {
   async rewrites() {
-    // @note rules exist only when the deployment names a portal apex -
-    // custom portal domains are routed by their own host handling
-    if (!APEXES.portal) {
-      return { beforeFiles: [], afterFiles: [], fallback: [] }
-    }
-
+    // @note proxy.ts replaces this marker on every request using the runtime
+    // PORTAL_APEX; no deployment hostname is captured in the build
     const has = [
       {
-        type: /** @type {'host'} */ ('host'),
-        value: `(?<slug>.+?).${escapeRegex(APEXES.portal)}`,
+        type: /** @type {'header'} */ ('header'),
+        key: 'x-cbk-portal',
+        value: '1',
       },
     ]
 
@@ -60,27 +53,26 @@ export default {
               oauth: true,
             },
           }),
-          has: has,
+          has,
           destination: '/apps/:path*',
+        },
+        // @note localized roots need an explicit match after the catch-all;
+        // putting it first would let the catch-all prefix /apps a second time
+        {
+          source: '/',
+          has,
+          destination: '/apps',
         },
       ],
 
       afterFiles: [],
 
       fallback: [
-        // 404
-
-        ...[
-          // the portal apex hosts
-
-          ...[
-            {
-              source: '/:path*',
-              has: has,
-              destination: `/apps/404`,
-            },
-          ],
-        ],
+        {
+          source: '/:path*',
+          has,
+          destination: '/apps/404',
+        },
       ],
     }
   },

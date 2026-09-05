@@ -222,6 +222,65 @@ function loadHostScenario({
 }
 
 describe('host selection', () => {
+  it.each([
+    'platform.example.com',
+    'api.platform.example.com',
+    'next.platform.example.com',
+  ])('preserves explicit hostname API mappings for %s', (explicitHost) => {
+    const host = loadHostScenario({
+      testSiteUrl: 'https://platform.example.com:8443',
+      apiUrl: 'https://api.platform.example.com:9443',
+    })
+
+    expect(host.getExternalAPIHost(explicitHost)).toBe(
+      'api.platform.example.com'
+    )
+    expect(
+      host.getExternalAPIHostURL(
+        '/v1/models',
+        host.getExternalAPIHost(explicitHost)
+      )
+    ).toBe('https://api.platform.example.com:9443/v1/models')
+  })
+
+  it.each([
+    'http://cbk.localhost:3000',
+    'http://127.0.0.1:3000',
+    'http://[::1]:3000',
+    'http://platform.internal:3000',
+    'https://platform.example.com:8443',
+  ])(
+    'preserves the configured port without a request for %s',
+    (testSiteUrl) => {
+      const host = loadHostScenario({ testSiteUrl })
+      const route = '/api/system/clock/queue'
+      const expectedUrl = `${testSiteUrl}${route}`
+
+      expect(host.getLocalAPIHostURL(route)).toBe(expectedUrl)
+      expect(host.getLocalHost()).toBe(new URL(testSiteUrl).host)
+      expect(host.getExternalHost()).toBe(new URL(testSiteUrl).host)
+      expect(host.getLocalHostURL(route)).toBe(expectedUrl)
+      expect(host.getExternalHostURL(route)).toBe(expectedUrl)
+      expect(host.getExternalFrontendHostURL(route)).toBe(expectedUrl)
+      expect(host.getExternalAPIHostURL(route)).toBe(expectedUrl)
+    }
+  )
+
+  it.each([null, 'platform.example.com:8443'])(
+    'keeps the configured API origin for a site with a port and request host %s',
+    (requestHost) => {
+      const host = loadHostScenario({
+        testSiteUrl: 'https://platform.example.com:8443',
+        apiUrl: 'https://api.platform.example.com:9443',
+        requestHost,
+      })
+
+      expect(host.getExternalAPIHostURL('/api/system/clock/queue')).toBe(
+        'https://api.platform.example.com:9443/api/system/clock/queue'
+      )
+    }
+  )
+
   it('uses the configured site host by default in production', () => {
     const host = loadHostScenario()
 

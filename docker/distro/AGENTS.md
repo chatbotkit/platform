@@ -47,9 +47,11 @@ docker compose -f oci://ghcr.io/chatbotkit/platform-<flavor>:latest up -d
    Swap only what the flavor changes (e.g. a `postgres` service replacing the
    SQLite volume); keep service names, healthchecks and the variable surface
    consistent.
-3. Add the flavor to the matrix in
+3. Add the flavor to the build and publish matrices in
    `.github/workflows/publish-ghcr-platform.yaml` with its application and
-   initializer targets. Everything downstream - images, smoke test, artifact
+   initializer targets, and to the `FLAVORS` list used by the image reuse
+   lookup. A build is reused only when every flavor has both component images
+   from the same revision. Everything downstream - images, smoke test, artifact
    publish - is parameterized on `matrix.flavor` and needs no other change.
 4. Verify before relying on CI: `docker compose -f
    docker/distro/<flavor>/compose.yml config --quiet`, then publish to a
