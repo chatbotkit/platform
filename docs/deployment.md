@@ -279,7 +279,8 @@ and keep secrets out of image layers.
 
 The current community image deliberately bakes the neutral single-host
 topology: `SITE_URL=http://cbk.localhost:3000`, with no external zones.
-The two app shells answer at `http://cbk-apps.localhost:3000` and
+The Community and Studio stacks configure the two app shells at
+`http://cbk-apps.localhost:3000` and
 `http://cbk-labs.localhost:3000` through `APP_MAIN_ORIGIN` and
 `APP_LABS_ORIGIN`.
 Browsers resolve any `*.localhost` name to loopback, so a space site published
@@ -289,11 +290,10 @@ stacks default `SPACE_APEX` to `cbk-space.localhost` and `PORTAL_APEX` to
 `cbk-portal.localhost`. Space and portal routing read these values at server
 startup. Changing them and recreating the container moves those sites to the
 new domains without rebuilding the image. Portal authentication and app
-configuration continue to apply on the new domain.
-
-The remaining apexes and app-shell origins must name the same hosts as the
-build, which the Compose files ensure; changing those hosts still needs a
-rebuild with the matching build arguments. Runtime service variables
+configuration continue to apply on the new domain. App hosts work the same way
+through `APP_APEX`, `APP_MAIN_ORIGIN` and `APP_LABS_ORIGIN`; see
+[Configuration](./configuration.md#app-shell-origins). Only `PARTNERS_APEX`
+still has to match the build. Runtime service variables
 such as the database, Redis, Qdrant and S3-compatible storage endpoints remain
 configurable. Deployment identity that Next currently exposes through
 `next.config.js` is still frozen at build time; do not present the same digest

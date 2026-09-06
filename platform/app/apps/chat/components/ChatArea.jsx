@@ -395,9 +395,11 @@ export function ChatArea({
       {...props}
       className={clsx(
         'chat-area',
-        'sticky left-0 right-0 bottom-0',
+        'left-0 right-0 bottom-0',
         {
-          'pb-2': hasMessages,
+          // @note sticky positioning can pull the empty composer over the centered intro
+          'sticky pb-2': hasMessages,
+          relative: !hasMessages,
 
           // @note used to hide the the text as it scrolls behind the area
 

@@ -1072,7 +1072,7 @@ export default function Index({ dataset }) {
         ) : null} */}
         {dataset.id ? (
           <PlatformExperienceOnly>
-            <section data-page-section-title="SDK">
+            <section data-page-section-title="SDK" data-page-section-more>
               <div className="main-page">
                 <Headline title="Use This Dataset with SDK or API">
                   Add data to this dataset either as records or from files
@@ -1094,7 +1094,7 @@ export default function Index({ dataset }) {
           </PlatformExperienceOnly>
         ) : null}
         {dataset.id ? (
-          <section data-page-section-title="Events">
+          <section data-page-section-title="Events" data-page-section-more>
             <div className="main-page">
               <Headline title="Events">
                 Keep tabs on your dataset events.

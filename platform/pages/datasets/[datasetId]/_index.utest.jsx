@@ -1,4 +1,4 @@
-import { Bots } from './index'
+import Index, { Bots } from './index'
 
 import '@testing-library/jest-dom'
 import { act, fireEvent, render, screen } from '@testing-library/react'
@@ -110,6 +110,13 @@ jest.mock(
     }
 )
 jest.mock(
+  '@/components/Link',
+  () =>
+    function Link({ children, href }) {
+      return <a href={href}>{children}</a>
+    }
+)
+jest.mock(
   '@/components/ThisSolution',
   () =>
     function ThisSolution() {
@@ -138,6 +145,8 @@ jest.mock('@/hooks/usePopup', () =>
   }))
 )
 jest.mock('@/hooks/useRouter', () => jest.fn(() => ({ push: jest.fn() })))
+jest.mock('@/hooks/usePlatformExperience', () => jest.fn(() => true))
+jest.mock('@/hooks/useScopedCreateData', () => jest.fn(() => jest.fn()))
 
 async function link(data) {
   const [, options] = mockOpenPopup.mock.calls[0]
@@ -150,6 +159,39 @@ async function link(data) {
 function getItems() {
   return JSON.parse(screen.getByTestId('bot-list').getAttribute('data-items'))
 }
+
+describe('Dataset navigation', () => {
+  it('keeps SDK and Events behind More', async () => {
+    render(
+      <Index
+        dataset={{
+          id: 'dataset_123',
+          bots: [],
+          files: [],
+          records: [],
+        }}
+      />
+    )
+
+    expect(
+      (await screen.findAllByRole('tab')).map((tab) => tab.textContent)
+    ).toEqual([
+      'Configuration',
+      'Files',
+      'Bot',
+      'Integrations',
+      'Chat',
+      'Search',
+    ])
+
+    fireEvent.click(screen.getByRole('button', { name: 'More' }))
+
+    expect(screen.getAllByRole('tab').map((tab) => tab.textContent)).toEqual([
+      'SDK',
+      'Events',
+    ])
+  })
+})
 
 describe('Dataset Bots', () => {
   beforeEach(() => {

@@ -309,7 +309,11 @@ export default function Auth({
   const title = _title || 'ChatBotKit'
 
   return sessionStatus === 'loading' ? null : (
-    <form {...props} className={clsx('space-y-4', className)} ref={formRef}>
+    <form
+      {...props}
+      className={clsx('w-full max-w-sm space-y-4', className)}
+      ref={formRef}
+    >
       {partner ? (
         <>
           <PartnerBanner className="text-7xl" partner={partner} />
@@ -418,10 +422,6 @@ export default function Auth({
                         <ChevronRightIcon className="w-[1em] h-[1em]" />
                       </button>
                     </div>
-                    <p className="text-xs">
-                      This deployment trusts whoever reaches it: no code is sent
-                      and the account is created on first use.
-                    </p>
                   </div>
                 ) : null}
                 {providers

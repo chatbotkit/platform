@@ -95,19 +95,16 @@ ENV NODE_OPTIONS="--max-old-space-size=$NODE_HEAP_MB --require /app/platform/scr
 ARG SITE_URL=http://cbk.localhost:3000
 ENV SITE_URL=$SITE_URL
 
-# @note space and portal sites use their apexes at runtime through proxy.ts;
-# the remaining apex rewrites are generated at build time, so their runtime
-# values must match the build
-# @todo move the remaining apex host rewrites into the runtime proxy
-# so one image digest serves any domain without a rebuild
+# @note space, portal and app hosts are selected at runtime through proxy.ts;
+# partner host rewrites are generated at build time, so their runtime values
+# must match the build
 ARG APP_APEX=
 ENV APP_APEX=$APP_APEX
 ARG PARTNERS_APEX=
 ENV PARTNERS_APEX=$PARTNERS_APEX
 
-# @note the app-shell hosts are rewrites of the same kind: the main shell at
-# `cbk-apps.localhost`, the labs shell at `cbk-labs.localhost`. The runtime
-# origins must match these too
+# @note build defaults only; shell host routing uses the values supplied at
+# server startup
 ARG APP_MAIN_ORIGIN=http://cbk-apps.localhost:3000
 ENV APP_MAIN_ORIGIN=$APP_MAIN_ORIGIN
 ARG APP_LABS_ORIGIN=http://cbk-labs.localhost:3000

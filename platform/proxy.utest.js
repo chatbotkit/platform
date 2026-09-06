@@ -4,11 +4,14 @@ import { NextRequest } from 'next/server'
 
 import { config } from './proxy'
 
-async function loadProxy(apex, portalApex = '') {
+async function loadProxy(apex, portalApex = '', appConfiguration = {}) {
   const previous = {
     NODE_ENV: process.env.NODE_ENV,
     SPACE_APEX: process.env.SPACE_APEX,
     PORTAL_APEX: process.env.PORTAL_APEX,
+    ...Object.fromEntries(
+      Object.keys(appConfiguration).map((key) => [key, process.env[key]])
+    ),
   }
   let proxy
 
@@ -16,6 +19,7 @@ async function loadProxy(apex, portalApex = '') {
     process.env.NODE_ENV = 'production'
     process.env.SPACE_APEX = apex
     process.env.PORTAL_APEX = portalApex
+    Object.assign(process.env, appConfiguration)
     await jest.isolateModulesAsync(async () => {
       proxy = (await import('./proxy')).proxy
     })
@@ -232,6 +236,169 @@ describe('runtime portal host selection', () => {
     )
 
     expect(response.headers.get('x-middleware-request-x-cbk-portal')).toBeNull()
+  })
+})
+
+describe('runtime app host routing', () => {
+  const appConfiguration = {
+    APP_APEX: 'app.localhost',
+    APP_MAIN_ORIGIN: 'https://apps.localhost:444',
+    APP_LABS_ORIGIN: 'https://labs.localhost:445',
+    APP_MANIFESTS_JSON: JSON.stringify([
+      {
+        slug: 'chat',
+        start: '/apps/chat',
+        name: 'Chat',
+        description: 'Test app',
+      },
+    ]),
+  }
+
+  it.each([
+    ['apps.localhost:3000', '1', null],
+    ['LABS.LOCALHOST:3000', '1', null],
+    ['CHAT.APP.LOCALHOST:3000', null, 'chat'],
+  ])('classifies %s using runtime hostnames', async (host, shell, app) => {
+    const proxy = await loadProxy(
+      'space.localhost',
+      'portal.localhost',
+      appConfiguration
+    )
+    const response = proxy(
+      new NextRequest('http://localhost:3000/', {
+        headers: {
+          host,
+          'x-cbk-app-shell': '1',
+          'x-cbk-app': 'spoofed',
+          'x-cbk-space-site': '1',
+          'x-cbk-portal': '1',
+        },
+      })
+    )
+
+    expect(response.headers.get('x-middleware-request-x-cbk-app-shell')).toBe(
+      shell
+    )
+    expect(response.headers.get('x-middleware-request-x-cbk-app')).toBe(app)
+    expect(
+      response.headers.get('x-middleware-request-x-cbk-space-site')
+    ).toBeNull()
+    expect(response.headers.get('x-middleware-request-x-cbk-portal')).toBeNull()
+    expect(response.headers.get('x-middleware-request-host')).toBe(host)
+    expect(response.headers.get('x-middleware-rewrite')).toBeNull()
+  })
+
+  it.each([
+    'unknown.app.localhost',
+    'app.localhost',
+    'chatXapp.localhost',
+    'chat.app.localhost.attacker.example',
+    'a.chat.app.localhost',
+    'child.apps.localhost',
+    'cbk-apps.localhost',
+    ':main.app.localhost',
+  ])('does not route unregistered or unrelated host %s', async (host) => {
+    const proxy = await loadProxy('', '', appConfiguration)
+    const response = proxy(
+      new NextRequest('http://localhost:3000/overview', {
+        headers: {
+          host,
+          'x-cbk-app': 'chat',
+          'x-cbk-app-shell': '1',
+          'x-forwarded-host': 'chat.app.localhost',
+        },
+      })
+    )
+
+    expect(response.headers.get('x-middleware-request-x-cbk-app')).toBeNull()
+    expect(
+      response.headers.get('x-middleware-request-x-cbk-app-shell')
+    ).toBeNull()
+    expect(response.headers.get('location')).toBeNull()
+  })
+
+  it('disables app host routing when the apex and shell origins are empty', async () => {
+    const proxy = await loadProxy('', '', {
+      ...appConfiguration,
+      APP_APEX: '',
+      APP_MAIN_ORIGIN: '',
+      APP_LABS_ORIGIN: '',
+    })
+
+    for (const host of [
+      'chat.app.localhost',
+      'apps.localhost',
+      'labs.localhost',
+    ]) {
+      const response = proxy(
+        new NextRequest('http://localhost:3000/', {
+          headers: { host, 'x-cbk-app': 'chat', 'x-cbk-app-shell': '1' },
+        })
+      )
+
+      expect(response.headers.get('x-middleware-request-x-cbk-app')).toBeNull()
+      expect(
+        response.headers.get('x-middleware-request-x-cbk-app-shell')
+      ).toBeNull()
+    }
+  })
+
+  it.each([
+    ['', '/'],
+    ['/platform', '/platform'],
+  ])(
+    'redirects app overview with base path %s',
+    async (basePath, expectedPath) => {
+      const proxy = await loadProxy('', '', appConfiguration)
+      const response = proxy(
+        new NextRequest(
+          `http://localhost:3000${basePath}/overview?q=one%20two`,
+          {
+            headers: { host: 'chat.app.localhost:3000' },
+            nextConfig: { basePath },
+          }
+        )
+      )
+      const destination = new URL(response.headers.get('location'))
+
+      expect(response.status).toBe(307)
+      expect(destination.origin).toBe('http://chat.app.localhost:3000')
+      expect(destination.pathname).toBe(expectedPath)
+      expect(destination.searchParams.get('q')).toBe('one two')
+    }
+  )
+
+  it('preserves trailing slashes in an app overview redirect', async () => {
+    const proxy = await loadProxy('', '', appConfiguration)
+    const response = proxy(
+      new NextRequest('https://internal.localhost:8080/platform/overview/', {
+        headers: { host: 'chat.app.localhost:3000' },
+        nextConfig: { basePath: '/platform', trailingSlash: true },
+      })
+    )
+
+    expect(response.status).toBe(307)
+    expect(response.headers.get('location')).toBe(
+      'https://chat.app.localhost:3000/platform/'
+    )
+  })
+
+  it('does not redirect overview on a shell that overlaps an app host', async () => {
+    const proxy = await loadProxy('', '', {
+      ...appConfiguration,
+      APP_MAIN_ORIGIN: 'http://chat.app.localhost:3000',
+    })
+    const response = proxy(
+      new NextRequest('http://localhost:3000/overview', {
+        headers: { host: 'chat.app.localhost:3000' },
+      })
+    )
+
+    expect(response.headers.get('x-middleware-request-x-cbk-app-shell')).toBe(
+      '1'
+    )
+    expect(response.headers.get('x-middleware-request-x-cbk-app')).toBeNull()
+    expect(response.headers.get('location')).toBeNull()
   })
 })
 

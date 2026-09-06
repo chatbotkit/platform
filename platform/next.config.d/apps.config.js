@@ -1,7 +1,5 @@
 /* eslint-disable import/extensions */
 // @ts-check
-import { APEXES } from '../config/apexes.js'
-import { ORIGINS } from '../config/origins.js'
 import {
   buildCaptureAllSource,
   escapeRegex,
@@ -84,15 +82,8 @@ function readAppManifestsFrom(baseDir) {
 }
 
 /**
- * The deployment's app host configuration. APP_APEX controls standalone app
- * subdomains and APP_MAIN_ORIGIN / APP_LABS_ORIGIN control exact shell hosts.
- * Empty means no host-based app routing: every available app serves
- * path-based under /apps.
- */
-
-/**
  * The dict of all app manifests. Manifests carry no host at all: hostnames
- * are pure deployment routing, derived from APP_APEX when it is configured.
+ * are derived from runtime deployment settings in config/apps.ts.
  */
 const appManifests = z
   .array(
@@ -149,22 +140,25 @@ if (process.env.NODE_ENV === 'test') {
   process.env.APP_MANIFESTS_JSON = APP_MANIFESTS_JSON
 }
 
-// --- host routing -----------------------------------------------------------
-// Every rule below exists only when the deployment names the domain it routes.
+// @note proxy.ts assigns these markers using runtime host configuration;
+// the app catalogue and path rules remain part of the build
 
-// @note next strips the port before matching a `has: host` rule, so the
-// pattern is built from the origin hostname, not its port-carrying host
-const shellHostList = [ORIGINS.appMain, ORIGINS.appLabs].flatMap((origin) =>
-  origin ? [new URL(origin).hostname] : []
-)
+const builtinAppPattern = builtinAppSlugs.map(escapeRegex).join('|')
 
-const shellHostPattern = shellHostList.length
-  ? `(?<host>(?:${shellHostList.map(escapeRegex).join('|')}))`
-  : ''
-
-const appApexHostPattern = APEXES.app
-  ? `(?<slug>(?:${builtinAppSlugs.join('|')})).${escapeRegex(APEXES.app)}`
-  : ''
+const shellHas = [
+  {
+    type: /** @type {'header'} */ ('header'),
+    key: 'x-cbk-app-shell',
+    value: '1',
+  },
+]
+const appHas = [
+  {
+    type: /** @type {'header'} */ ('header'),
+    key: 'x-cbk-app',
+    value: `(?<slug>${builtinAppPattern})`,
+  },
+]
 
 /**
  * The pages every host keeps serving from the platform itself.
@@ -194,149 +188,62 @@ export default {
   async rewrites() {
     return {
       beforeFiles: [
-        // the app shells
-
-        ...(shellHostPattern
+        // the main and labs shells
+        {
+          source: buildCaptureAllSource({
+            excludes: [...COMMON_EXCLUDES, ...builtinAppSlugs],
+          }),
+          has: shellHas,
+          destination: '/apps/:path*',
+        },
+        {
+          source: '/app.webmanifest',
+          has: shellHas,
+          destination: '/apps/app.webmanifest',
+        },
+        ...(builtinAppPattern
           ? [
               {
-                source: buildCaptureAllSource({
-                  excludes: [
-                    ...COMMON_EXCLUDES,
-
-                    // @note we want to whitelist the builtin apps
-
-                    ...builtinAppSlugs,
-                  ],
-                }),
-                has: [
-                  {
-                    type: /** @type {'host'} */ ('host'),
-                    value: shellHostPattern,
-                  },
-                ],
-                destination: `/apps/:path*`,
-              },
-              {
-                source: '/app.webmanifest',
-                has: [
-                  {
-                    type: /** @type {'host'} */ ('host'),
-                    value: shellHostPattern,
-                  },
-                ],
-                destination: `/apps/app.webmanifest`,
-              },
-              {
-                source: `/:path((?:${builtinAppSlugs.join('|')}).*)`,
-                has: [
-                  {
-                    type: /** @type {'host'} */ ('host'),
-                    value: shellHostPattern,
-                  },
-                ],
+                source: `/:path((?:${builtinAppPattern}).*)`,
+                has: shellHas,
                 destination: '/apps/:path*',
               },
-              {
-                source: '/',
-                has: [
-                  {
-                    type: /** @type {'host'} */ ('host'),
-                    value: shellHostPattern,
-                  },
-                ],
-                destination: '/apps',
-              },
             ]
           : []),
+        // @note keep the root after the catch-all so it cannot prefix /apps twice
+        {
+          source: '/',
+          has: shellHas,
+          destination: '/apps',
+        },
 
-        // <slug>.<APP_APEX>
-
-        ...(appApexHostPattern
+        // registered app subdomains
+        ...(builtinAppPattern
           ? [
               {
-                source: buildCaptureAllSource({
-                  excludes: COMMON_EXCLUDES,
-                }),
-                has: [
-                  {
-                    type: /** @type {'host'} */ ('host'),
-                    value: appApexHostPattern,
-                  },
-                ],
-                destination: `/apps/:slug/:path*`,
+                source: buildCaptureAllSource({ excludes: COMMON_EXCLUDES }),
+                has: appHas,
+                destination: '/apps/:slug/:path*',
               },
               {
                 source: '/app.webmanifest',
-                has: [
-                  {
-                    type: /** @type {'host'} */ ('host'),
-                    value: appApexHostPattern,
-                  },
-                ],
-                destination: `/apps/app.webmanifest`,
+                has: appHas,
+                destination: '/apps/app.webmanifest',
               },
               {
                 source: '/',
-                has: [
-                  {
-                    type: /** @type {'host'} */ ('host'),
-                    value: appApexHostPattern,
-                  },
-                ],
-                destination: `/apps/:slug`,
+                has: appHas,
+                destination: '/apps/:slug',
               },
             ]
           : []),
       ],
-
       afterFiles: [],
-
-      fallback: [
-        // 404
-
-        // <slug>.<APP_APEX>
-
-        ...(appApexHostPattern
-          ? [
-              {
-                source: '/:path*',
-                has: [
-                  {
-                    type: /** @type {'host'} */ ('host'),
-                    value: appApexHostPattern,
-                  },
-                ],
-                destination: `/apps/:slug/404`,
-              },
-            ]
-          : []),
-      ],
+      fallback: builtinAppPattern
+        ? [{ source: '/:path*', has: appHas, destination: '/apps/:slug/404' }]
+        : [],
     }
   },
 
-  async redirects() {
-    return [
-      // <slug>.<APP_APEX>
-
-      ...(appApexHostPattern
-        ? [
-            {
-              source: '/overview',
-              has: [
-                {
-                  type: /** @type {'host'} */ ('host'),
-                  value: appApexHostPattern,
-                },
-              ],
-              destination: '/',
-              permanent: false,
-            },
-          ]
-        : []),
-    ]
-  },
-
-  env: {
-    APP_MANIFESTS_JSON,
-  },
+  env: { APP_MANIFESTS_JSON },
 }

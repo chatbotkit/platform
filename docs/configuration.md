@@ -219,8 +219,14 @@ and `PORTAL_APEX=cbk-portal.localhost`. Setting `PORTAL_APEX=portal.localhost`
 serves a portal named `test` at `http://test.portal.localhost:3000/`, with its
 existing authentication and app configuration.
 
-The other apex host rewrites are still generated when Next builds, so their
-runtime values must match the image; see
+Standalone app host routing also reads `APP_APEX` at server startup. Setting
+`APP_APEX=app.localhost` serves a registered app such as `chat` at
+`http://chat.app.localhost:3000/`. Only apps included in the image's manifest
+catalogue receive subdomain routes. Community and Studio leave this apex empty
+by default, so apps remain available by path.
+
+Partner host rewrites are still generated when Next builds, so `PARTNERS_APEX`
+must match the image's build-time value; see
 [Deployment](./deployment.md#production-boundary).
 
 ## App shell origins
@@ -239,10 +245,12 @@ APP_MAIN_ORIGIN=https://apps.example.com
 APP_LABS_ORIGIN=https://labs.example.com
 ```
 
-Like the apexes, the shell host rewrites are generated when Next builds, so
-the runtime origins must match the build. The community image bakes
-`APP_MAIN_ORIGIN=http://cbk-apps.localhost:3000` and
-`APP_LABS_ORIGIN=http://cbk-labs.localhost:3000`.
+Shell host routing reads these origins at server startup. Recreate the container
+after changing them; no image rebuild is needed. The Community and Studio stacks
+default to `APP_MAIN_ORIGIN=http://cbk-apps.localhost:3000` and
+`APP_LABS_ORIGIN=http://cbk-labs.localhost:3000`. Existing app paths, sign-in,
+callbacks and manifests remain available on the new hosts. Cookies do not cross
+hosts, so sign in on the shell host itself.
 
 ## `HOSTS_CONFIG`
 
@@ -413,6 +421,30 @@ The flag is a deployment-topology assertion, not authentication. Enable it
 only when the reverse proxy removes client-supplied forwarded headers, writes
 its own values, and prevents clients from reaching the application origin
 directly. If those conditions cannot be guaranteed, leave it unset.
+
+### Server Actions origin checks
+
+Next.js checks Server Actions before the platform sets up request context.
+It compares the browser's `Origin` host, including any port, with
+`x-forwarded-host` when present, otherwise `Host`. This framework check runs
+independently of `TRUST_PROXY_HEADERS`. A reverse proxy must overwrite forwarded
+headers with the public request host, including its port. Preserve the public
+`Host` as well when using the platform's space, portal and app host routing.
+
+Ordinary page actions post back to the page's public host. Deployed builds
+configure no allowed-origin exceptions, including for deployment-owned domains.
+An origin that differs from the public forwarded host is rejected.
+Host-classification headers do not grant cross-origin access.
+
+A portal gateway may route to an internal backend hostname. It must preserve
+the browser's original `Origin` and overwrite `x-forwarded-host` with the public
+portal host. Replacing `Origin` with the backend origin breaks the comparison
+and hides where the browser request actually originated.
+
+Only the development server retains exceptions for `localhost:8080` through
+`localhost:8089` and `localhost:9090` through `localhost:9099`. These support
+the local proxy's deliberate host impersonation and are absent from production
+builds. Deployment domains do not add exceptions in either mode.
 
 ## Platform capacity cap
 
