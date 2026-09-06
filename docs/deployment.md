@@ -202,6 +202,52 @@ docker compose -f oci://ghcr.io/chatbotkit/platform-studio:latest up
 A PostgreSQL flavor would swap the database column only; the other services
 travel unchanged.
 
+### Trusted sign-in
+
+For an install that only its owner can reach - a laptop, a desktop build, a
+lab box - the sign-in code round trip through the container log is friction
+without a purpose. `NEXTAUTH_TRUSTED_SIGNIN=true` replaces it: the sign-in
+page asks for an email address and signs straight into that account, creating
+it on first use. Sessions, audit records and the allowed-email checks are the
+same as after a verified code. Studio enables this mode by default and binds
+its application, relay and storage ports to `127.0.0.1`. Community keeps
+ordinary email sign-in.
+
+It is exactly as unsafe as it sounds. Anyone who can reach the port can sign in
+as anyone, including whoever holds the administrator addresses. So the process
+refuses to start, with a named error, for an invalid value or when trusted
+sign-in is enabled alongside hosted configuration:
+
+- the value is anything other than the literal `true` or an empty value
+- `TARGET_ENV` is `production` or `staging`
+- an OAuth sign-in provider is configured (`NEXTAUTH_GOOGLE_APP_ID`,
+  `NEXTAUTH_AZURE_AD_CLIENT_ID` or `NEXTAUTH_GITHUB_APP_ID`)
+- `LIMITS_CONFIG` is set, meaning plans are sold to other people
+
+An environment file that enables the flag alongside hosted configuration
+therefore fails the boot rather than opening every account. Keep trusted
+installs accessible only to their owner; the environment checks do not
+enforce network isolation. Studio's published ports enforce the local
+desktop default, but an additional reverse proxy or tunnel can expose them.
+
+Start Studio with trusted sign-in:
+
+```bash
+docker compose -f oci://ghcr.io/chatbotkit/platform-studio:latest up -d
+```
+
+To restore ordinary email sign-in, explicitly pass an empty value:
+
+```bash
+NEXTAUTH_TRUSTED_SIGNIN= docker compose \
+  -f oci://ghcr.io/chatbotkit/platform-studio:latest up -d
+```
+
+An empty value disables trusted sign-in; the string `false` is rejected.
+If the flag was also saved in the data volume with `platform setup`, clear
+that persisted value first: an empty container variable does not override
+persisted configuration.
+
 ## Production boundary
 
 The `distro` profile demonstrates that the application can be compiled and run

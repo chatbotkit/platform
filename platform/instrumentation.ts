@@ -4,6 +4,7 @@ import {
 } from '@chatbotkit-dev/observability/next/server'
 import relay from '@chatbotkit-dev/relay'
 
+import { assertTrustedSigninEnv } from '@/lib/auth.trusted'
 import { BANNER } from '@/lib/banner'
 import { startClock } from '@/lib/clock'
 import { warnlog } from '@/lib/debug'
@@ -15,6 +16,20 @@ export async function register() {
   if (process.env.NEXT_RUNTIME === 'nodejs') {
     // eslint-disable-next-line no-console
     console.log(BANNER)
+
+    // @note a hard stop, not a warning: trusted sign-in on a shared deployment
+    // opens every account, so a process configured that way must not serve a
+    // single request - see lib/auth.trusted.ts
+    try {
+      assertTrustedSigninEnv()
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.error(
+        `FATAL: refusing to start - ${e instanceof Error ? e.message : String(e)}`
+      )
+
+      process.exit(1)
+    }
 
     // @note TARGET_ENV=development on a production build is a supported way to
     // run a dev-like server, but it relaxes controls that must never face the

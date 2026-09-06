@@ -12,6 +12,7 @@ import { QUARTER_HOUR_IN_SECONDS } from '@chatbotkit-dev/time'
 
 import prisma from '@/prisma/client'
 
+import { getTrustedProviders } from '@/lib/auth.trusted'
 import debug, { log } from '@/lib/debug'
 import { isAllowedEmail } from '@/lib/email.validation'
 import { isDevelopment } from '@/lib/env'
@@ -131,6 +132,10 @@ export const providers: AuthOptions['providers'] = [
       }
     },
   }),
+
+  // Optionally setup the trusted provider - opt-in, see lib/auth.trusted.ts.
+
+  ...getTrustedProviders(),
 ]
 
 export default providers
