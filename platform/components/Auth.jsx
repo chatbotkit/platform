@@ -227,6 +227,7 @@ export default function Auth({
 
     try {
       const token = crypto.randomUUID()
+
       const response = await _signIn(
         TRUSTED_SIGNIN_PROVIDER_ID,
         { email, trustedToken: token, callbackUrl: nextUrl, redirect: false },
@@ -243,7 +244,9 @@ export default function Auth({
         url.searchParams.append('token', token)
         url.searchParams.append('callbackUrl', nextUrl)
 
-        router.push(url.href)
+        // @note the callback consumes a one-time token; client routing can
+        // request it as route data before navigating, consuming it twice
+        window.location.assign(url.href)
 
         return
       }
@@ -298,8 +301,10 @@ export default function Auth({
     url.searchParams.append('token', formRef.current.token.value)
     url.searchParams.append('callbackUrl', nextUrl)
 
-    router.push(url.href)
-  }, [nextUrl, router])
+    // @note email codes are single-use too, so skip client routing's
+    // preliminary route-data request and navigate to the callback once
+    window.location.assign(url.href)
+  }, [nextUrl])
 
   const title = _title || 'ChatBotKit'
 
