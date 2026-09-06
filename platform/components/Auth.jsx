@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useRef, useState } from 'react'
 
+import { TRUSTED_SIGNIN_PROVIDER_ID } from '@/lib/auth.trusted.consts'
 import { isValidEmail } from '@/lib/email.validation'
 import { captureException } from '@/lib/error'
 import toast from '@/lib/toast'
@@ -198,6 +199,67 @@ export default function Auth({
     [router, _signIn]
   )
 
+  const signInTrusted = useCallback(async () => {
+    const emailInput = formRef.current.elements.namedItem('email')
+
+    const email = emailInput.value?.normalize('NFKC').trim().toLowerCase()
+
+    if (!email) {
+      emailInput.setCustomValidity('This email is required')
+      emailInput.reportValidity()
+
+      return
+    }
+
+    if (!isValidEmail(email)) {
+      emailInput.setCustomValidity('This email is invalid')
+      emailInput.reportValidity()
+
+      return
+    }
+
+    toast.success('Signing you in...')
+
+    // @note normalize before both steps: NextAuth stores a lowercase email
+    // at issuance and requires that same identifier in the callback
+
+    let error = 'Signin'
+
+    try {
+      const token = crypto.randomUUID()
+      const response = await _signIn(
+        TRUSTED_SIGNIN_PROVIDER_ID,
+        { email, trustedToken: token, callbackUrl: nextUrl, redirect: false },
+        { ...signinParameters }
+      )
+
+      if (response?.ok && !response.error) {
+        const url = new URL(
+          `/api/auth/callback/${TRUSTED_SIGNIN_PROVIDER_ID}`,
+          window.location.origin
+        )
+
+        url.searchParams.append('email', email)
+        url.searchParams.append('token', token)
+        url.searchParams.append('callbackUrl', nextUrl)
+
+        router.push(url.href)
+
+        return
+      }
+
+      error = response?.error || error
+    } catch (e) {
+      await captureException(e)
+    }
+
+    const url = new URL(window.location.pathname, window.location.origin)
+
+    url.searchParams.append('error', error)
+
+    router.replace(url.href)
+  }, [nextUrl, router, _signIn, signinParameters])
+
   const signInWithEmailAndPin = useCallback(async () => {
     const emailInput = formRef.current.email
 
@@ -291,7 +353,10 @@ export default function Auth({
             {isTop ? (
               <>
                 {providers
-                  .filter((provider) => provider !== 'email')
+                  .filter(
+                    (provider) =>
+                      !['email', TRUSTED_SIGNIN_PROVIDER_ID].includes(provider)
+                  )
                   .map((provider, index) => {
                     return (
                       <div key={provider} className="flex flex-col space-x-2">
@@ -316,8 +381,50 @@ export default function Auth({
                       </div>
                     )
                   })}
+                {providers.includes(TRUSTED_SIGNIN_PROVIDER_ID) ? (
+                  <div className="text-left border-t border-t-1 border-l-0 border-r-0 border-b-0 border-gray-200 dark:border-gray-700 pt-5 space-y-2">
+                    <p className="text-sm">Sign in as</p>
+                    <div className="default-input flex flex-row gap-2 items-center justify-center">
+                      <input
+                        className="none-input p-0 w-full"
+                        type="email"
+                        name="email"
+                        placeholder="Email"
+                        spellCheck={false}
+                        onKeyDown={(event) => {
+                          if (event.key !== 'Enter') {
+                            return
+                          }
+
+                          event.preventDefault()
+
+                          signInTrusted()
+                        }}
+                      />
+                      <button
+                        className="primary-button small"
+                        type="button"
+                        onClick={(event) => {
+                          event.preventDefault()
+
+                          signInTrusted()
+                        }}
+                      >
+                        <ChevronRightIcon className="w-[1em] h-[1em]" />
+                      </button>
+                    </div>
+                    <p className="text-xs">
+                      This deployment trusts whoever reaches it: no code is sent
+                      and the account is created on first use.
+                    </p>
+                  </div>
+                ) : null}
                 {providers
-                  .filter((provider) => provider === 'email')
+                  .filter(
+                    (provider) =>
+                      provider === 'email' &&
+                      !providers.includes(TRUSTED_SIGNIN_PROVIDER_ID)
+                  )
                   .map((provider) => {
                     return (
                       <div

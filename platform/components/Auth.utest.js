@@ -1,8 +1,10 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
+import { TRUSTED_SIGNIN_PROVIDER_ID } from '@/lib/auth.trusted.consts'
+
 import Auth from './Auth'
 
 import '@testing-library/jest-dom'
-import { render } from '@testing-library/react'
+import { fireEvent, render, waitFor } from '@testing-library/react'
 
 jest.mock('@/config/site', () => ({ siteUrl: 'https://chatbotkit.com' }))
 
@@ -26,7 +28,7 @@ jest.mock('@/hooks/useSignin', () => jest.fn(() => ({ signin: jest.fn() })))
 jest.mock('@/hooks/useSignout', () => jest.fn(() => ({ signout: jest.fn() })))
 jest.mock('@/hooks/useHostname', () => jest.fn(() => 'chatbotkit.com'))
 jest.mock('@/lib/error', () => ({ captureException: jest.fn() }))
-jest.mock('@/lib/toast', () => jest.fn())
+jest.mock('@/lib/toast', () => ({ success: jest.fn() }))
 jest.mock('@/lib/email.validation', () => ({
   isValidEmail: jest.fn(() => true),
 }))
@@ -134,5 +136,90 @@ describe('Auth', () => {
 
       expect(() => render(<Auth />)).not.toThrow()
     })
+  })
+})
+
+describe('Auth trusted sign-in', () => {
+  it('normalizes the email and uses a fresh token for each attempt', async () => {
+    const signin = jest.fn().mockResolvedValue({ ok: true })
+    const push = jest.fn()
+
+    require('@/hooks/useSignin').mockReturnValue({ signin })
+    require('@/hooks/useRouter').mockReturnValue({ query: {}, push })
+
+    const { container } = render(
+      <Auth providers={['email', TRUSTED_SIGNIN_PROVIDER_ID]} />
+    )
+    const input = container.querySelector('input[name="email"]')
+
+    fireEvent.change(input, { target: { value: 'Alice@Example.com' } })
+    fireEvent.keyDown(input, { key: 'Enter' })
+    await waitFor(() => expect(push).toHaveBeenCalledTimes(1))
+
+    const options = signin.mock.calls[0][1]
+
+    expect(signin.mock.calls[0][0]).toBe(TRUSTED_SIGNIN_PROVIDER_ID)
+    expect(options.email).toBe('alice@example.com')
+    expect(options.trustedToken).toMatch(/^[0-9a-f-]{36}$/)
+
+    const callback = new URL(push.mock.calls[0][0])
+
+    expect(callback.pathname).toBe(
+      `/api/auth/callback/${TRUSTED_SIGNIN_PROVIDER_ID}`
+    )
+    expect(callback.searchParams.get('email')).toBe('alice@example.com')
+    expect(callback.searchParams.get('token')).toBe(options.trustedToken)
+
+    fireEvent.keyDown(input, { key: 'Enter' })
+    await waitFor(() => expect(signin).toHaveBeenCalledTimes(2))
+    expect(signin.mock.calls[1][1].trustedToken).not.toBe(options.trustedToken)
+  })
+
+  it('does not verify a rejected sign-in even when the HTTP response is OK', async () => {
+    const signin = jest
+      .fn()
+      .mockResolvedValue({ ok: true, error: 'InvalidEmail' })
+    const push = jest.fn()
+    const replace = jest.fn()
+
+    require('@/hooks/useSignin').mockReturnValue({ signin })
+    require('@/hooks/useRouter').mockReturnValue({ query: {}, push, replace })
+
+    const { container } = render(
+      <Auth providers={[TRUSTED_SIGNIN_PROVIDER_ID]} />
+    )
+    const input = container.querySelector('input[name="email"]')
+
+    fireEvent.change(input, { target: { value: 'alice@example.com' } })
+    fireEvent.keyDown(input, { key: 'Enter' })
+
+    await waitFor(() => expect(replace).toHaveBeenCalled())
+    expect(push).not.toHaveBeenCalled()
+    expect(new URL(replace.mock.calls[0][0]).searchParams.get('error')).toBe(
+      'InvalidEmail'
+    )
+  })
+
+  it('renders the trusted form instead of the email code form', () => {
+    const { container, queryByText } = render(
+      <Auth providers={['email', TRUSTED_SIGNIN_PROVIDER_ID]} />
+    )
+
+    expect(queryByText('Sign in as')).toBeInTheDocument()
+    expect(queryByText('Login with email')).not.toBeInTheDocument()
+
+    // @note trusted is not an OAuth provider and must not get a button
+    expect(
+      queryByText(`Sign in with ${TRUSTED_SIGNIN_PROVIDER_ID}`)
+    ).not.toBeInTheDocument()
+
+    expect(container.querySelector('input[name="email"]')).not.toBeNull()
+  })
+
+  it('keeps the email code form when trusted sign-in is off', () => {
+    const { queryByText } = render(<Auth providers={['email']} />)
+
+    expect(queryByText('Login with email')).toBeInTheDocument()
+    expect(queryByText('Sign in as')).not.toBeInTheDocument()
   })
 })

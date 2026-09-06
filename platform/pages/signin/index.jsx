@@ -41,7 +41,9 @@ export async function getServerSideProps() {
       // providers are presence-gated on their credentials in
       // lib/auth.providers.ts, so a local or self-hosted deployment without
       // them must not render their sign-in buttons
-      providers: authProviders.map(({ id }) => id),
+      // @note a provider built with a custom id keeps it under `options`
+      // until NextAuth merges it at request time, as the trusted provider does
+      providers: authProviders.map(({ id, options }) => options?.id ?? id),
     }),
   }
 }

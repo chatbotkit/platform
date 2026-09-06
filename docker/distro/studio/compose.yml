@@ -58,15 +58,18 @@ services:
   platform:
     image: ${PLATFORM_IMAGE:-ghcr.io/chatbotkit/platform-studio-app:next}
     ports:
-      - '3000:3000'
+      # @note studio trusts the local user, so its ports stay on loopback
+      - '127.0.0.1:3000:3000'
       # @note the built-in realtime relay - see RELAY_URL below
-      - '${RELAY_PORT:-3001}:3001'
+      - '127.0.0.1:${RELAY_PORT:-3001}:3001'
     environment:
       <<: *storage-env
       NODE_ENV: production
       PORT: 3000
       SITE_URL: ${SITE_URL:-http://cbk.localhost:3000}
       NEXTAUTH_URL: ${NEXTAUTH_URL:-http://cbk.localhost:3000}
+      # @note an explicitly empty value restores ordinary email sign-in
+      NEXTAUTH_TRUSTED_SIGNIN: ${NEXTAUTH_TRUSTED_SIGNIN-true}
       # @note realtime channels (voice, avatars) meet at a relay the platform
       # process hosts itself on RELAY_PORT. Both that process and a host
       # browser dial RELAY_URL, so loopback serves both; a browser elsewhere
@@ -178,10 +181,9 @@ services:
       # warnings and errors
       RUST_LOG: warn
     ports:
-      # @note published on every interface: browsers talk to the store
-      # directly through presigned URLs (see x-storage-env). Same port on
-      # both sides, so the one endpoint works from inside the network too
-      - '${STORAGE_PORT:-3900}:${STORAGE_PORT:-3900}'
+      # @note the local browser uses presigned URLs (see x-storage-env);
+      # containers reach the same port through the Docker network alias
+      - '127.0.0.1:${STORAGE_PORT:-3900}:${STORAGE_PORT:-3900}'
     networks:
       default:
         aliases:

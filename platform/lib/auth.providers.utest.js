@@ -7,6 +7,8 @@ import { mockDeep, mockReset } from 'jest-mock-extended'
 
 import prisma from '@/prisma/client'
 
+import { TRUSTED_SIGNIN_PROVIDER_ID } from '@/lib/auth.trusted.consts'
+
 jest.mock('@/prisma/client', () => ({
   __esModule: true,
   default: mockDeep(),
@@ -244,5 +246,61 @@ describe('auth.providers', () => {
       expect(notifyEmailLogin).not.toHaveBeenCalled()
       delete process.env.SKIP_VERIFICATION_REQUEST
     })
+  })
+})
+
+describe('auth.providers trusted sign-in', () => {
+  function loadWith(env) {
+    let mod
+
+    jest.isolateModules(() => {
+      const keys = [
+        'NEXTAUTH_TRUSTED_SIGNIN',
+        'TARGET_ENV',
+        'NEXTAUTH_GOOGLE_APP_ID',
+        'NEXTAUTH_AZURE_AD_CLIENT_ID',
+        'NEXTAUTH_GITHUB_APP_ID',
+        'LIMITS_CONFIG',
+      ]
+      const previous = Object.fromEntries(
+        keys.map((key) => [key, process.env[key]])
+      )
+
+      for (const key of keys) {
+        delete process.env[key]
+      }
+
+      if (env !== undefined) {
+        process.env.NEXTAUTH_TRUSTED_SIGNIN = env
+      }
+
+      try {
+        mod = require('./auth.providers')
+      } finally {
+        for (const key of keys) {
+          if (previous[key] === undefined) {
+            delete process.env[key]
+          } else {
+            process.env[key] = previous[key]
+          }
+        }
+      }
+    })
+
+    return mod
+  }
+
+  it('leaves the trusted provider out by default', () => {
+    const ids = loadWith(undefined).providers.map((p) => p.id)
+
+    expect(ids).not.toContain(TRUSTED_SIGNIN_PROVIDER_ID)
+  })
+
+  it('appends the trusted provider after the email provider when opted in', () => {
+    const ids = loadWith('true').providers.map((p) => p.id)
+
+    expect(ids.indexOf(TRUSTED_SIGNIN_PROVIDER_ID)).toBeGreaterThan(
+      ids.indexOf('email')
+    )
   })
 })
