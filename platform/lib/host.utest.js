@@ -281,14 +281,22 @@ describe('host selection', () => {
     }
   )
 
-  it('uses the configured site host by default in production', () => {
-    const host = loadHostScenario()
+  it.each([
+    [siteUrl, new URL(siteUrl).host],
+    ['http://localhost:3000', 'localhost:3000'],
+    ['https://platform.example.com', 'platform.example.com'],
+    ['https://platform.example.com:8443', 'platform.example.com:8443'],
+  ])(
+    'uses the configured site host by default in production for %s',
+    (testSiteUrl, expectedHost) => {
+      const host = loadHostScenario({ testSiteUrl })
 
-    expect(host.getLocalHost()).toBe(siteHostname)
-    expect(host.getExternalHost()).toBe(siteHostname)
-    expect(host.getExternalFrontendHost()).toBe(siteHostname)
-    expect(host.getLocalAPIHost()).toBe(siteHostname)
-  })
+      expect(host.getLocalHost()).toBe(expectedHost)
+      expect(host.getExternalHost()).toBe(expectedHost)
+      expect(host.getExternalFrontendHost()).toBe(expectedHost)
+      expect(host.getLocalAPIHost()).toBe(expectedHost)
+    }
+  )
 
   it('prefers request and frontend context hosts when they are available', () => {
     const host = loadHostScenario({
