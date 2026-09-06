@@ -22,6 +22,10 @@ import { isLocalhost } from '@/lib/localhost'
 
 import { z } from 'zod'
 
+// @note callbacks outside a request need the port from SITE_URL; hostname alone
+// sends the community stack's background clock to port 80 instead of 3000
+const configuredSite = new URL(siteUrl)
+
 // @note these variables are hosts, not URLs - the URL builders below prepend
 // the scheme themselves, so a value like `https://api.example.com` would
 // produce `https://https/...` targets. Normalise rather than reject: strip any
@@ -94,7 +98,7 @@ export function getLocalHost(): string {
   // When running remotely, the localhost is the host of the incoming request,
   // or the default host configured by the site URL.
 
-  return getContextRequestHost() || siteHostname
+  return getContextRequestHost() || configuredSite.host
 }
 
 /**
@@ -136,7 +140,7 @@ export function getExternalHost(): string {
 
   return (
     // getContextFrontendHost() || // @note causes issues with infinite redirect in fetch
-    getContextRequestHost() || siteHostname
+    getContextRequestHost() || configuredSite.host
   )
 }
 
@@ -263,16 +267,21 @@ export function getExternalAPIHost(host?: string): string {
   const siteHost = siteHostname.startsWith('api.')
     ? siteHostname.slice(4)
     : siteHostname.startsWith('next.')
-      ? siteHostname.slice(5)
-      : siteHostname
+    ? siteHostname.slice(5)
+    : siteHostname
 
   const bareHost = host.startsWith('api.')
     ? host.slice(4)
     : host.startsWith('next.')
-      ? host.slice(5)
-      : host
+    ? host.slice(5)
+    : host
 
-  return bareHost === siteHost ? apiHostname : host
+  // @note keep hostname-only callers working while also matching the configured
+  // port carried by request hosts and background callbacks
+  return bareHost === siteHost ||
+    (configuredSite.port && bareHost === `${siteHost}:${configuredSite.port}`)
+    ? apiHostname
+    : host
 }
 
 /**

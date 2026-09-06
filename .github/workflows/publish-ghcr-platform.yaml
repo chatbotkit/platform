@@ -78,21 +78,18 @@ jobs:
             echo "build=false" >> "$GITHUB_OUTPUT"
           fi
 
-      # @note reuse is decided once for the single flavor; a second flavor
-      # needs a per-flavor lookup and output here
-      - name: Resolve image names
+      # @note the build matrix is skipped as a whole, so reuse requires both
+      # component images for every flavor at the same source revision
+      - name: Resolve image prefix
         if: steps.diff.outputs.build == 'true'
         id: image
         env:
-          FLAVOR: community
           REPOSITORY_NAME: ${{ github.event.repository.name }}
           REPOSITORY_OWNER: ${{ github.repository_owner }}
         run: |
           owner="${REPOSITORY_OWNER,,}"
           repository="${REPOSITORY_NAME,,}"
-          stack="${REGISTRY}/${owner}/${repository}-${FLAVOR}"
-          echo "application=${stack}-app" >> "$GITHUB_OUTPUT"
-          echo "initializer=${stack}-init" >> "$GITHUB_OUTPUT"
+          echo "prefix=${REGISTRY}/${owner}/${repository}" >> "$GITHUB_OUTPUT"
 
       - name: Set up Docker Buildx
         if: steps.diff.outputs.build == 'true'
@@ -109,14 +106,15 @@ jobs:
       # @note candidates are the pushed commit (a fast-forward or a re-run)
       # and its parents (the promotion merge, whose second parent is the next
       # head). A candidate counts only when its tree is byte-identical to the
-      # pushed tree and both component images carry its sha- tag, which only
-      # publish creates and only after verify passed
+      # pushed tree and every flavor's component images carry its sha- tag,
+      # which only publish creates and only after verify passed
       - name: Find a published image of the same tree
         if: steps.diff.outputs.build == 'true'
         id: reuse
         env:
-          APPLICATION_IMAGE: ${{ steps.image.outputs.application }}
-          INITIALIZER_IMAGE: ${{ steps.image.outputs.initializer }}
+          # @note keep this list in sync with the build and publish matrices
+          FLAVORS: community studio
+          IMAGE_PREFIX: ${{ steps.image.outputs.prefix }}
         run: |
           tree=$(git rev-parse "${GITHUB_SHA}^{tree}")
 
@@ -133,9 +131,18 @@ jobs:
 
             short="${candidate:0:7}"
 
-            if docker buildx imagetools inspect "${APPLICATION_IMAGE}:sha-${short}" >/dev/null 2>&1 \
-              && docker buildx imagetools inspect "${INITIALIZER_IMAGE}:sha-${short}" >/dev/null 2>&1
-            then
+            complete=true
+
+            for flavor in $FLAVORS; do
+              if ! docker buildx imagetools inspect "${IMAGE_PREFIX}-${flavor}-app:sha-${short}" >/dev/null 2>&1 \
+                || ! docker buildx imagetools inspect "${IMAGE_PREFIX}-${flavor}-init:sha-${short}" >/dev/null 2>&1
+              then
+                complete=false
+                break
+              fi
+            done
+
+            if [ "$complete" = true ]; then
               echo "Reusing images built from ${candidate}"
               echo "reuse=${short}" >> "$GITHUB_OUTPUT"
               exit 0
@@ -182,6 +189,11 @@ jobs:
           # flavor here only when its Docker target installs that exact package
           # configuration. Runtime services such as Redis are not flavors.
           - name: community
+            application_target: application
+            initializer_target: initializer
+          # @note studio starts with the same package selection as community;
+          # both share Docker targets until studio's implementation diverges
+          - name: studio
             application_target: application
             initializer_target: initializer
         architecture:
@@ -244,7 +256,7 @@ jobs:
           file: docker/Dockerfile
           target: ${{ matrix.flavor.application_target }}
           platforms: ${{ matrix.architecture.platform }}
-          # @note community images embed full source maps on purpose - the
+          # @note distribution images embed full source maps on purpose - the
           # source is public and self-hosted debugging needs them
           build-args: |
             BUILD_SOURCEMAPS=full
@@ -379,6 +391,8 @@ jobs:
         flavor:
           # @note keep this list in sync with the build job's flavor matrix
           - name: community
+            runner: ubuntu-latest-8-cores-amd64
+          - name: studio
             runner: ubuntu-latest-8-cores-amd64
 
     steps:

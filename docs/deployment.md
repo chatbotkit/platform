@@ -186,6 +186,18 @@ its workspaces kept under `/data/sandbox` in the same volume.
 | Flavor      | Database                | Cache | Vector | Storage |
 | ----------- | ----------------------- | ----- | ------ | ------- |
 | `community` | SQLite (default module) | Redis | Qdrant | Garage  |
+| `studio`    | SQLite (default module) | Redis | Qdrant | Garage  |
+
+Studio starts as a copy of Community, with the same Docker build targets,
+module defaults and services. Its separate Compose file lives at
+[docker/distro/studio/compose.yml](../docker/distro/studio/compose.yml), and the
+publish workflow produces `platform-studio`, `platform-studio-app` and
+`platform-studio-init` under `ghcr.io/chatbotkit`, using the same channel tags
+as Community. Once published from `main`, run it with:
+
+```bash
+docker compose -f oci://ghcr.io/chatbotkit/platform-studio:latest up
+```
 
 A PostgreSQL flavor would swap the database column only; the other services
 travel unchanged.
@@ -220,17 +232,22 @@ parts of host and subscription configuration, is therefore not baked into the
 and keep secrets out of image layers.
 
 The current community image deliberately bakes the neutral single-host
-topology: `SITE_URL=http://cbk.localhost:3000`, with no external zones. Two
-apexes are baked alongside it so deployment-issued subdomains work out of the
-box: `SPACE_APEX=cbk-space.localhost` and `PORTAL_APEX=cbk-portal.localhost`,
-and the two app shells answer at `http://cbk-apps.localhost:3000` and
+topology: `SITE_URL=http://cbk.localhost:3000`, with no external zones.
+The two app shells answer at `http://cbk-apps.localhost:3000` and
 `http://cbk-labs.localhost:3000` through `APP_MAIN_ORIGIN` and
 `APP_LABS_ORIGIN`.
 Browsers resolve any `*.localhost` name to loopback, so a space site published
 as `acme` answers at `http://acme.cbk-space.localhost:3000` with no DNS or
-hosts-file setup (`curl` needs `--resolve`). The runtime apexes and shell
-origins must name the same hosts as the build, which the compose files ensure;
-a different host needs a rebuild with the matching build arguments. Runtime service variables
+hosts-file setup (`curl` needs `--resolve`). The Community and Studio Compose
+stacks default `SPACE_APEX` to `cbk-space.localhost` and `PORTAL_APEX` to
+`cbk-portal.localhost`. Space and portal routing read these values at server
+startup. Changing them and recreating the container moves those sites to the
+new domains without rebuilding the image. Portal authentication and app
+configuration continue to apply on the new domain.
+
+The remaining apexes and app-shell origins must name the same hosts as the
+build, which the Compose files ensure; changing those hosts still needs a
+rebuild with the matching build arguments. Runtime service variables
 such as the database, Redis, Qdrant and S3-compatible storage endpoints remain
 configurable. Deployment identity that Next currently exposes through
 `next.config.js` is still frozen at build time; do not present the same digest

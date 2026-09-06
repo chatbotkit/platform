@@ -209,9 +209,18 @@ SPACE_APEX=example.site
 PARTNERS_APEX=example.partners
 ```
 
-The apex host rewrites are generated when Next builds, so the runtime values
-must match the ones the image was built with. The community image bakes
-`SPACE_APEX=cbk-space.localhost` and `PORTAL_APEX=cbk-portal.localhost`; see
+Space and portal host routing read `SPACE_APEX` and `PORTAL_APEX` when the
+server starts. Set `SPACE_APEX` to
+`space.localhost`, for example, to serve a site named `test` publicly at
+`http://test.space.localhost:3000/`. Recreate the container after changing the
+variable; the same image supports the new domain without rebuilding. The
+Community and Studio stacks default to `SPACE_APEX=cbk-space.localhost`
+and `PORTAL_APEX=cbk-portal.localhost`. Setting `PORTAL_APEX=portal.localhost`
+serves a portal named `test` at `http://test.portal.localhost:3000/`, with its
+existing authentication and app configuration.
+
+The other apex host rewrites are still generated when Next builds, so their
+runtime values must match the image; see
 [Deployment](./deployment.md#production-boundary).
 
 ## App shell origins
