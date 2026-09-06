@@ -11,6 +11,7 @@ import Link from '@/components/Link'
 import MenuButton from '@/components/MenuButton'
 import Meta from '@/components/Meta'
 import { NestedAccordionMenu } from '@/components/NestedAccordion'
+import NoRubberBand from '@/components/NoRubberBand'
 import NotificationsButton from '@/components/NotificationsButton'
 import PartnerBanner from '@/components/PartnerBanner'
 import ProfileBar from '@/components/ProfileBar'
@@ -656,6 +657,8 @@ export default SessionContext.withSessionContext(function Dashboard({
       enabled={isBuilderExperience}
       ownerId={session?.user?.id}
     >
+      {/* @note suppress document bounce while preserving overscroll inside panels */}
+      <NoRubberBand />
       <Confirm>
         <div className="min-h-[calc(100vh-4rem)] auto-bg-white">
           <Meta

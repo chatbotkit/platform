@@ -757,7 +757,7 @@ export default function Index({ skillset }) {
         ) : null} */}
         {skillset.id ? (
           <PlatformExperienceOnly>
-            <section data-page-section-title="SDK">
+            <section data-page-section-title="SDK" data-page-section-more>
               <div className="main-page">
                 <Headline title="Execute Skillset Abilities via SDK or API">
                   Run abilities directly from your integrations and backend
@@ -779,7 +779,7 @@ export default function Index({ skillset }) {
           </PlatformExperienceOnly>
         ) : null}
         {skillset.id ? (
-          <section data-page-section-title="Events">
+          <section data-page-section-title="Events" data-page-section-more>
             <div className="main-page">
               <Headline title="Events">
                 Monitor your skillset activity and events.
