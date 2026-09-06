@@ -1,4 +1,6 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
+import NextRouter from 'next/dist/shared/lib/router/router'
+
 import { TRUSTED_SIGNIN_PROVIDER_ID } from '@/lib/auth.trusted.consts'
 
 import Auth from './Auth'
@@ -46,8 +48,6 @@ jest.mock(
 )
 
 jest.mock('@/components/PartnerBanner', () => () => null)
-
-jest.mock('@/components/PinInput', () => () => null)
 
 describe('Auth', () => {
   beforeEach(() => {
@@ -139,7 +139,139 @@ describe('Auth', () => {
   })
 })
 
-describe('Auth trusted sign-in', () => {
+describe('Auth sign-in callbacks', () => {
+  const originalLocation = window.location
+
+  beforeEach(() => {
+    delete window.location
+    window.location = {
+      href: 'http://localhost:3000/signin',
+      origin: 'http://localhost:3000',
+      pathname: '/signin',
+      assign: jest.fn(),
+    }
+  })
+
+  afterEach(() => {
+    window.location = originalLocation
+  })
+
+  it.each([
+    [TRUSTED_SIGNIN_PROVIDER_ID, '/overview', undefined],
+    [
+      TRUSTED_SIGNIN_PROVIDER_ID,
+      '/welcome?callbackUrl=%2Foverview',
+      '/welcome',
+    ],
+    ['email', '/overview', undefined],
+    ['email', '/welcome?callbackUrl=%2Foverview', '/welcome'],
+  ])(
+    'consumes the %s callback once and reaches %s with middleware enabled',
+    async (provider, expectedDestination, intermediateURL) => {
+      const signin = jest.fn().mockResolvedValue({ ok: true })
+      const callbacks = []
+      let destination
+
+      // @note model the server's single-use callback: the first request sets a
+      // session and redirects onward; replaying it redirects back with an error
+      const visitCallback = (href) => {
+        const url = new URL(href, window.location.origin)
+
+        callbacks.push(url)
+        destination =
+          callbacks.length === 1
+            ? url.searchParams.get('callbackUrl')
+            : '/signin?error=Verification'
+      }
+
+      Object.defineProperty(window.location, 'href', {
+        get: () => 'http://localhost:3000/signin',
+        set: visitCallback,
+      })
+      window.location.assign.mockImplementation(visitCallback)
+
+      // @note use Next's installed Pages Router navigation logic: with our
+      // catch-all proxy it fetches route data before falling back to a document
+      // navigation for an API URL, invoking the same callback twice
+      const nextRouter = Object.assign(Object.create(NextRouter.prototype), {
+        state: { asPath: '/signin' },
+        components: {},
+        sdc: {},
+        sbc: {},
+        isSsr: false,
+        pageLoader: {
+          getMiddleware: async () => [{ regexp: '.*' }],
+          getDataHref: ({ href }) => {
+            const url = new URL(href, window.location.origin)
+
+            return `/_next/data/build${url.pathname}.json${url.search}`
+          },
+        },
+      })
+      const fetchSpy = jest
+        .spyOn(global, 'fetch')
+        .mockImplementation(async (href) => {
+          visitCallback(href)
+
+          return new Response('{}', { status: 200 })
+        })
+      const push = jest.fn((href) => {
+        const url = new URL(href)
+
+        void nextRouter.getRouteInfo({
+          route: url.pathname,
+          pathname: url.pathname,
+          query: Object.fromEntries(url.searchParams),
+          as: href,
+          resolvedAs: href,
+          routeProps: {},
+          hasMiddleware: true,
+        })
+      })
+
+      require('@/hooks/useSignin').mockReturnValue({ signin })
+      require('@/hooks/useRouter').mockReturnValue({ query: {}, push })
+
+      try {
+        const { container, findByLabelText } = render(
+          <Auth providers={[provider]} intermediateURL={intermediateURL} />
+        )
+        const input = container.querySelector('input[name="email"]')
+
+        // @note jsdom lacks the browser's named form-control properties used
+        // by the email-code form; resolve them through its actual elements
+        Object.defineProperties(input.form, {
+          email: { get: () => input.form.elements.namedItem('email') },
+          token: { get: () => input.form.elements.namedItem('token') },
+        })
+
+        fireEvent.change(input, { target: { value: 'alice@example.com' } })
+        fireEvent.keyDown(input, { key: 'Enter' })
+
+        if (provider === 'email') {
+          const pin = await findByLabelText('PIN field 1 of 6')
+
+          // @note pasting a complete code exercises the real PinInput and
+          // its automatic verification callback
+          fireEvent.change(pin, { target: { value: '123abc' } })
+        }
+
+        await waitFor(() => expect(destination).toBeDefined())
+        expect(destination).toBe(expectedDestination)
+        expect(callbacks).toHaveLength(1)
+        expect(callbacks[0].pathname).toBe(`/api/auth/callback/${provider}`)
+        expect(callbacks[0].searchParams.get('email')).toBe('alice@example.com')
+        expect(callbacks[0].searchParams.get('token')).toBe(
+          provider === 'email' ? '123abc' : signin.mock.calls[0][1].trustedToken
+        )
+        expect(push).not.toHaveBeenCalled()
+        expect(fetchSpy).not.toHaveBeenCalled()
+      } finally {
+        fetchSpy.mockRestore()
+      }
+    }
+  )
+
   it('normalizes the email and uses a fresh token for each attempt', async () => {
     const signin = jest.fn().mockResolvedValue({ ok: true })
     const push = jest.fn()
@@ -154,7 +286,7 @@ describe('Auth trusted sign-in', () => {
 
     fireEvent.change(input, { target: { value: 'Alice@Example.com' } })
     fireEvent.keyDown(input, { key: 'Enter' })
-    await waitFor(() => expect(push).toHaveBeenCalledTimes(1))
+    await waitFor(() => expect(window.location.assign).toHaveBeenCalledTimes(1))
 
     const options = signin.mock.calls[0][1]
 
@@ -162,13 +294,14 @@ describe('Auth trusted sign-in', () => {
     expect(options.email).toBe('alice@example.com')
     expect(options.trustedToken).toMatch(/^[0-9a-f-]{36}$/)
 
-    const callback = new URL(push.mock.calls[0][0])
+    const callback = new URL(window.location.assign.mock.calls[0][0])
 
     expect(callback.pathname).toBe(
       `/api/auth/callback/${TRUSTED_SIGNIN_PROVIDER_ID}`
     )
     expect(callback.searchParams.get('email')).toBe('alice@example.com')
     expect(callback.searchParams.get('token')).toBe(options.trustedToken)
+    expect(push).not.toHaveBeenCalled()
 
     fireEvent.keyDown(input, { key: 'Enter' })
     await waitFor(() => expect(signin).toHaveBeenCalledTimes(2))
