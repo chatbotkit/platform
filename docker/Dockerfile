@@ -95,13 +95,10 @@ ENV NODE_OPTIONS="--max-old-space-size=$NODE_HEAP_MB --require /app/platform/scr
 ARG SITE_URL=http://cbk.localhost:3000
 ENV SITE_URL=$SITE_URL
 
-# @note space, portal and app hosts are selected at runtime through proxy.ts;
-# partner host rewrites are generated at build time, so their runtime values
-# must match the build
+# @note space, portal, app and partner hosts are selected at server startup;
+# app apex is also used for build defaults
 ARG APP_APEX=
 ENV APP_APEX=$APP_APEX
-ARG PARTNERS_APEX=
-ENV PARTNERS_APEX=$PARTNERS_APEX
 
 # @note build defaults only; shell host routing uses the values supplied at
 # server startup

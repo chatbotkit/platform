@@ -66,9 +66,9 @@ export const hostMappingSchema = z
  *       }
  *     }
  *
- * Build-time routing consumes the flattened target lists. Request-context
- * setup selects one mapping when a trusted request or frontend host matches;
- * runtime URL helpers only read that resolved context.
+ * API and static host routing read the flattened targets at startup.
+ * Request-context setup selects one mapping when a trusted request or frontend
+ * host matches; runtime URL helpers only read that resolved context.
  */
 export const hostsSchema = z
   .record(hostMappingSchema)

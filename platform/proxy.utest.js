@@ -4,6 +4,22 @@ import { NextRequest } from 'next/server'
 
 import { config } from './proxy'
 
+jest.mock('@chatbotkit-dev/partners', () => ({
+  __esModule: true,
+  default:
+    process.env.FIXTURE_EMPTY_PARTNERS === '1'
+      ? {}
+      : {
+          acme: {
+            id: 'private-account',
+            name: 'Acme',
+            domain: 'partner.example',
+            auth: { allowGlobalLogin: true },
+            email: { token: 'private-token' },
+          },
+        },
+}))
+
 async function loadProxy(apex, portalApex = '', appConfiguration = {}) {
   const previous = {
     NODE_ENV: process.env.NODE_ENV,
@@ -20,6 +36,8 @@ async function loadProxy(apex, portalApex = '', appConfiguration = {}) {
     process.env.SPACE_APEX = apex
     process.env.PORTAL_APEX = portalApex
     Object.assign(process.env, appConfiguration)
+    // @note reload the package catalogue as well as the routing configuration
+    jest.resetModules()
     await jest.isolateModulesAsync(async () => {
       proxy = (await import('./proxy')).proxy
     })
@@ -58,7 +76,7 @@ describe('runtime space host routing', () => {
 
   it('classifies a space host independently of its base path and locale', async () => {
     const proxy = await loadProxy('space.localhost')
-    const request = new NextRequest('http://localhost:3000/platform/fr/docs/', {
+    const request = new NextRequest('http://localhost:3000/platform/fr/docs', {
       headers: { host: 'test.space.localhost:3000' },
       nextConfig: {
         basePath: '/platform',
@@ -69,7 +87,7 @@ describe('runtime space host routing', () => {
     expect(
       proxy(request).headers.get('x-middleware-request-x-cbk-space-site')
     ).toBe('1')
-    expect(request.url).toBe('http://localhost:3000/platform/fr/docs/')
+    expect(request.url).toBe('http://localhost:3000/platform/fr/docs')
   })
 
   it('preserves the original host, path and query during classification', async () => {
@@ -368,18 +386,18 @@ describe('runtime app host routing', () => {
     }
   )
 
-  it('preserves trailing slashes in an app overview redirect', async () => {
+  it('canonicalizes the slash before redirecting app overview', async () => {
     const proxy = await loadProxy('', '', appConfiguration)
     const response = proxy(
       new NextRequest('https://internal.localhost:8080/platform/overview/', {
         headers: { host: 'chat.app.localhost:3000' },
-        nextConfig: { basePath: '/platform', trailingSlash: true },
+        nextConfig: { basePath: '/platform' },
       })
     )
 
-    expect(response.status).toBe(307)
+    expect(response.status).toBe(308)
     expect(response.headers.get('location')).toBe(
-      'https://chat.app.localhost:3000/platform/'
+      'https://chat.app.localhost:3000/platform/overview'
     )
   })
 
@@ -436,5 +454,502 @@ describe('routing marker isolation', () => {
       '1'
     )
     expect(response.headers.get('x-middleware-request-x-cbk-portal')).toBeNull()
+  })
+})
+
+describe('runtime partner routing', () => {
+  it.each(['/signin', '/api/health', '/_next/static/test.js', '/favicon.ico'])(
+    'removes a forged partner marker on %s',
+    async (pathname) => {
+      const proxy = await loadProxy('', '', {
+        PARTNERS_APEX: 'partners.localhost',
+      })
+      const response = proxy(
+        new NextRequest(`http://localhost:3000${pathname}`, {
+          headers: {
+            host: 'unrelated.example',
+            'x-cbk-partner': 'acme',
+            'x-forwarded-host': 'acme.partners.localhost',
+            'x-cbk-host': 'partner.example',
+          },
+        })
+      )
+
+      expect(
+        response.headers.get('x-middleware-request-x-cbk-partner')
+      ).toBeNull()
+      expect(response.headers.get('server-timing')).toBeNull()
+    }
+  )
+
+  it('does not expose inherited catalogue properties as branding', async () => {
+    const proxy = await loadProxy('', '', {
+      PARTNERS_APEX: 'partners.localhost',
+    })
+    const response = proxy(
+      new NextRequest('http://localhost:3000/signin', {
+        headers: { host: 'constructor.partners.localhost' },
+      })
+    )
+
+    expect(response.headers.get('x-middleware-request-x-cbk-partner')).toBe(
+      'constructor'
+    )
+    expect(response.headers.get('server-timing')).toBeNull()
+  })
+
+  it('works with the empty public catalogue', async () => {
+    const proxy = await loadProxy('', '', {
+      PARTNERS_APEX: '',
+      FIXTURE_EMPTY_PARTNERS: '1',
+    })
+    const response = proxy(
+      new NextRequest('http://localhost:3000/', {
+        headers: { host: 'partner.example', 'x-cbk-partner': 'acme' },
+      })
+    )
+
+    expect(response.headers.get('x-middleware-next')).toBe('1')
+    expect(response.headers.get('location')).toBeNull()
+    expect(response.headers.get('server-timing')).toBeNull()
+    expect(
+      response.headers.get('x-middleware-request-x-cbk-partner')
+    ).toBeNull()
+  })
+
+  it('preserves the base path, locale, query and public host in partner root redirects', async () => {
+    const proxy = await loadProxy('', '', {
+      PARTNERS_APEX: 'partners.localhost',
+    })
+    const response = proxy(
+      new NextRequest('http://localhost:3000/platform/fr?q=one', {
+        headers: { host: 'acme.partners.localhost:3000' },
+        nextConfig: {
+          basePath: '/platform',
+          i18n: { locales: ['en', 'fr'], defaultLocale: 'en' },
+        },
+      })
+    )
+
+    expect(response.status).toBe(307)
+    expect(response.headers.get('location')).toBe(
+      'http://acme.partners.localhost:3000/platform/fr/overview?q=one'
+    )
+
+    const encoded = response.headers
+      .get('server-timing')
+      .match(/partner;desc="([^"]+)"/)[1]
+
+    expect(JSON.parse(Buffer.from(encoded, 'base64').toString())).toEqual({
+      name: 'Acme',
+      whitelabel: false,
+    })
+  })
+})
+
+describe('runtime static host routing', () => {
+  const configuration = {
+    SITE_URL: 'https://example.com',
+    STATIC_URL: 'https://assets.example.com',
+    HOSTS_CONFIG: JSON.stringify({
+      family: {
+        match: ['example.com'],
+        site: 'example.com',
+        api: 'api.example.com',
+        static: 'static.example.com',
+        widgets: 'widgets.example.com',
+      },
+      secondary: {
+        match: ['legacy.example.com'],
+        site: 'legacy.example.com',
+        api: 'api.legacy.example.com',
+        static: 'static.legacy.example.com',
+        widgets: 'widgets.legacy.example.com',
+      },
+      single: {
+        match: ['single.example.com'],
+        site: 'single.example.com',
+        api: 'single.example.com',
+        static: 'single.example.com',
+        widgets: 'single.example.com',
+      },
+    }),
+  }
+
+  it.each([
+    'assets.example.com',
+    'static.example.com',
+    'STATIC.LEGACY.EXAMPLE.COM:3000',
+  ])(
+    'selects scalar and mapped static targets for %s even outside match',
+    async (host) => {
+      const proxy = await loadProxy('', '', configuration)
+      const response = proxy(
+        new NextRequest('http://localhost:3000/signin', { headers: { host } })
+      )
+
+      expect(response.headers.get('x-middleware-request-x-cbk-static')).toBe(
+        '1'
+      )
+      expect(response.headers.get('x-middleware-rewrite')).toBeNull()
+    }
+  )
+
+  it.each([
+    'example.com',
+    'legacy.example.com',
+    'single.example.com',
+    'api.example.com',
+    'staticXexample.com',
+    'static.example.com.attacker.example',
+  ])(
+    'does not apply static restrictions to %s or trust its supplied markers',
+    async (host) => {
+      const proxy = await loadProxy('', '', configuration)
+      const response = proxy(
+        new NextRequest('http://localhost:3000/signin', {
+          headers: {
+            host,
+            'x-cbk-static': '1',
+            'x-forwarded-host': 'static.example.com',
+          },
+        })
+      )
+
+      expect(
+        response.headers.get('x-middleware-request-x-cbk-static')
+      ).toBeNull()
+    }
+  )
+
+  it.each(['', 'https://example.com'])(
+    'leaves the site unrestricted when STATIC_URL is %s',
+    async (staticUrl) => {
+      const proxy = await loadProxy('', '', {
+        SITE_URL: 'https://example.com',
+        STATIC_URL: staticUrl,
+        HOSTS_CONFIG: '',
+      })
+      const response = proxy(
+        new NextRequest('https://example.com/', {
+          headers: { host: 'example.com' },
+        })
+      )
+
+      expect(
+        response.headers.get('x-middleware-request-x-cbk-static')
+      ).toBeNull()
+      expect(response.headers.get('location')).toBeNull()
+    }
+  )
+
+  it('excludes every mapped site host even when it is the scalar static target', async () => {
+    const proxy = await loadProxy('', '', {
+      ...configuration,
+      STATIC_URL: 'https://legacy.example.com',
+    })
+    const response = proxy(
+      new NextRequest('https://legacy.example.com/', {
+        headers: { host: 'legacy.example.com' },
+      })
+    )
+
+    expect(response.headers.get('x-middleware-request-x-cbk-static')).toBeNull()
+  })
+
+  it.each([
+    '/api/health',
+    '/_next/static/chunk.js',
+    '/integrations/widget/v1.js',
+    '/favicon.ico',
+  ])(
+    'removes forged static markers on the excluded path %s',
+    async (pathname) => {
+      const proxy = await loadProxy('', '', configuration)
+      const response = proxy(
+        new NextRequest(`https://example.com${pathname}`, {
+          headers: { host: 'example.com', 'x-cbk-static': '1' },
+        })
+      )
+
+      expect(
+        response.headers.get('x-middleware-request-x-cbk-static')
+      ).toBeNull()
+    }
+  )
+})
+
+describe('public redirect authority', () => {
+  it.each([
+    ['acme.partners.localhost', '/', '/overview'],
+    ['acme.partners.localhost:8080', '/', '/overview'],
+    ['chat.app.localhost', '/overview', '/'],
+    ['chat.app.localhost:8080', '/overview', '/'],
+  ])(
+    'preserves the public host and port for %s',
+    async (host, pathname, destination) => {
+      const proxy = await loadProxy('', '', {
+        PARTNERS_APEX: 'partners.localhost',
+        APP_APEX: 'app.localhost',
+      })
+      const response = proxy(
+        new NextRequest(`https://internal:3000${pathname}?q=one`, {
+          headers: { host },
+        })
+      )
+
+      expect(response.status).toBe(307)
+      expect(response.headers.get('location')).toBe(
+        `https://${host}${destination}?q=one`
+      )
+    }
+  )
+})
+
+describe('runtime API host routing', () => {
+  const configuration = {
+    SITE_URL: 'https://example.com',
+    API_URL: 'https://api.scalar.example.com',
+    HOSTS_CONFIG: JSON.stringify({
+      family: {
+        match: ['example.com'],
+        site: 'example.com',
+        api: 'api.example.com',
+        static: 'static.example.com',
+        widgets: 'widgets.example.com',
+      },
+      secondary: {
+        match: ['legacy.example.com'],
+        site: 'legacy.example.com',
+        api: 'api.legacy.example.com',
+        static: 'static.legacy.example.com',
+        widgets: 'widgets.legacy.example.com',
+      },
+      single: {
+        match: ['single.example.com'],
+        site: 'single.example.com',
+        api: 'single.example.com',
+        static: 'single.example.com',
+        widgets: 'single.example.com',
+      },
+    }),
+  }
+
+  it.each([
+    'api.scalar.example.com',
+    'api.example.com',
+    'API.LEGACY.EXAMPLE.COM:3000',
+  ])('selects the scalar and every mapped API target for %s', async (host) => {
+    const proxy = await loadProxy('', '', configuration)
+    const response = proxy(
+      new NextRequest('http://internal:3000/v1/probe', { headers: { host } })
+    )
+
+    expect(response.headers.get('x-middleware-request-x-cbk-api')).toBe('1')
+    expect(response.headers.get('access-control-allow-origin')).toBe('*')
+    expect(response.headers.get('access-control-allow-methods')).toBe(
+      'GET,POST'
+    )
+    expect(response.headers.get('access-control-allow-headers')).toBe(
+      'X-Requested-With, Accept, Content-Length, Content-Type, Authorization'
+    )
+    expect(response.headers.get('access-control-allow-credentials')).toBeNull()
+  })
+
+  it.each([
+    'example.com',
+    'legacy.example.com',
+    'single.example.com',
+    'apiXexample.com',
+    'api.example.com.attacker.example',
+  ])('rejects forged API selection and CORS for %s', async (host) => {
+    const proxy = await loadProxy('', '', configuration)
+    const response = proxy(
+      new NextRequest('http://internal:3000/v1/probe', {
+        headers: {
+          host,
+          'x-cbk-api': '1',
+          'x-forwarded-host': 'api.example.com',
+        },
+      })
+    )
+
+    expect(response.headers.get('x-middleware-request-x-cbk-api')).toBeNull()
+    expect(response.headers.get('access-control-allow-origin')).toBeNull()
+  })
+
+  it.each(['', 'https://example.com', 'https://legacy.example.com'])(
+    'excludes site hosts when API_URL is %s',
+    async (apiUrl) => {
+      const proxy = await loadProxy('', '', {
+        ...configuration,
+        API_URL: apiUrl,
+      })
+
+      for (const host of ['example.com', 'legacy.example.com']) {
+        const response = proxy(
+          new NextRequest(`https://${host}/v1/probe`, { headers: { host } })
+        )
+
+        expect(
+          response.headers.get('x-middleware-request-x-cbk-api')
+        ).toBeNull()
+        expect(response.headers.get('access-control-allow-origin')).toBeNull()
+      }
+    }
+  )
+
+  it.each(['/v1', '/v1/', '/v1/probe', '/V1/probe'])(
+    'applies the existing clean API CORS policy to %s',
+    async (pathname) => {
+      const proxy = await loadProxy('', '', configuration)
+      const response = proxy(
+        new NextRequest(`http://internal:3000${pathname}`, {
+          headers: { host: 'api.example.com' },
+          method: 'OPTIONS',
+        })
+      )
+
+      expect(response.headers.get('access-control-allow-origin')).toBe('*')
+
+      if (pathname.endsWith('/')) {
+        expect(response.status).toBe(308)
+        expect(response.headers.get('location')).toBe(
+          'http://api.example.com/v1'
+        )
+      } else {
+        expect(response.headers.get('x-middleware-next')).toBe('1')
+      }
+    }
+  )
+
+  it.each([
+    '/',
+    '/v10/probe',
+    '/v1other',
+    '/oauth/token',
+    '/signin',
+    '/_next/static/test.js',
+  ])('does not broaden CORS to %s', async (pathname) => {
+    const proxy = await loadProxy('', '', configuration)
+    const response = proxy(
+      new NextRequest(`http://internal:3000${pathname}`, {
+        headers: { host: 'api.example.com' },
+      })
+    )
+
+    expect(response.headers.get('access-control-allow-origin')).toBeNull()
+  })
+
+  it('classifies CORS independently of base path and locale', async () => {
+    const proxy = await loadProxy('', '', configuration)
+    const response = proxy(
+      new NextRequest('http://internal:3000/platform/fr/v1/probe', {
+        headers: { host: 'api.example.com' },
+        nextConfig: {
+          basePath: '/platform',
+          i18n: { locales: ['en', 'fr'], defaultLocale: 'en' },
+        },
+      })
+    )
+
+    expect(response.headers.get('access-control-allow-origin')).toBe('*')
+  })
+})
+
+describe('runtime browser security host selection', () => {
+  it('leaves manuals paths to the deployment routing table', async () => {
+    const proxy = await loadProxy('', '', { API_URL: '', HOSTS_CONFIG: '' })
+
+    for (const pathname of ['/manuals', '/manuals/api/example']) {
+      const response = proxy(
+        new NextRequest(`https://example.com${pathname}`, {
+          headers: { host: 'example.com' },
+        })
+      )
+
+      expect(response.headers.get('location')).toBeNull()
+      expect(response.headers.get('x-middleware-next')).toBe('1')
+      expect(response.headers.get('x-frame-options')).toBe('SAMEORIGIN')
+    }
+  })
+
+  it.each(['gateway.example.com', 'api.example.com'])(
+    'exempts the configured API host %s',
+    async (host) => {
+      const proxy = await loadProxy('', '', {
+        SITE_URL: 'https://example.com',
+        API_URL: `https://${host}`,
+        HOSTS_CONFIG: '',
+      })
+      const response = proxy(
+        new NextRequest(`https://${host}/v1/probe`, { headers: { host } })
+      )
+
+      expect(response.headers.get('content-security-policy')).toBeNull()
+      expect(response.headers.get('x-frame-options')).toBeNull()
+      expect(response.headers.get('x-content-type-options')).toBeNull()
+      expect(response.headers.get('access-control-allow-origin')).toBe('*')
+    }
+  )
+
+  it('protects a shared site/API host even with an api prefix', async () => {
+    const proxy = await loadProxy('', '', {
+      SITE_URL: 'https://api.example.com',
+      API_URL: 'https://api.example.com',
+      HOSTS_CONFIG: '',
+    })
+    const response = proxy(
+      new NextRequest('https://api.example.com/signin', {
+        headers: { host: 'api.example.com', 'x-cbk-api': '1' },
+      })
+    )
+
+    expect(response.headers.get('content-security-policy')).toContain(
+      "frame-ancestors 'self'"
+    )
+    expect(response.headers.get('x-frame-options')).toBe('SAMEORIGIN')
+  })
+
+  it('does not accept a forwarded API host or forged marker to disable browser protections', async () => {
+    const proxy = await loadProxy('', '', {
+      SITE_URL: 'https://example.com',
+      API_URL: 'https://gateway.example.com',
+      HOSTS_CONFIG: '',
+    })
+    const response = proxy(
+      new NextRequest('https://example.com/signin', {
+        headers: {
+          host: 'example.com',
+          'x-forwarded-host': 'gateway.example.com',
+          'x-cbk-api': '1',
+        },
+      })
+    )
+
+    expect(response.headers.get('content-security-policy')).toContain(
+      "frame-ancestors 'self'"
+    )
+  })
+
+  it('selects the embedding policy after removing the base path and locale', async () => {
+    const proxy = await loadProxy('', '', { API_URL: '', HOSTS_CONFIG: '' })
+    const response = proxy(
+      new NextRequest(
+        'http://localhost:3000/platform/fr/integrations/widget/demo/frame',
+        {
+          headers: { host: 'example.com' },
+          nextConfig: {
+            basePath: '/platform',
+            i18n: { locales: ['en', 'fr'], defaultLocale: 'en' },
+          },
+        }
+      )
+    )
+
+    expect(response.headers.get('x-frame-options')).toBeNull()
+    expect(response.headers.get('content-security-policy')).toContain(
+      'frame-ancestors * capacitor: ionic:'
+    )
   })
 })

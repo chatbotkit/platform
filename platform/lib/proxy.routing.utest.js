@@ -1,4 +1,6 @@
 /** @jest-environment node */
+import loadCustomRoutes from 'next/dist/lib/load-custom-routes'
+
 import { execFile, spawn } from 'node:child_process'
 import { once } from 'node:events'
 import fs from 'node:fs/promises'
@@ -34,10 +36,14 @@ describe.each(['', '/platform'])(
       PORTAL_APEX: 'cbk-portal.localhost',
       SITE_URL: 'http://platform.localhost:3000',
       HOSTS_CONFIG: '',
+      STATIC_URL: 'http://build.static.example:3000',
+      API_URL: 'http://build.api.example:3000',
+      SENTRY_HEADERS_REPORT_URI: 'https://build.report.example/csp',
       APP_MAIN_ORIGIN: 'http://cbk-apps.localhost:3000',
       APP_LABS_ORIGIN: 'http://cbk-labs.localhost:3000',
       APP_APEX: 'cbk-app.localhost',
-      PARTNERS_APEX: '',
+      PARTNERS_APEX: 'cbk-partners.localhost',
+      FIXTURE_PARTNER_DOMAIN: 'build.partner.example',
     }
 
     async function write(file, content) {
@@ -54,6 +60,14 @@ describe.each(['', '/platform'])(
         APP_APEX: 'app.localhost',
         APP_MAIN_ORIGIN: 'http://apps.localhost:3000',
         APP_LABS_ORIGIN: 'http://labs.localhost:3000',
+      },
+      partnerConfiguration = {
+        PARTNERS_APEX: 'partners.localhost',
+        FIXTURE_PARTNER_DOMAIN: 'partner.example',
+      },
+      hostConfiguration = {
+        STATIC_URL: 'http://static.localhost:3000',
+        HOSTS_CONFIG: '',
       }
     ) {
       const socket = createServer()
@@ -77,6 +91,10 @@ describe.each(['', '/platform'])(
             SPACE_APEX: apex,
             PORTAL_APEX: portalApex,
             ...appConfiguration,
+            ...partnerConfiguration,
+            API_URL: 'http://api.localhost:3000',
+            SENTRY_HEADERS_REPORT_URI: '',
+            ...hostConfiguration,
             // @note use the same serialized configuration as Next's generated
             // standalone launcher; next start otherwise reloads next.config
             __NEXT_PRIVATE_STANDALONE_CONFIG: standaloneConfig,
@@ -167,10 +185,51 @@ describe.each(['', '/platform'])(
 
     beforeAll(async () => {
       directory = await fs.mkdtemp(path.join(os.tmpdir(), 'cbk-host-routing-'))
-      await fs.symlink(
-        path.join(project, 'node_modules'),
-        path.join(directory, 'node_modules'),
-        'dir'
+      // @note supply a fixture partner catalogue through the public package
+      // boundary without changing the workspace's installed catalogue
+      await fs.mkdir(path.join(directory, 'node_modules/@chatbotkit-dev'), {
+        recursive: true,
+      })
+
+      for (const name of await fs.readdir(path.join(project, 'node_modules'))) {
+        if (name !== '@chatbotkit-dev') {
+          await fs.symlink(
+            path.join(project, 'node_modules', name),
+            path.join(directory, 'node_modules', name)
+          )
+        }
+      }
+
+      for (const name of await fs.readdir(
+        path.join(project, 'node_modules/@chatbotkit-dev')
+      )) {
+        if (name !== 'partners') {
+          await fs.symlink(
+            path.join(project, 'node_modules/@chatbotkit-dev', name),
+            path.join(directory, 'node_modules/@chatbotkit-dev', name)
+          )
+        }
+      }
+
+      await write(
+        'node_modules/@chatbotkit-dev/partners/package.json',
+        JSON.stringify({
+          name: '@chatbotkit-dev/partners',
+          type: 'module',
+          exports: './index.js',
+        })
+      )
+      await write(
+        'node_modules/@chatbotkit-dev/partners/index.js',
+        `export default {
+        acme: {
+          id: 'partner-account', name: 'Acme Studio', logo: '/acme.svg',
+          icon: '/acme.png', whitelabel: true, experience: 'builder',
+          domain: process.env.FIXTURE_PARTNER_DOMAIN,
+          auth: { allowGlobalLogin: true }, email: { send() {} },
+        },
+        plain: { id: 'plain-account', name: 'Plain Partner' },
+      }`
       )
       await write(
         'package.json',
@@ -206,10 +265,16 @@ describe.each(['', '/platform'])(
         'lib/json.ts',
         'lib/struct.ts',
         'lib/nextjs.config.rewrites.js',
+        'lib/security.headers.js',
         'next.config.d/portals.config.js',
         'next.config.d/apps.config.js',
+        'next.config.d/partner.config.js',
         'next.config.d/actions.config.js',
         'next.config.d/spaces.config.js',
+        'next.config.d/static.config.js',
+        'next.config.d/api.config.js',
+        'next.config.d/oauth.config.js',
+        'next.config.d/proxy.config.js',
         'next.config.d/transpile.config.js',
       ]) {
         await write(file, await fs.readFile(path.join(project, file), 'utf8'))
@@ -223,7 +288,13 @@ describe.each(['', '/platform'])(
       import portals from './next.config.d/portals.config.js'
       import actions from './next.config.d/actions.config.js'
       import apps from './next.config.d/apps.config.js'
-      export default { ...transpile, env: apps.env,
+      import partners from './next.config.d/partner.config.js'
+      import staticConfig from './next.config.d/static.config.js'
+      import apiConfig from './next.config.d/api.config.js'
+      import oauthConfig from './next.config.d/oauth.config.js'
+      import proxyConfig from './next.config.d/proxy.config.js'
+      export default { ...transpile, ...proxyConfig, env: apps.env,
+        headers: apiConfig.headers,
         experimental: { ...actions.experimental, cpus: 1 },
         basePath: ${JSON.stringify(basePath)},
         i18n: ${
@@ -235,10 +306,14 @@ describe.each(['', '/platform'])(
           const portalRules = await portals.rewrites()
           const spaceRules = await spaces.rewrites()
           const appRules = await apps.rewrites()
+          const partnerRules = await partners.rewrites()
+          const staticRules = await staticConfig.rewrites()
+          const apiRules = await apiConfig.rewrites()
+          const oauthRules = await oauthConfig.rewrites()
           return {
-            beforeFiles: [...appRules.beforeFiles, ...portalRules.beforeFiles, ...spaceRules.beforeFiles],
-            afterFiles: [...appRules.afterFiles, ...portalRules.afterFiles, ...spaceRules.afterFiles],
-            fallback: [...appRules.fallback, ...portalRules.fallback, ...spaceRules.fallback],
+            beforeFiles: [...apiRules.beforeFiles, ...appRules.beforeFiles, ...partnerRules.beforeFiles, ...portalRules.beforeFiles, ...spaceRules.beforeFiles, ...staticRules.beforeFiles],
+            afterFiles: [...appRules.afterFiles, ...oauthRules.afterFiles, ...portalRules.afterFiles, ...spaceRules.afterFiles],
+            fallback: [...apiRules.fallback, ...appRules.fallback, ...portalRules.fallback, ...spaceRules.fallback, ...staticRules.fallback],
           }
         },
         typescript: { ignoreBuildErrors: true } }
@@ -257,6 +332,33 @@ describe.each(['', '/platform'])(
         'pages/api/health.js',
         'export default function handler(req, res) { res.json({ ok: true }) }'
       )
+      await write(
+        'pages/api/v1/probe.js',
+        `export default function handler(req, res) {
+          if (req.method === 'OPTIONS') { res.status(200).end(); return }
+          res.json({ method: req.method, query: req.query, body: req.body, host: req.headers.host })
+        }`
+      )
+
+      for (const route of ['index', '404']) {
+        await write(
+          `pages/api/${route}.js`,
+          `export default function handler(req, res) { res.status(404).json({ api: 'not found' }) }`
+        )
+      }
+
+      for (const route of [
+        'oauth/probe',
+        '.well-known/api-catalog',
+        '.well-known/microsoft-identity-association.json',
+      ]) {
+        await write(
+          `pages/api/${route}.js`,
+          `export default function handler(req, res) { res.json({ route: ${JSON.stringify(
+            route
+          )} }) }`
+        )
+      }
 
       for (const route of [
         'apps/index',
@@ -278,6 +380,8 @@ describe.each(['', '/platform'])(
         'integrations/mcpserver/[integrationId]/test',
         'redirect/target',
         'partner/signin/acme',
+        'partner/signin/acme/verify',
+        'partner/signin/plain',
       ]) {
         await write(
           `pages/${route}.js`,
@@ -292,6 +396,16 @@ describe.each(['', '/platform'])(
         `
         )
       }
+
+      await write(
+        'pages/integrations/widget/restricted/frame.js',
+        `import { buildOriginRestrictedCsp } from '../../../../lib/security.headers.js'
+        export default function Page() { return null }
+        export function getServerSideProps({ res }) {
+          res.setHeader('Content-Security-Policy', buildOriginRestrictedCsp('https://allowed.example'))
+          return { props: {} }
+        }`
+      )
 
       // @note stand in only for database/storage access; routing into this
       // handler must happen through the actual compiled proxy or rewrite rules
@@ -354,6 +468,7 @@ describe.each(['', '/platform'])(
       }
 
       await write('public/favicon.ico', 'fixture favicon')
+      await write('public/404.txt', 'fixture static fallback')
 
       await execute(process.execPath, [next, 'build', '--webpack'], {
         cwd: directory,
@@ -682,6 +797,27 @@ describe.each(['', '/platform'])(
     })
 
     it.each([
+      {
+        name: 'same-origin form on the runtime partner apex',
+        host: 'acme.partners.localhost:3000',
+        origin: 'http://acme.partners.localhost:3000',
+        pathname: '/apps/action-probe',
+        allowed: true,
+      },
+      {
+        name: 'same-origin form on a partner custom domain',
+        host: 'partner.example:3000',
+        origin: 'http://partner.example:3000',
+        pathname: '/apps/action-probe',
+        allowed: true,
+      },
+      {
+        name: 'foreign origin on a partner custom domain',
+        host: 'partner.example:3000',
+        origin: 'https://attacker.invalid',
+        pathname: '/apps/action-probe',
+        allowed: false,
+      },
       {
         name: 'same-origin form on the runtime portal apex',
         host: 'test.portal.localhost:3000',
@@ -1112,6 +1248,1015 @@ describe.each(['', '/platform'])(
 
       expect(response.status).toBe(307)
       expect(response.headers.get('x-fixture-route')).toBeNull()
+    })
+
+    it('serves partner sign-in on the runtime apex with the same build', async () => {
+      await start()
+
+      const response = await request(
+        'acme.partners.localhost:3000',
+        '/signin?callbackUrl=%2Foverview'
+      )
+
+      expect(response.status).toBe(200)
+      expect(response.headers.get('x-fixture-route')).toBe(
+        'partner/signin/acme'
+      )
+      expect(
+        JSON.parse(response.headers.get('x-fixture-query')).callbackUrl
+      ).toBe('/overview')
+    })
+
+    it('routes partner verification and custom domains without leaking private branding fields', async () => {
+      await start()
+
+      for (const host of [
+        'ACME.PARTNERS.LOCALHOST:3000',
+        'partner.example:3000',
+      ]) {
+        for (const [pathname, route] of [
+          ['/signin?slug=plain&callbackUrl=%2Foverview', 'partner/signin/acme'],
+          ['/signin/verify?token=example', 'partner/signin/acme/verify'],
+        ]) {
+          const response = await request(host, pathname)
+
+          expect(response.status).toBe(200)
+          expect(response.headers.get('x-fixture-route')).toBe(route)
+
+          const encoded = response.headers
+            .get('server-timing')
+            .match(/partner;desc="([^"]+)"/)[1]
+
+          expect(JSON.parse(Buffer.from(encoded, 'base64').toString())).toEqual(
+            {
+              name: 'Acme Studio',
+              logo: '/acme.svg',
+              icon: '/acme.png',
+              whitelabel: true,
+              experience: 'builder',
+            }
+          )
+        }
+      }
+    })
+
+    it('redirects partner roots on the public host and includes branding on API responses', async () => {
+      await start()
+
+      for (const host of [
+        'acme.partners.localhost:3000',
+        'partner.example:3000',
+      ]) {
+        const response = await request(host, '/?campaign=one')
+
+        expect(response.status).toBe(307)
+        expect(response.headers.get('location')).toBe(
+          `http://${host}${basePath}/overview?campaign=one`
+        )
+        expect(response.headers.get('server-timing')).toContain('partner;desc=')
+
+        const api = await request(host, '/api/health')
+
+        expect(await api.json()).toEqual({ ok: true })
+        expect(api.headers.get('server-timing')).toBe(
+          response.headers.get('server-timing')
+        )
+      }
+    })
+
+    it('rejects stale partner domains and forged partner markers', async () => {
+      await start()
+
+      for (const host of [
+        'acme.cbk-partners.localhost:3000',
+        'build.partner.example:3000',
+        'partners.localhost:3000',
+        'acme.partners.localhost.attacker.example',
+        'partnerXexample:3000',
+        'unrelated.example:3000',
+      ]) {
+        const response = await request(host, '/signin', {
+          headers: {
+            'x-cbk-partner': 'acme',
+            'x-forwarded-host': 'partner.example:3000',
+          },
+        })
+
+        expect(response.status).toBe(200)
+        expect(response.headers.get('x-fixture-route')).toBe('signin')
+        expect(response.headers.get('server-timing')).toBeNull()
+      }
+    })
+
+    it('keeps unknown partner slugs on the partner route without inventing branding', async () => {
+      await start()
+
+      const response = await request(
+        'unknown.partners.localhost:3000',
+        '/signin'
+      )
+
+      expect(response.status).toBe(404)
+      expect(response.headers.get('server-timing')).toBeNull()
+
+      const plain = await request('plain.partners.localhost:3000', '/signin')
+      const encoded = plain.headers
+        .get('server-timing')
+        .match(/partner;desc="([^"]+)"/)[1]
+
+      expect(plain.status).toBe(200)
+      expect(JSON.parse(Buffer.from(encoded, 'base64').toString())).toEqual({
+        name: 'Plain Partner',
+        whitelabel: false,
+      })
+    })
+
+    it('changes partner domains and disables the apex without rebuilding', async () => {
+      await start(undefined, undefined, undefined, {
+        PARTNERS_APEX: '',
+        FIXTURE_PARTNER_DOMAIN: 'new.partner.example',
+      })
+
+      expect(
+        (await request('new.partner.example', '/signin')).headers.get(
+          'x-fixture-route'
+        )
+      ).toBe('partner/signin/acme')
+
+      for (const host of [
+        'partner.example',
+        'acme.partners.localhost',
+        'acme.cbk-partners.localhost',
+      ]) {
+        const response = await request(host, '/signin')
+
+        expect(response.headers.get('x-fixture-route')).toBe('signin')
+        expect(response.headers.get('server-timing')).toBeNull()
+      }
+    })
+
+    it.each([
+      ['apps.localhost:3000', '/chat', 'apps/chat/[[...path]]'],
+      ['chat.app.localhost:3000', '/conversation', 'apps/chat/[[...path]]'],
+      ['test.portal.localhost:3000', '/chat', 'apps/chat/[[...path]]'],
+    ])(
+      'preserves partner sign-in alongside app routing on %s',
+      async (host, pathname, route) => {
+        await start(undefined, undefined, undefined, {
+          PARTNERS_APEX: 'partners.localhost',
+          FIXTURE_PARTNER_DOMAIN: host.split(':')[0],
+        })
+
+        expect(
+          (await request(host, '/signin')).headers.get('x-fixture-route')
+        ).toBe('partner/signin/acme')
+        expect(
+          (await request(host, pathname)).headers.get('x-fixture-route')
+        ).toBe(route)
+
+        const root = await request(host)
+
+        expect(root.status).toBe(307)
+        expect(root.headers.get('location')).toBe(
+          `http://${host}${basePath}/overview`
+        )
+
+        const overview = await request(host, '/overview')
+
+        expect(overview.headers.get('location')).not.toBe(
+          `http://${host}${basePath}/`
+        )
+      }
+    )
+
+    it('preserves public space rendering alongside partner sign-in', async () => {
+      await start(undefined, undefined, undefined, {
+        PARTNERS_APEX: 'partners.localhost',
+        FIXTURE_PARTNER_DOMAIN: 'test.space.localhost',
+      })
+
+      expect(
+        (await request('test.space.localhost', '/signin')).headers.get(
+          'x-fixture-route'
+        )
+      ).toBe('partner/signin/acme')
+
+      const response = await request('test.space.localhost', '/docs')
+
+      expect(response.headers.get('x-space-site')).toBe('public')
+      expect(response.headers.get('server-timing')).toContain('partner;desc=')
+    })
+
+    it('keeps partner hosts and branding out of the built route manifest', async () => {
+      const manifest = await fs.readFile(
+        path.join(directory, '.next/routes-manifest.json'),
+        'utf8'
+      )
+
+      expect(manifest).toContain('x-cbk-partner')
+      expect(manifest).not.toContain('cbk-partners.localhost')
+      expect(manifest).not.toContain('build.partner.example')
+      expect(manifest).not.toContain('partner;desc=')
+    })
+
+    it('applies static host restrictions from the runtime URL with the same build', async () => {
+      await start()
+
+      const response = await request('static.localhost:3000', '/signin')
+
+      expect(await response.text()).toBe('fixture static fallback')
+      expect(response.headers.get('x-fixture-route')).toBeNull()
+    })
+
+    it('preserves static fallback status and allowed widgets, assets and API paths', async () => {
+      await start()
+
+      for (const pathname of ['/', '/overview', '/missing/path']) {
+        const response = await request('STATIC.LOCALHOST:3000', pathname)
+
+        expect(response.status).toBe(200)
+        expect(await response.text()).toBe('fixture static fallback')
+      }
+
+      for (const [pathname, route] of [
+        ['/integrations/widget/v1.js', 'integrations/widget/v1.js'],
+        [
+          '/integrations/widget/demo/frame?theme=dark',
+          'integrations/widget/[integrationId]/frame',
+        ],
+        ['/partner/signin/acme', 'partner/signin/acme'],
+      ]) {
+        const response = await request('static.localhost:3000', pathname)
+
+        expect(response.status).toBe(200)
+        expect(response.headers.get('x-fixture-route')).toBe(route)
+      }
+
+      expect(
+        await (await request('static.localhost:3000', '/favicon.ico')).text()
+      ).toBe('fixture favicon')
+      expect(
+        await (await request('static.localhost:3000', '/api/health')).json()
+      ).toEqual({ ok: true })
+      expect(
+        (await request('static.localhost:3000', '/missing.js')).status
+      ).toBe(404)
+      expect(
+        (await request('static.localhost:3000', '/signin', { method: 'HEAD' }))
+          .status
+      ).toBe(200)
+    })
+
+    it('does not restrict stale or spoofed static hosts', async () => {
+      await start()
+
+      for (const host of [
+        'build.static.example:3000',
+        'unrelated.example',
+        'staticXlocalhost',
+        'static.localhost.attacker.example',
+      ]) {
+        const response = await request(host, '/signin', {
+          headers: {
+            'x-cbk-static': '1',
+            'x-forwarded-host': 'static.localhost:3000',
+          },
+        })
+
+        expect(response.headers.get('x-fixture-route')).toBe('signin')
+      }
+    })
+
+    it('loads all mapped static targets at startup while keeping shared site hosts unrestricted', async () => {
+      await start(undefined, undefined, undefined, undefined, {
+        STATIC_URL: 'https://static.chatbotkit.com',
+        HOSTS_CONFIG: JSON.stringify({
+          family: {
+            match: ['example.com'],
+            site: 'example.com',
+            api: 'api.example.com',
+            static: 'static.example.com',
+            widgets: 'widgets.example.com',
+          },
+          secondary: {
+            match: ['legacy.example.com'],
+            site: 'legacy.example.com',
+            api: 'api.legacy.example.com',
+            static: 'static.legacy.example.com',
+            widgets: 'widgets.legacy.example.com',
+          },
+          single: {
+            match: ['single.example.com'],
+            site: 'single.example.com',
+            api: 'single.example.com',
+            static: 'single.example.com',
+            widgets: 'single.example.com',
+          },
+        }),
+      })
+
+      for (const host of [
+        'static.example.com',
+        'static.legacy.example.com',
+        'static.chatbotkit.com',
+      ]) {
+        expect(await (await request(host, '/signin')).text()).toBe(
+          'fixture static fallback'
+        )
+      }
+
+      for (const host of [
+        'example.com',
+        'legacy.example.com',
+        'single.example.com',
+        'platform.localhost:3000',
+      ]) {
+        expect(
+          (await request(host, '/signin')).headers.get('x-fixture-route')
+        ).toBe('signin')
+      }
+    })
+
+    it.each(['', 'http://platform.localhost:3000'])(
+      'disables static host restrictions with STATIC_URL=%s',
+      async (staticUrl) => {
+        await start(undefined, undefined, undefined, undefined, {
+          STATIC_URL: staticUrl,
+          HOSTS_CONFIG: '',
+        })
+
+        for (const host of [
+          'static.localhost:3000',
+          'build.static.example:3000',
+          'platform.localhost:3000',
+        ]) {
+          expect(
+            (await request(host, '/signin')).headers.get('x-fixture-route')
+          ).toBe('signin')
+        }
+      }
+    )
+
+    it.each([
+      'apps.localhost:3000',
+      'chat.app.localhost:3000',
+      'test.portal.localhost:3000',
+    ])(
+      'preserves static restrictions after app rewrites when hosts overlap at %s',
+      async (host) => {
+        await start(undefined, undefined, undefined, undefined, {
+          STATIC_URL: `http://${host}`,
+          HOSTS_CONFIG: '',
+        })
+
+        expect(await (await request(host, '/conversation')).text()).toBe(
+          'fixture static fallback'
+        )
+        expect(
+          (await request(host, '/integrations/widget/v1.js')).headers.get(
+            'x-fixture-route'
+          )
+        ).toBe('integrations/widget/v1.js')
+      }
+    )
+
+    it('preserves public space routing and partner sign-in when static hosts overlap', async () => {
+      await start(undefined, undefined, undefined, undefined, {
+        STATIC_URL: 'http://test.space.localhost:3000',
+        HOSTS_CONFIG: JSON.stringify({
+          partner: {
+            match: ['partner.example'],
+            site: 'example.com',
+            api: 'api.example.com',
+            static: 'partner.example',
+            widgets: 'widgets.example.com',
+          },
+        }),
+      })
+
+      expect(
+        (await request('test.space.localhost:3000', '/docs')).headers.get(
+          'x-space-site'
+        )
+      ).toBe('public')
+      expect(
+        (await request('partner.example', '/signin')).headers.get(
+          'x-fixture-route'
+        )
+      ).toBe('partner/signin/acme')
+      expect((await request('partner.example')).headers.get('location')).toBe(
+        `http://partner.example${basePath}/overview`
+      )
+    })
+
+    it('keeps static hostnames out of the built route manifest', async () => {
+      const manifest = await fs.readFile(
+        path.join(directory, '.next/routes-manifest.json'),
+        'utf8'
+      )
+
+      expect(manifest).toContain('x-cbk-static')
+      expect(manifest).not.toContain('build.static.example')
+    })
+
+    it('serves the clean API path and CORS from the runtime API URL', async () => {
+      await start()
+
+      const response = await request('api.localhost:3000', '/v1/probe?q=one')
+
+      expect(response.status).toBe(200)
+      expect(response.headers.get('access-control-allow-origin')).toBe('*')
+      expect((await response.json()).query.q).toBe('one')
+    })
+
+    it('preserves API preflight and POST requests on clean and shared-site paths', async () => {
+      await start()
+
+      for (const [host, pathname] of [
+        ['api.localhost:3000', '/v1/probe'],
+        ['api.localhost:3000', '/api/v1/probe'],
+        ['platform.localhost:3000', '/api/v1/probe'],
+      ]) {
+        const preflight = await request(host, pathname, {
+          method: 'OPTIONS',
+          headers: {
+            origin: 'https://browser.example',
+            'access-control-request-method': 'POST',
+            'access-control-request-headers': 'authorization,content-type',
+          },
+        })
+
+        expect(preflight.status).toBe(200)
+        expect(preflight.headers.get('access-control-allow-origin')).toBe('*')
+        expect(preflight.headers.get('access-control-allow-methods')).toBe(
+          'GET,POST'
+        )
+        expect(preflight.headers.get('access-control-allow-headers')).toBe(
+          'X-Requested-With, Accept, Content-Length, Content-Type, Authorization'
+        )
+        expect(
+          preflight.headers.get('access-control-allow-credentials')
+        ).toBeNull()
+
+        const response = await request(host, `${pathname}?q=one%20two`, {
+          method: 'POST',
+          body: JSON.stringify({ value: 'example' }),
+          headers: {
+            origin: 'https://browser.example',
+            'content-type': 'application/json',
+            authorization: 'Bearer fixture-token',
+          },
+        })
+
+        expect(response.status).toBe(200)
+        expect(await response.json()).toEqual({
+          method: 'POST',
+          query: { q: 'one two' },
+          body: { value: 'example' },
+          host,
+        })
+        expect(response.headers.get('access-control-allow-origin')).toBe('*')
+      }
+    })
+
+    it('preserves API root and fallback responses without broadening CORS', async () => {
+      await start()
+
+      for (const pathname of [
+        '/',
+        '/v1/missing',
+        '/api/v1/missing',
+        '/v10/missing',
+        '/redirect/missing',
+      ]) {
+        const response = await request('api.localhost:3000', pathname)
+
+        expect(response.status).toBe(404)
+        expect(await response.json()).toEqual({ api: 'not found' })
+        expect(response.headers.get('access-control-allow-origin')).toBe(
+          pathname.includes('/v1/') ? '*' : null
+        )
+      }
+    })
+
+    it('preserves API OAuth, well-known and callback exclusions', async () => {
+      await start()
+
+      for (const host of ['api.localhost:3000', 'platform.localhost:3000']) {
+        for (const route of [
+          'oauth/probe',
+          '.well-known/api-catalog',
+          '.well-known/microsoft-identity-association.json',
+        ]) {
+          const response = await request(host, `/${route}`)
+
+          expect(response.status).toBe(200)
+          expect(await response.json()).toEqual({ route })
+        }
+      }
+
+      for (const [pathname, route] of [
+        ['/redirect/target', 'redirect/target'],
+        ['/secrets/oauth/callback', 'secrets/oauth/callback'],
+        [
+          '/secrets/demo/manager/authenticate',
+          'secrets/[secretId]/manager/authenticate',
+        ],
+        [
+          '/secrets/demo/manager/oauth/callback',
+          'secrets/[secretId]/manager/oauth/callback',
+        ],
+      ]) {
+        expect(
+          (await request('api.localhost:3000', pathname)).headers.get(
+            'x-fixture-route'
+          )
+        ).toBe(route)
+      }
+    })
+
+    it('rejects stale API hosts and spoofed selection or forwarded headers', async () => {
+      await start()
+
+      for (const host of [
+        'build.api.example:3000',
+        'apiXlocalhost',
+        'api.localhost.attacker.example',
+        'unrelated.example',
+      ]) {
+        const response = await request(host, '/v1/probe', {
+          headers: {
+            'x-cbk-api': '1',
+            'x-forwarded-host': 'api.localhost:3000',
+          },
+        })
+
+        expect(response.status).toBe(404)
+        expect(response.headers.get('access-control-allow-origin')).toBeNull()
+      }
+    })
+
+    it('enables all mapped API hosts and the hosted scalar URL with the same build', async () => {
+      await start(undefined, undefined, undefined, undefined, {
+        API_URL: 'https://api.chatbotkit.com',
+        HOSTS_CONFIG: JSON.stringify({
+          primary: {
+            match: ['example.com'],
+            site: 'example.com',
+            api: 'api.example.com',
+            static: 'static.example.com',
+            widgets: 'widgets.example.com',
+          },
+          secondary: {
+            match: ['legacy.example.com'],
+            site: 'legacy.example.com',
+            api: 'api.legacy.example.com',
+            static: 'static.legacy.example.com',
+            widgets: 'widgets.legacy.example.com',
+          },
+          single: {
+            match: ['single.example.com'],
+            site: 'single.example.com',
+            api: 'single.example.com',
+            static: 'single.example.com',
+            widgets: 'single.example.com',
+          },
+        }),
+      })
+
+      for (const host of [
+        'api.example.com',
+        'API.LEGACY.EXAMPLE.COM:3000',
+        'api.chatbotkit.com',
+      ]) {
+        const response = await request(host, '/v1/probe')
+
+        expect(response.status).toBe(200)
+        expect(response.headers.get('access-control-allow-origin')).toBe('*')
+      }
+
+      for (const host of [
+        'example.com',
+        'legacy.example.com',
+        'single.example.com',
+      ]) {
+        expect(
+          (await request(host, '/signin')).headers.get('x-fixture-route')
+        ).toBe('signin')
+        expect(
+          (await request(host, '/v1/probe')).headers.get(
+            'access-control-allow-origin'
+          )
+        ).toBeNull()
+        expect((await request(host, '/api/v1/probe')).status).toBe(200)
+      }
+    })
+
+    it.each(['', 'http://platform.localhost:3000'])(
+      'keeps the shared-site API when API_URL=%s',
+      async (apiUrl) => {
+        await start(undefined, undefined, undefined, undefined, {
+          API_URL: apiUrl,
+          HOSTS_CONFIG: '',
+        })
+
+        for (const host of [
+          'api.localhost:3000',
+          'build.api.example:3000',
+          'platform.localhost:3000',
+        ]) {
+          expect(
+            (await request(host, '/signin')).headers.get('x-fixture-route')
+          ).toBe('signin')
+          expect(
+            (await request(host, '/v1/probe')).headers.get(
+              'access-control-allow-origin'
+            )
+          ).toBeNull()
+
+          const response = await request(host, '/api/v1/probe')
+
+          expect(response.status).toBe(200)
+          expect(response.headers.get('access-control-allow-origin')).toBe('*')
+        }
+      }
+    )
+
+    it.each([
+      'apps.localhost:3000',
+      'chat.app.localhost:3000',
+      'test.portal.localhost:3000',
+      'test.space.localhost:3000',
+      'static.localhost:3000',
+      'partner.example:3000',
+    ])(
+      'preserves API rewrite precedence on the overlapping host %s',
+      async (host) => {
+        await start(undefined, undefined, undefined, undefined, {
+          API_URL: `http://${host}`,
+          STATIC_URL: 'http://static.localhost:3000',
+          HOSTS_CONFIG: '',
+        })
+
+        const response = await request(host, '/v1/probe')
+
+        expect(response.status).toBe(200)
+        expect((await response.json()).host).toBe(host)
+        expect(response.headers.get('access-control-allow-origin')).toBe('*')
+      }
+    )
+
+    it('keeps API hostnames out of the built rewrite and header manifest', async () => {
+      const manifest = await fs.readFile(
+        path.join(directory, '.next/routes-manifest.json'),
+        'utf8'
+      )
+
+      expect(manifest).toContain('x-cbk-api')
+      expect(manifest).not.toContain('build.api.example')
+    })
+
+    it('excludes the configured API host from browser security headers without relying on its prefix', async () => {
+      await start(undefined, undefined, undefined, undefined, {
+        API_URL: 'https://gateway.example.com',
+        HOSTS_CONFIG: '',
+      })
+
+      const response = await request('gateway.example.com', '/v1/probe')
+
+      expect(response.status).toBe(200)
+      expect(response.headers.get('content-security-policy')).toBeNull()
+      expect(response.headers.get('x-frame-options')).toBeNull()
+      expect(response.headers.get('access-control-allow-origin')).toBe('*')
+    })
+
+    it('protects an ordinary site whose hostname starts with api', async () => {
+      await start()
+
+      const response = await request('api.site.example', '/signin')
+
+      expect(response.status).toBe(200)
+      expect(response.headers.get('content-security-policy')).toContain(
+        "frame-ancestors 'self'"
+      )
+      expect(response.headers.get('x-frame-options')).toBe('SAMEORIGIN')
+    })
+
+    it('preserves embeddable policies across platform and static hosts', async () => {
+      await start()
+
+      for (const host of [
+        'platform.localhost:3000',
+        'static.localhost:3000',
+        'api.site.example',
+      ]) {
+        for (const pathname of [
+          '/integrations/widget/v1.js',
+          '/integrations/widget/demo/frame',
+        ]) {
+          const response = await request(host, pathname)
+
+          expect(response.status).toBe(200)
+          expect(response.headers.get('x-frame-options')).toBeNull()
+          expect(response.headers.get('content-security-policy')).toContain(
+            'frame-ancestors * capacitor: ionic:'
+          )
+          expect(response.headers.get('content-security-policy')).toContain(
+            "form-action 'self'"
+          )
+          expect(response.headers.get('cross-origin-resource-policy')).toBe(
+            'cross-origin'
+          )
+          expect(
+            response.headers.get('cross-origin-embedder-policy')
+          ).toBeNull()
+          expect(response.headers.get('cross-origin-opener-policy')).toBeNull()
+          expect(response.headers.get('strict-transport-security')).toBe(
+            'max-age=31536000'
+          )
+        }
+      }
+    })
+
+    it('allows the frame handler to tighten CSP without an additional permissive policy', async () => {
+      await start()
+
+      const response = await request(
+        'platform.localhost:3000',
+        '/integrations/widget/restricted/frame'
+      )
+      const csp = response.headers.get('content-security-policy')
+
+      expect(response.status).toBe(200)
+      expect(response.headers.get('x-frame-options')).toBeNull()
+      expect(csp).toContain("frame-ancestors 'self' https://allowed.example")
+      expect(csp).not.toContain('frame-ancestors *')
+      expect(csp.match(/frame-ancestors/g)).toHaveLength(1)
+    })
+
+    it('uses mapped API host classification and protects shared site/API hosts', async () => {
+      await start(undefined, undefined, undefined, undefined, {
+        API_URL: '',
+        HOSTS_CONFIG: JSON.stringify({
+          dedicated: {
+            match: ['site.example'],
+            site: 'site.example',
+            api: 'gateway.example',
+            static: 'static.example',
+            widgets: 'widgets.example',
+          },
+          shared: {
+            match: ['api.site.example'],
+            site: 'api.site.example',
+            api: 'api.site.example',
+            static: 'api.site.example',
+            widgets: 'api.site.example',
+          },
+        }),
+      })
+
+      const api = await request('gateway.example', '/v1/probe')
+      const site = await request('api.site.example', '/signin')
+
+      expect(api.status).toBe(200)
+      expect(api.headers.get('content-security-policy')).toBeNull()
+      expect(api.headers.get('access-control-allow-origin')).toBe('*')
+      expect(site.headers.get('x-frame-options')).toBe('SAMEORIGIN')
+
+      const sharedApi = await request('api.site.example', '/api/v1/probe')
+
+      expect(sharedApi.status).toBe(200)
+      expect(sharedApi.headers.get('content-security-policy')).toBeNull()
+    })
+
+    it('does not let forged routing headers disable the browser policy', async () => {
+      await start()
+
+      const response = await request('platform.localhost:3000', '/signin', {
+        headers: { 'x-cbk-api': '1', 'x-forwarded-host': 'api.localhost:3000' },
+      })
+
+      expect(response.headers.get('x-frame-options')).toBe('SAMEORIGIN')
+      expect(response.headers.get('content-security-policy')).toContain(
+        "frame-ancestors 'self'"
+      )
+    })
+
+    it('applies browser policies to proxy redirects and page errors', async () => {
+      await start()
+
+      for (const [host, pathname, status] of [
+        ['partner.example', '/', 307],
+        ['chat.app.localhost:3000', '/overview', 307],
+        ['platform.localhost:3000', '/missing/page', 404],
+      ]) {
+        const response = await request(host, pathname)
+
+        expect(response.status).toBe(status)
+        expect(response.headers.get('x-frame-options')).toBe('SAMEORIGIN')
+      }
+
+      const apiError = await request('api.localhost:3000', '/v1/missing')
+
+      expect(apiError.status).toBe(404)
+      expect(apiError.headers.get('content-security-policy')).toBeNull()
+    })
+
+    it('matches the previous native redirect destinations and status codes', async () => {
+      const paths = [
+        '/signin/',
+        '/favicon.ico/',
+        ...(basePath ? ['/en/signin/', '/fr/signin/', '/fr/'] : []),
+      ]
+
+      async function redirects() {
+        const results = []
+
+        for (const pathname of paths) {
+          const response = await request(
+            'platform.localhost:3000',
+            `${pathname}?q=one%20two&q=three`
+          )
+
+          results.push({
+            status: response.status,
+            location: new URL(
+              response.headers.get('location'),
+              'http://platform.localhost:3000'
+            ).href,
+          })
+        }
+
+        return results
+      }
+
+      await start()
+
+      const runtimeRedirects = await redirects()
+
+      await stop()
+
+      // @note install the former native rules into the same fixture; they
+      // run before the proxy and provide the framework's reference behavior
+      const manifestPath = path.join(directory, '.next/routes-manifest.json')
+      const manifest = await fs.readFile(manifestPath, 'utf8')
+      const runtimeConfig = standaloneConfig
+      const nativeConfig = {
+        ...JSON.parse(standaloneConfig),
+        skipTrailingSlashRedirect: false,
+        skipProxyUrlNormalize: false,
+      }
+      const nativeRoutes = await loadCustomRoutes(nativeConfig)
+
+      try {
+        await fs.writeFile(
+          manifestPath,
+          JSON.stringify({
+            ...JSON.parse(manifest),
+            redirects: nativeRoutes.redirects,
+          })
+        )
+        standaloneConfig = JSON.stringify(nativeConfig)
+        await start()
+
+        expect(runtimeRedirects).toEqual(await redirects())
+      } finally {
+        await stop()
+        standaloneConfig = runtimeConfig
+        await fs.writeFile(manifestPath, manifest)
+      }
+    })
+
+    it('preserves security headers and destinations on permanent redirects', async () => {
+      await start(undefined, undefined, undefined, undefined, {
+        SITE_URL: 'https://site.example',
+        API_URL: 'https://gateway.example',
+        HOSTS_CONFIG: '',
+        SENTRY_HEADERS_REPORT_URI: 'https://runtime.report.example/csp',
+      })
+
+      const paths = [
+        ['/signin/', `${basePath}/signin`],
+        ['/favicon.ico/', `${basePath}/favicon.ico`],
+        [
+          '/integrations/widget/test/frame/',
+          `${basePath}/integrations/widget/test/frame`,
+        ],
+        ...(basePath
+          ? [
+              ['/en/signin/', `${basePath}/signin`],
+              ['/fr/signin/', `${basePath}/fr/signin`],
+            ]
+          : []),
+      ]
+
+      for (const [pathname, target] of paths) {
+        for (const host of ['site.example', 'gateway.example']) {
+          const response = await request(
+            host,
+            `${pathname}?q=one%20two&q=three`,
+            { method: 'POST', body: 'value=kept' }
+          )
+          const location = new URL(
+            response.headers.get('location'),
+            `http://${host}`
+          )
+
+          expect(response.status).toBe(308)
+          expect(location.origin + location.pathname).toBe(
+            new URL(target, `http://${host}`).href
+          )
+          expect(location.searchParams.getAll('q')).toEqual([
+            'one two',
+            'three',
+          ])
+          expect(response.headers.get('refresh')).toBe(
+            `0;url=${response.headers.get('location')}`
+          )
+
+          if (host === 'gateway.example') {
+            expect(response.headers.get('content-security-policy')).toBeNull()
+            expect(response.headers.get('strict-transport-security')).toBeNull()
+          } else {
+            expect(response.headers.get('content-security-policy')).toContain(
+              'report-uri https://runtime.report.example/csp'
+            )
+            expect(response.headers.get('strict-transport-security')).toBe(
+              pathname.includes('/widget/')
+                ? 'max-age=31536000'
+                : 'max-age=31536000; includeSubDomains; preload'
+            )
+            expect(response.headers.get('referrer-policy')).toBe(
+              pathname.includes('/widget/')
+                ? 'strict-origin-when-cross-origin'
+                : 'same-origin'
+            )
+          }
+        }
+      }
+    })
+
+    it('keeps canonical redirects ahead of host routing and preserves public ports', async () => {
+      await start()
+
+      for (const host of [
+        'chat.app.localhost:3000',
+        'apps.localhost:3000',
+        'acme.partners.localhost:3000',
+        'partner.example',
+        'test.portal.localhost:3000',
+        'test.space.localhost:3000',
+        'static.localhost:3000',
+      ]) {
+        const response = await request(host, '/overview/?q=one', {
+          method: 'HEAD',
+        })
+        const location = new URL(
+          response.headers.get('location'),
+          `http://${host}`
+        )
+
+        expect(response.status).toBe(308)
+        expect(location.href).toBe(`http://${host}${basePath}/overview?q=one`)
+        expect(response.headers.get('x-frame-options')).toBe('SAMEORIGIN')
+
+        const secure = await request(host, '/signin/', {
+          headers: { 'x-forwarded-proto': 'https' },
+        })
+
+        expect(secure.status).toBe(308)
+        expect(secure.headers.get('location')).toBe(
+          `https://${host}${basePath}/signin`
+        )
+      }
+    })
+
+    it('uses the runtime reporting URI and transport policy with the same build', async () => {
+      await start(undefined, undefined, undefined, undefined, {
+        API_URL: '',
+        HOSTS_CONFIG: '',
+        SITE_URL: 'https://site.example',
+        SENTRY_HEADERS_REPORT_URI: 'https://runtime.report.example/csp',
+      })
+
+      const response = await request('site.example', '/signin')
+      const csp = response.headers.get('content-security-policy')
+
+      expect(response.status).toBe(200)
+      expect(csp).toContain('report-uri https://runtime.report.example/csp')
+      expect(csp).not.toContain('build.report.example')
+      expect(csp).toContain("connect-src 'self' https: wss: blob: data:")
+    })
+
+    it('keeps browser security policy out of the built header manifest', async () => {
+      const manifest = await fs.readFile(
+        path.join(directory, '.next/routes-manifest.json'),
+        'utf8'
+      )
+
+      expect(manifest).not.toContain('Content-Security-Policy')
+      expect(manifest).not.toContain('X-Frame-Options')
+      expect(JSON.parse(manifest).redirects).toEqual([])
     })
   }
 )
