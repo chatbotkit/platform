@@ -19,7 +19,6 @@
     "build:08-dev-pages": "rimraf pages/_",
     "build:09-next": "next build --webpack",
     "build:09-verify_bundle": "tsx scripts/verify-bundle-modules.js",
-    "build:10-sitemap": "next-sitemap",
     "check": "node ./node_modules/typescript7/bin/tsc --noEmit --incremental --singleThreaded --diagnostics",
     "clean": "run-s clean:*",
     "clean:00-next": "rimraf .next",

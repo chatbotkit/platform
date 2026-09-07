@@ -74,6 +74,11 @@ docker compose -f oci://ghcr.io/chatbotkit/platform-community:latest logs platfo
 
 See [Deployment](./docs/deployment.md) for details.
 
+On an Apple silicon Mac you can skip Docker altogether:
+[ChatBotKit Studio](https://github.com/chatbotkit/studio) is a native macOS
+app that runs this same platform in an app-private VM, with model providers,
+logs and updates managed from the app.
+
 ## Local development
 
 Binary assets are stored with Git LFS, so install it (`git lfs install`)

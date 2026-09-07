@@ -35,3 +35,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Crawl policy is source, independent of the deployment origin
+!/public/robots.txt

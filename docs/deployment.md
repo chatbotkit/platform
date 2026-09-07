@@ -189,7 +189,10 @@ its workspaces kept under `/data/sandbox` in the same volume.
 | `studio`    | SQLite (default module) | Redis | Qdrant | Garage  |
 
 Studio starts as a copy of Community, with the same Docker build targets,
-module defaults and services. Its separate Compose file lives at
+module defaults and services. It is the flavor embedded by
+[ChatBotKit Studio](https://github.com/chatbotkit/studio), the native macOS
+app that runs the platform in an app-private VM without a Docker install, and
+can also be run directly with Compose. Its separate Compose file lives at
 [docker/distro/studio/compose.yml](../docker/distro/studio/compose.yml), and the
 publish workflow produces `platform-studio`, `platform-studio-app` and
 `platform-studio-init` under `ghcr.io/chatbotkit`, using the same channel tags
@@ -292,8 +295,9 @@ startup. Changing them and recreating the container moves those sites to the
 new domains without rebuilding the image. Portal authentication and app
 configuration continue to apply on the new domain. App hosts work the same way
 through `APP_APEX`, `APP_MAIN_ORIGIN` and `APP_LABS_ORIGIN`; see
-[Configuration](./configuration.md#app-shell-origins). Only `PARTNERS_APEX`
-still has to match the build. Runtime service variables
+[Configuration](./configuration.md#app-shell-origins). Partner routing and
+branding also read `PARTNERS_APEX` at startup, using the installed partner
+catalogue for custom domains and branding. Runtime service variables
 such as the database, Redis, Qdrant and S3-compatible storage endpoints remain
 configurable. Deployment identity that Next currently exposes through
 `next.config.js` is still frozen at build time; do not present the same digest
@@ -304,13 +308,40 @@ as portable across arbitrary public domains until that migration is complete.
 Every deployment serves the API at `/api/v1` on its own host - nothing to
 configure. To advertise and serve it on a dedicated origin instead, set
 `API_URL` (e.g. `https://api.example.com`), point that DNS name at the
-deployment, and rebuild: the host is then routed to the API (answering under
-the clean `/v1` path) and every externally advertised URL - webhook
-registrations, embeds, the OpenAPI spec - follows it. Unset, advertised URLs
-stay on the site host under `/api`. Multi-domain deployments name their API
-hosts in `HOSTS_CONFIG` instead; see
-[Configuration](./configuration.md#hosts_config). Both are read at build time,
-so changing them requires a rebuild, not just a restart.
+deployment, and restart the server: the host is then routed to the API under
+the clean `/v1` path. Runtime API URL helpers use the configured origin. Unset,
+advertised URLs stay on the site host under `/api`. Multi-domain deployments
+name their API hosts in `HOSTS_CONFIG` instead; see
+[Configuration](./configuration.md#hosts_config). Both are read at server
+startup, so changing API hosts requires recreating the container without
+rebuilding. The existing CORS policy applies to `/v1` on dedicated API hosts
+and `/api/v1` on every host: any origin may call the API with a bearer token;
+cookie credentials are not enabled. Community and Studio expose `API_URL` and
+`HOSTS_CONFIG`, leaving both empty by default.
+
+## Static host
+
+`STATIC_URL` selects the origin for public assets and widget embeds. A dedicated
+static hostname applies the existing static path restrictions, including the
+text fallback for application pages. Leaving it unset serves those assets on
+`SITE_URL` without restricting the site.
+
+Static host routing reads `STATIC_URL` and the static targets in `HOSTS_CONFIG`
+at server startup. Change the values and recreate the container to move static
+hosts without rebuilding. Community and Studio expose `STATIC_URL` and leave
+it empty by default.
+
+## Sitemaps and crawl policy
+
+The platform does not generate a root sitemap or sitemap chunks during the
+build. Public examples, hub resources, connections and model pages retain their
+dynamic section sitemaps. A frontend site can include those endpoints in its
+own sitemap index.
+
+`public/robots.txt` is a checked-in, origin-independent crawl policy. It keeps
+the existing allow and content-signal directives without embedding a deployment
+host or sitemap URL. `SITE_URL` remains runtime configuration for absolute URLs,
+including links emitted by the dynamic section sitemaps.
 
 ## Reverse proxy trust
 

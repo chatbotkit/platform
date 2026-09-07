@@ -1,3 +1,5 @@
+import { siteUrl } from '@/config/site'
+
 import {
   ALLOWED_FRAME_ANCESTORS,
   DEFAULT_SECURITY_HEADERS,
@@ -5,9 +7,8 @@ import {
   EMBEDDABLE_SECURITY_HEADERS,
   EXCLUDE_PATHS,
   buildOriginRestrictedCsp,
+  getSecurityHeaders,
 } from '@/lib/security.headers'
-
-import { siteUrl } from '@/config/site'
 
 describe('Security Headers Configuration', () => {
   describe('DEFAULT_SECURITY_HEADERS', () => {
@@ -203,7 +204,9 @@ describe('Security Headers Configuration', () => {
     it('returns undefined when no valid origin is configured', () => {
       expect(buildOriginRestrictedCsp()).toBeUndefined()
       expect(buildOriginRestrictedCsp('')).toBeUndefined()
-      expect(buildOriginRestrictedCsp('example.com, javascript:')).toBeUndefined()
+      expect(
+        buildOriginRestrictedCsp('example.com, javascript:')
+      ).toBeUndefined()
     })
 
     it('restricts frame-ancestors to self plus the whitelisted origins', () => {
@@ -237,4 +240,71 @@ describe('Security Headers Configuration', () => {
       expect(rest).toEqual(embeddableRest)
     })
   })
+})
+
+describe('runtime browser security path selection', () => {
+  it.each([
+    '/',
+    '/signin',
+    '/overview',
+    '/api',
+    '/ordinary/page',
+    '/favicon.ico',
+  ])('protects the ordinary path %s', (pathname) => {
+    const headers = new Headers(
+      getSecurityHeaders(pathname).map(({ key, value }) => [key, value])
+    )
+
+    expect(headers.get('x-frame-options')).toBe('SAMEORIGIN')
+    expect(headers.get('content-security-policy')).toContain(
+      "frame-ancestors 'self'"
+    )
+    expect(headers.get('content-security-policy')).toContain(
+      "form-action 'self'"
+    )
+    expect(headers.get('referrer-policy')).toBe('same-origin')
+    expect(headers.get('x-content-type-options')).toBe('nosniff')
+  })
+
+  it.each([
+    '/integrations/widget/v1.js',
+    '/integrations/widget/v2.js',
+    '/integrations/widget/plugins/analytics-consent.js',
+    '/integrations/widget/demo/frame',
+    '/integrations/widget/demo/frame/thread',
+    '/integrations/anam/demo/frame',
+    '/integrations/avatar/demo/frame',
+    '/integrations/mcpserver/v1.js',
+    '/integrations/mcpserver/demo/frame',
+    '/examples/demo/preview',
+    '/examples/demo/card',
+    '/INTEGRATIONS/WIDGET/demo/FRAME',
+    '/integrations/widget/demo/frame/',
+  ])('keeps the embedding policy on %s', (pathname) => {
+    const headers = new Headers(
+      getSecurityHeaders(pathname).map(({ key, value }) => [key, value])
+    )
+
+    expect(headers.get('x-frame-options')).toBeNull()
+    expect(headers.get('content-security-policy')).toContain(
+      'frame-ancestors * capacitor: ionic:'
+    )
+    expect(headers.get('content-security-policy')).toContain(
+      "form-action 'self'"
+    )
+    expect(headers.get('referrer-policy')).toBe(
+      'strict-origin-when-cross-origin'
+    )
+    expect(headers.get('cross-origin-resource-policy')).toBe('cross-origin')
+    expect(headers.get('cross-origin-embedder-policy')).toBeNull()
+    expect(headers.get('cross-origin-opener-policy')).toBeNull()
+    expect(headers.get('strict-transport-security')).toBe('max-age=31536000')
+  })
+
+  it.each(['/api/v1/probe', '/API/v1/probe', '/api/oauth/token'])(
+    'preserves the API path exclusion for %s',
+    (pathname) => {
+      expect(getSecurityHeaders(pathname)).toEqual([])
+    }
+  )
 })

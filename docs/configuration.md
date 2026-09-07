@@ -57,8 +57,8 @@ stops booting until they edit it. So:
   migration easier.
 - Any exception travels in the release notes as a configuration migration.
 
-`HOSTS_CONFIG` is shared by build-time routing and runtime URL selection. The
-build flattens every configured API and static target into its routing rules.
+`HOSTS_CONFIG` is shared by runtime routing and URL selection. The proxy reads
+all configured API and static targets at server startup.
 At runtime, request-context setup selects a mapping once from the authenticated
 frontend host or trusted normalized request host. URL helpers then read only
 the resolved context; the raw mapping is not exposed to the browser. The
@@ -225,9 +225,12 @@ Standalone app host routing also reads `APP_APEX` at server startup. Setting
 catalogue receive subdomain routes. Community and Studio leave this apex empty
 by default, so apps remain available by path.
 
-Partner host rewrites are still generated when Next builds, so `PARTNERS_APEX`
-must match the image's build-time value; see
-[Deployment](./deployment.md#production-boundary).
+Partner host routing and branding also read `PARTNERS_APEX` at server startup.
+Changing it and recreating the container moves partner subdomains without
+rebuilding. Partner custom domains come from the installed partner catalogue
+and work even when the apex is unset. The public catalogue is empty by default;
+adding or changing catalogue entries still requires packaging that catalogue
+into the image. Community and Studio leave `PARTNERS_APEX` empty by default.
 
 ## App shell origins
 
@@ -287,12 +290,25 @@ Values are exact hostnames without a protocol, wildcard, path, query, or hash.
 Every target that can receive a request should also appear in `match`, so a
 request arriving on an API or static host selects the same mapping.
 
-At build time, every `api` and `static` target is enabled unconditionally. At
-runtime, context injection selects the mapping once when the authenticated
-frontend host or normalized request host appears in `match`. Server URL helpers
-read the resolved targets from that context. The HTML document exposes only the
-resolved site, API, static, and widget hosts for client hooks. An unknown host
-keeps the existing custom-domain behavior.
+Every `api` and `static` target is enabled at server startup. Targets that are
+also site hosts are excluded from host-specific routing, so a shared host
+continues serving the application and its API at `/api/v1`. Changing targets,
+`API_URL` or `STATIC_URL` requires restarting the server without rebuilding
+the routing table. At runtime, context injection selects the mapping once when
+the authenticated frontend host or normalized request host appears in `match`.
+Server URL helpers read the resolved targets from that context. The HTML
+document exposes only the resolved site, API, static, and widget hosts for
+client hooks. An unknown host keeps the existing custom-domain behavior.
+
+The proxy also uses this API host classification for browser security headers.
+A dedicated API host is exempt regardless of its name; an ordinary site named
+`api.example.com` keeps its browser protections. API paths and embeddable widget
+paths retain their separate policies. These policies are loaded at server
+startup, including the optional `SENTRY_HEADERS_REPORT_URI` reporting endpoint.
+The proxy also owns trailing-slash normalization, so those responses receive
+the same runtime policy before they leave the server. Their permanent status,
+destinations and query parameters are preserved. Keep redirects that require
+these headers in the proxy; Next's configured redirects run before it.
 
 `SITE_URL` remains the canonical and requestless default. When no mapping is
 selected, `API_URL`, `STATIC_URL`, and `WIDGET_URL` all fall back to

@@ -67,6 +67,9 @@ services:
       NODE_ENV: production
       PORT: 3000
       SITE_URL: ${SITE_URL:-http://cbk.localhost:3000}
+      STATIC_URL: ${STATIC_URL:-}
+      API_URL: ${API_URL:-}
+      HOSTS_CONFIG: ${HOSTS_CONFIG:-}
       NEXTAUTH_URL: ${NEXTAUTH_URL:-http://cbk.localhost:3000}
       # @note an explicitly empty value restores ordinary email sign-in
       NEXTAUTH_TRUSTED_SIGNIN: ${NEXTAUTH_TRUSTED_SIGNIN-true}
@@ -76,11 +79,12 @@ services:
       # needs an address it can reach instead (and TLS if the site has it)
       RELAY_PORT: 3001
       RELAY_URL: ${RELAY_URL:-http://cbk-relay.localhost:3001}
-      # @note space, portal and app hosts read their settings at server startup;
+      # @note host routing reads its settings at server startup;
       # recreate the container to change domains without rebuilding the image
       SPACE_APEX: ${SPACE_APEX:-cbk-space.localhost}
       PORTAL_APEX: ${PORTAL_APEX:-cbk-portal.localhost}
       APP_APEX: ${APP_APEX:-}
+      PARTNERS_APEX: ${PARTNERS_APEX:-}
       # @note cookies do not cross hosts, so sign in on the shell host itself
       APP_MAIN_ORIGIN: ${APP_MAIN_ORIGIN:-http://cbk-apps.localhost:3000}
       APP_LABS_ORIGIN: ${APP_LABS_ORIGIN:-http://cbk-labs.localhost:3000}

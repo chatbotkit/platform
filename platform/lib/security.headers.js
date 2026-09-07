@@ -1,4 +1,4 @@
-/* eslint-disable import/extensions -- loaded by next.config.d at build time, where the alias does not resolve */
+/* eslint-disable import/extensions */
 // @ts-check
 import { siteUrl } from '../config/site.js'
 
@@ -288,17 +288,6 @@ const EMBEDDABLE_PATHS = [
 ]
 
 /**
- * Hosts that should be excluded from security headers entirely
- *
- * @type {string[]}
- */
-const EXCLUDE_HOSTS = [
-  // API routes don't need browser security headers
-
-  String.raw`api\.`,
-]
-
-/**
  * Paths that should be excluded from security headers entirely
  *
  * @type {string[]}
@@ -315,6 +304,128 @@ const EXCLUDE_PATHS = [
  * @type {string|undefined}
  */
 const REPORT_URI = process.env.SENTRY_HEADERS_REPORT_URI
+
+/**
+ * Converts policy fields into HTTP response headers.
+ *
+ * @param {SecurityHeadersConfig} config
+ * @returns {Array<{ key: string, value: string}>}
+ */
+function configToHeaders(config) {
+  let headers = []
+
+  if (config.xFrameOptions) {
+    headers.push({ key: 'X-Frame-Options', value: config.xFrameOptions })
+  }
+
+  if (config.contentSecurityPolicy) {
+    let cspValue = config.contentSecurityPolicy
+
+    if (REPORT_URI) {
+      cspValue += `; report-uri ${REPORT_URI}`
+    }
+
+    headers.push({
+      key: 'Content-Security-Policy',
+      value: cspValue,
+    })
+  }
+
+  if (config.xContentTypeOptions) {
+    headers.push({
+      key: 'X-Content-Type-Options',
+      value: config.xContentTypeOptions,
+    })
+  }
+
+  if (config.referrerPolicy) {
+    headers.push({ key: 'Referrer-Policy', value: config.referrerPolicy })
+  }
+
+  if (config.permissionsPolicy) {
+    headers.push({ key: 'Permissions-Policy', value: config.permissionsPolicy })
+  }
+
+  if (config.strictTransportSecurity) {
+    headers.push({
+      key: 'Strict-Transport-Security',
+      value: config.strictTransportSecurity,
+    })
+  }
+
+  if (config.xXssProtection) {
+    headers.push({ key: 'X-XSS-Protection', value: config.xXssProtection })
+  }
+
+  if (config.crossOriginEmbedderPolicy) {
+    headers.push({
+      key: 'Cross-Origin-Embedder-Policy',
+      value: config.crossOriginEmbedderPolicy,
+    })
+  }
+
+  if (config.crossOriginOpenerPolicy) {
+    headers.push({
+      key: 'Cross-Origin-Opener-Policy',
+      value: config.crossOriginOpenerPolicy,
+    })
+  }
+
+  if (config.crossOriginResourcePolicy) {
+    headers.push({
+      key: 'Cross-Origin-Resource-Policy',
+      value: config.crossOriginResourcePolicy,
+    })
+  }
+
+  // Filter out any empty values
+  {
+    headers = headers.filter(
+      (header) => header.value && header.value.length > 0
+    )
+  }
+
+  return headers
+}
+
+// @note retain the existing path expressions and case-insensitive matching
+// used by Next's header rules; host classification belongs to the proxy
+const embeddablePathPattern = EMBEDDABLE_PATHS.map((path) =>
+  path.replace(/^\//, '')
+).join('|')
+const excludePathPattern = EXCLUDE_PATHS.map((path) =>
+  path.replace(/^\//, '')
+).join('|')
+const defaultPathMatcher = new RegExp(
+  `^/(?!${embeddablePathPattern}|${excludePathPattern}).*$`,
+  'i'
+)
+const embeddablePathMatcher = new RegExp(
+  `^/(?:${embeddablePathPattern})/?$`,
+  'i'
+)
+
+const defaultHeaders = configToHeaders(DEFAULT_SECURITY_HEADERS)
+const embeddableHeaders = configToHeaders(EMBEDDABLE_SECURITY_HEADERS)
+
+/**
+ * Selects browser security headers for a pathname without its base path or locale.
+ * API host exclusion is applied by the runtime proxy before calling this.
+ *
+ * @param {string} pathname
+ * @returns {Array<{ key: string, value: string }>}
+ */
+function getSecurityHeaders(pathname) {
+  if (defaultPathMatcher.test(pathname)) {
+    return defaultHeaders
+  }
+
+  if (embeddablePathMatcher.test(pathname)) {
+    return embeddableHeaders
+  }
+
+  return []
+}
 
 /**
  * Build the Content-Security-Policy for an embeddable surface that restricts
@@ -365,8 +476,8 @@ export {
   DEFAULT_SECURITY_HEADERS,
   EMBEDDABLE_SECURITY_HEADERS,
   EMBEDDABLE_PATHS,
-  EXCLUDE_HOSTS,
   EXCLUDE_PATHS,
   REPORT_URI,
   buildOriginRestrictedCsp,
+  getSecurityHeaders,
 }

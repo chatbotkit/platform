@@ -1,30 +1,27 @@
 /* eslint-disable import/extensions */
 // @ts-check
-import { hosts } from '../config/hosts.js'
-import { apiHostname, siteHostname } from '../config/site.js'
-import {
-  buildCaptureAllSource,
-  buildHostPattern,
-} from '../lib/nextjs.config.rewrites.js'
+import { buildCaptureAllSource } from '../lib/nextjs.config.rewrites.js'
 
-// @note every configured API target is routed unconditionally, mirroring the
-// static targets in static.config.js: the hostnames named by HOSTS_CONFIG plus
-// the API_URL scalar. An API host that is also a site host - API_URL left at
-// its site URL default, or a single-domain HOSTS_CONFIG mapping where the API
-// answers under /api on the site host - derives no routing, as the capture-all
-// below would otherwise swallow the site itself.
+// @note the proxy selects dedicated API hosts at startup, excluding site hosts
+const apiHostHas = [
+  {
+    type: /** @type {'header'} */ ('header'),
+    key: 'x-cbk-api',
+    value: '1',
+  },
+]
 
-const siteHostnames = new Set([siteHostname, ...hosts.site])
-
-const apiHostnames = [...new Set([...hosts.api, apiHostname])].filter(
-  (hostname) => hostname && !siteHostnames.has(hostname)
-)
-
-const apiHostPattern = buildHostPattern(apiHostnames, 'host')
-
-const apiHostHas = apiHostPattern
-  ? [{ type: /** @type {'host'} */ ('host'), value: apiHostPattern }]
-  : []
+// @note browser API access uses bearer tokens and deliberately allows any
+// origin without credentials; the proxy shares this policy for clean /v1 paths
+export const apiCorsHeaders = [
+  { key: 'Access-Control-Allow-Origin', value: '*' },
+  { key: 'Access-Control-Allow-Methods', value: 'GET,POST' },
+  {
+    key: 'Access-Control-Allow-Headers',
+    value:
+      'X-Requested-With, Accept, Content-Length, Content-Type, Authorization',
+  },
+]
 
 // @note well-known endpoints that are not related to OAuth or the API catalog
 // are rewritten here. They are deliberately NOT host-gated: they are served on
@@ -44,18 +41,6 @@ const wellKnownRewrites = [
 /** @type {import('next').NextConfig} */
 export default {
   async rewrites() {
-    if (!apiHostPattern) {
-      return {
-        beforeFiles: [
-          // @note the well-known endpoints are not host-gated - they are
-          // served on the deployment's own host either way
-          ...wellKnownRewrites,
-        ],
-        afterFiles: [],
-        fallback: [],
-      }
-    }
-
     return {
       beforeFiles: [
         ...wellKnownRewrites,
@@ -79,7 +64,7 @@ export default {
 
               // @note oauth endpoints are rewritten by oauth.config.js
 
-              'oauth\/',
+              'oauth/',
 
               // @note portals can also serve secret callbacks
 
@@ -118,52 +103,12 @@ export default {
   },
 
   async headers() {
-    const corsHeaders = [
-      {
-        key: 'Access-Control-Allow-Origin',
-        value: '*',
-      },
-      {
-        key: 'Access-Control-Allow-Methods',
-        value: 'GET,POST',
-      },
-      {
-        key: 'Access-Control-Allow-Headers',
-        value:
-          'X-Requested-With, Accept, Content-Length, Content-Type, Authorization',
-      },
-    ]
-
     return [
-      // @note browser access to the v1 API is deliberately public. An earlier
-      // comment here claimed the opposite - that CORS was restricted to a
-      // specified origin - which the `*` below has never matched. It is `*`
-      // on purpose: v1 authenticates with a bearer token, not a cookie, and
-      // no `Access-Control-Allow-Credentials` is sent, so a foreign origin can
-      // only reach the API with a token its own user gave it. Restricting the
-      // origin would break every browser SDK caller without protecting
-      // anything.
-
-      // @note the clean `/v1` path only exists where the API answers on a host
-      // of its own, so this rule is emitted only then
-      ...(apiHostPattern
-        ? [
-            {
-              source: '/v1/:path*',
-              has: apiHostHas,
-              headers: [...corsHeaders],
-            },
-          ]
-        : []),
-
-      // @note `/api/v1` is the path every deployment serves, including a
-      // single-domain one with no API subdomain at all, so it carries the CORS
-      // headers unconditionally. On a deployment that does have an API host
-      // this is the same content already reachable cross-origin through the
-      // rule above - the headers follow the endpoint rather than the hostname.
+      // @note this path is available on every host; host-dependent /v1 CORS
+      // is applied by the proxy because configured headers run before it
       {
         source: '/api/v1/:path*',
-        headers: [...corsHeaders],
+        headers: [...apiCorsHeaders],
       },
     ]
   },
