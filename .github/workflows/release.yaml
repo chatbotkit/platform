@@ -1,0 +1,244 @@
+name: Platform Release
+
+on:
+  pull_request:
+    branches:
+      - main
+  # @note every main update is a source release, including documentation-only
+  # promotions; filtering paths would silently omit those snapshots
+  push:
+    branches:
+      - main
+      - next
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  # pinned to the devcontainer version, as in _verify.yaml
+  REQUIRED_NODE_VERSION: 24.20.0
+
+# @note separate commits must not cancel each other's release; a retry of the
+# same commit is safe because the workflow verifies existing tags
+concurrency:
+  group: platform-source-release-${{ github.sha }}
+  cancel-in-progress: false
+
+jobs:
+  # @note pull requests are unguarded so forks get the same check as in
+  # pull-request.yaml; pushes and dispatches are limited to the canonical
+  # repository and its `platform-*` siblings so a fork's main gets a clean skip
+  # instead of a failed protection check
+  check:
+    name: Check source release
+    if: >-
+      github.event_name == 'pull_request' ||
+      (
+        (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/next') &&
+        (github.repository == 'chatbotkit/platform' || startsWith(github.repository, 'chatbotkit/platform-'))
+      )
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Require protected main for releases
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        env:
+          REF_PROTECTED: ${{ github.ref_protected }}
+        run: |
+          if [ "$REF_PROTECTED" != 'true' ]; then
+            echo 'Source releases require branch protection or an active ruleset on main.' >&2
+            exit 1
+          fi
+
+      - uses: actions/checkout@v7
+        with:
+          # @note tags are all the release checks need; full history is not
+          fetch-tags: true
+          persist-credentials: false
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ env.REQUIRED_NODE_VERSION }}
+
+      - name: Validate release metadata
+        run: |
+          node --input-type=commonjs <<'NODE'
+          const { execFileSync } = require('node:child_process')
+          const { readFileSync } = require('node:fs')
+          const { version, private: isPrivate } = JSON.parse(readFileSync('package.json', 'utf8'))
+
+          if (typeof version !== 'string' || !/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/.test(version)) {
+            throw new Error('package.json must define a stable major.minor.patch version')
+          }
+          if (isPrivate !== true) {
+            throw new Error('The platform workspace must remain private')
+          }
+
+          const sections = readFileSync('CHANGELOG.md', 'utf8')
+            .replace(/\r\n/g, '\n').split(/^## /m).slice(1)
+            .map(section => {
+              const [heading, ...body] = section.split('\n')
+              return { heading, notes: body.join('\n').trim() }
+            })
+          const latest = sections[1]
+          const heading = latest?.heading.match(/^\[([^\]]+)\] - (\d{4}-\d{2}-\d{2})$/)
+
+          if (sections[0]?.heading !== '[Unreleased]' || heading?.[1] !== version) {
+            throw new Error(`CHANGELOG.md must start with [Unreleased], then [${version}] - YYYY-MM-DD`)
+          }
+          const date = new Date(`${heading[2]}T00:00:00Z`)
+          if (Number.isNaN(date.getTime()) || date.toISOString().slice(0, 10) !== heading[2]) {
+            throw new Error('The release date must be a valid calendar date')
+          }
+          if (sections.filter(section => section.heading.startsWith(`[${version}]`)).length !== 1) {
+            throw new Error(`CHANGELOG.md contains duplicate entries for ${version}`)
+          }
+          if (!/^- \S/m.test(latest.notes)) {
+            throw new Error(`Release ${version} must contain changelog entries`)
+          }
+
+          const tag = `platform/v${version}`
+          if (process.env.GITHUB_EVENT_NAME === 'pull_request') {
+            const existing = execFileSync('git', ['tag', '--list', tag], { encoding: 'utf8' }).trim()
+            if (existing) {
+              throw new Error(`${tag} already exists. Update package.json and CHANGELOG.md before promoting to main.`)
+            }
+          }
+          console.log(`Release metadata valid: ${tag}`)
+          NODE
+
+  # @note validate the exact main commit in a fresh checkout; next's checks
+  # alone do not validate the resulting merge, and dispatches need the same gate
+  verify_release:
+    name: Verify release
+    needs: check
+    if: >-
+      github.event_name != 'pull_request' &&
+      github.ref == 'refs/heads/main' &&
+      (github.repository == 'chatbotkit/platform' || startsWith(github.repository, 'chatbotkit/platform-'))
+    uses: ./.github/workflows/_verify.yaml
+
+  snapshot:
+    name: Publish GitHub release
+    needs:
+      - check
+      - verify_release
+    if: >-
+      needs.check.result == 'success' &&
+      needs.verify_release.result == 'success' &&
+      github.event_name != 'pull_request' &&
+      github.ref == 'refs/heads/main' &&
+      (github.repository == 'chatbotkit/platform' || startsWith(github.repository, 'chatbotkit/platform-'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # @note tag the triggering merge, even if main has advanced since
+          ref: ${{ github.sha }}
+          fetch-tags: true
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ env.REQUIRED_NODE_VERSION }}
+
+      - name: Create and push the source snapshot
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          node --input-type=commonjs <<'NODE'
+          const { execFileSync } = require('node:child_process')
+          const { readFileSync } = require('node:fs')
+          const git = (...args) => execFileSync('git', args, { encoding: 'utf8' }).trim()
+          const { version } = JSON.parse(readFileSync('package.json', 'utf8'))
+          const tag = `platform/v${version}`
+          const commit = git('rev-parse', 'HEAD')
+
+          if (commit !== process.env.GITHUB_SHA) {
+            throw new Error('The checkout must identify the triggering merge commit')
+          }
+          if (git('status', '--porcelain', '--untracked-files=all')) {
+            throw new Error('The release checkout must be clean')
+          }
+
+          if (git('tag', '--list', tag)) {
+            if (git('cat-file', '-t', tag) !== 'tag' || git('rev-parse', `${tag}^{commit}`) !== commit) {
+              throw new Error(`${tag} already exists for another snapshot. Update package.json and CHANGELOG.md.`)
+            }
+            console.log(`Snapshot ${tag} already identifies ${commit}`)
+          } else {
+            // @note the check job validated the notes at this same commit
+            const section = readFileSync('CHANGELOG.md', 'utf8')
+              .replace(/\r\n/g, '\n').split(/^## /m)[2]
+            const notes = section.split('\n').slice(1).join('\n').trim()
+            execFileSync('git', ['tag', '-a', tag, commit, '-F', '-'], {
+              input: `Platform ${version}\n\n${notes}\n`,
+              stdio: ['pipe', 'inherit', 'inherit'],
+            })
+          }
+
+          execFileSync('git', ['push', 'origin', `refs/tags/${tag}:refs/tags/${tag}`], {
+            stdio: 'inherit',
+          })
+          NODE
+
+      - name: Publish release with changelog notes
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const { readFileSync } = require('node:fs')
+            const { version } = JSON.parse(readFileSync('package.json', 'utf8'))
+            const tag = `platform/v${version}`
+            const name = `Platform ${version}`
+            // @note the check job validated this version's section at the same commit
+            const section = readFileSync('CHANGELOG.md', 'utf8')
+              .replace(/\r\n/g, '\n').split(/^## /m)[2]
+            const body = section.split('\n').slice(1).join('\n').trim()
+
+            // @note require the pushed annotated tag to still identify the verified commit
+            const { data: ref } = await github.rest.git.getRef({
+              ...context.repo, ref: `tags/${tag}`,
+            })
+            if (ref.object.type !== 'tag') {
+              throw new Error(`${tag} must be an annotated tag`)
+            }
+            const { data: annotation } = await github.rest.git.getTag({
+              ...context.repo, tag_sha: ref.object.sha,
+            })
+            if (annotation.object.type !== 'commit' || annotation.object.sha !== context.sha) {
+              throw new Error(`${tag} does not identify the verified release commit`)
+            }
+
+            let existing
+            try {
+              const response = await github.rest.repos.getReleaseByTag({
+                ...context.repo, tag,
+              })
+              existing = response.data
+            } catch (error) {
+              if (error.status !== 404) throw error
+            }
+
+            if (existing) {
+              if (existing.draft || existing.prerelease || existing.name !== name ||
+                  (existing.body ?? '').replace(/\r\n/g, '\n').trim() !== body) {
+                throw new Error(`Existing release ${tag} differs from the verified release metadata`)
+              }
+              core.info(`Release already published: ${existing.html_url}`)
+              return
+            }
+
+            const { data: release } = await github.rest.repos.createRelease({
+              ...context.repo,
+              tag_name: tag,
+              target_commitish: context.sha,
+              name,
+              body,
+              draft: false,
+              prerelease: false,
+              make_latest: 'legacy',
+            })
+            core.info(`Published release: ${release.html_url}`)

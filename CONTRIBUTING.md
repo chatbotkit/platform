@@ -106,6 +106,74 @@ for why).
 Inside `platform/`, the narrower loops are `pnpm check`, `pnpm lint`,
 `pnpm test:unit path/to/file.utest.js`, and `pnpm storybook`.
 
+## Source releases
+
+The workspace root `package.json` holds the platform release version. It covers
+the application and shared packages as one source snapshot; individual package
+versions and Studio's version are independent. The workspace stays private.
+
+Add notable changes to [CHANGELOG.md](./CHANGELOG.md) under `Unreleased`, using
+`Added`, `Changed`, `Fixed`, `Removed`, or `Security` as appropriate. Include any
+required database migrations, configuration changes, and upgrade steps.
+
+To prepare a release:
+
+1. Choose the next `major.minor.patch` version and update the root `package.json`.
+   Use patch releases for compatible fixes, minor releases for features, and
+   major releases for breaking changes after 1.0. Before 1.0, use minor releases
+   for breaking changes and call them out in the notes.
+2. Move the accumulated notes into `## [VERSION] - YYYY-MM-DD`, keeping an empty
+   `## [Unreleased]` section above it.
+3. Complete the quality checks for the changes being released. The source
+   release workflow validates the version and changelog on pushes to `next`.
+4. Commit and push the release changes to `next`, then open the promotion pull
+   request to `main`. The **Check source release** job checks the changelog and
+   rejects a version whose tag already exists.
+5. Merge the promotion pull request. The **Platform Release** workflow
+   requires protected `main` and runs the full verification workflow on that
+   exact merge commit. Only after it passes does the workflow create and push
+   an annotated `platform/vVERSION` tag, using the changelog entry as its
+   annotation. It then publishes a GitHub Release titled `Platform VERSION`
+   against that tag, with the same changelog entry as its release notes.
+   The release page includes GitHub's source ZIP and tarball downloads.
+
+Every promotion to `main` needs an unused version and dated changelog entry.
+Version bumps and notes are prepared in the source before promotion; CI does
+not write commits back to `main` or `next`. Configure **Check source release**
+as a required check in the repository's branch rules to enforce it before merge.
+The release workflow is independent of container image publication.
+
+Release verification installs from the frozen lockfile, builds the shared
+packages, and runs package and application lint, type checks, and tests in a
+fresh checkout. Failed, cancelled, or skipped verification cannot produce a
+tag or GitHub Release. The publishing job also requires a clean checkout at
+the triggering commit. Only that job has repository write permission. Application image builds
+and distribution smoke tests remain in the container publication workflow.
+
+The same flow applies when a subtree manager pushes this workspace to `next`
+and opens the promotion pull request: the workflow travels inside this
+workspace's `.github/workflows` and runs in the destination repository.
+
+For a failed run, rerun **Platform Release**, or dispatch it on `main`.
+Manual dispatches pass the same protection and verification gates.
+An existing annotated tag on the same commit is accepted, so retries are safe.
+If the tag was pushed but release creation failed, the retry creates the missing
+GitHub Release. An already published release with matching title and notes is
+accepted; conflicting release metadata fails without overwriting it.
+A tag pointing elsewhere fails the release and is never moved. A manual dispatch
+uses the selected `main` commit; rerun the original job to retry an older merge.
+
+All release validation and tagging logic lives in the GitHub workflow. There
+are no local release scripts or package commands. The workflow publishes the
+release tag and GitHub Release with its changelog notes. The source downloads
+contain no installed dependencies, compiled application, databases, or container
+images. Package and container publishing remain separate.
+
+Workflow checks govern tags created by this automation. To restrict direct tag
+pushes as well, configure a repository tag ruleset for `platform/v*`, limiting
+creation to the release identity and preventing updates and deletion. Branch
+protection alone does not enforce those tag restrictions.
+
 ## Pull requests
 
 - Explain the problem and the outcome, not just the diff.

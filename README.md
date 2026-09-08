@@ -101,4 +101,5 @@ storage configuration and the first model connection.
 - [Architecture and repository map](./docs/architecture.md)
 - [Licensing](./LICENSING.md)
 - [Contributing](./CONTRIBUTING.md)
+- [Changelog](./CHANGELOG.md) and [source releases](./CONTRIBUTING.md#source-releases)
 - [Security](./SECURITY.md)
