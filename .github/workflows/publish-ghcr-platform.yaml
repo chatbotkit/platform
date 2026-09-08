@@ -6,7 +6,8 @@ on:
   # @note no `paths` filter here on purpose: the verify job must run on every
   # push to next so its check lands on the SHA the promotion pull request
   # (next -> main) requires - pull-request.yaml skips its own run for that
-  # head branch. Path filtering for the image build lives in the changes job
+  # head branch, and every push to main is a source release whatever it
+  # touches. Path filtering for the image build lives in the changes job
   # below instead.
   push:
     branches:
@@ -30,7 +31,29 @@ jobs:
   # skip rather than a queued build against runners and a registry it does
   # not have.
   #
-  # The trigger-level `paths` filter this job replaces could not coexist with
+  # A push to main is a source release: publish tags the images with the
+  # version from package.json and release tags the commit and publishes the
+  # GitHub Release. The metadata is validated here first so nothing is tagged
+  # from a version the changelog does not describe. On next the job is an
+  # early warning only; a stale changelog must not hold back next images.
+  metadata:
+    if: >-
+      (github.repository == 'chatbotkit/platform' || startsWith(github.repository, 'chatbotkit/platform-')) &&
+      github.actor != 'github-actions[bot]'
+    name: Validate release metadata
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      version: ${{ steps.metadata.outputs.version }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - uses: ./.github/actions/release-metadata
+        id: metadata
+
+  # @note the trigger-level `paths` filter this job replaces could not coexist with
   # running verify on every next push, so the build-relevance decision is made
   # here from the actual diff of the push. Anything that prevents computing
   # that diff (a brand-new branch, a force push, a manual dispatch) falls back
@@ -42,6 +65,12 @@ jobs:
   # publish already tagged as sha-<short>. That tag is reused and retagged by
   # the publish job instead of spending two 8-core runners on an identical
   # image. Any tree that no published tag matches falls back to a full build.
+  #
+  # A push to main that touches no build input still publishes: the `main`
+  # channel images were built from a tree whose build inputs equal this one
+  # (every main push since that build was non-build-relevant, by this same
+  # test), so publish carries them under the release version tag without
+  # minting channel or sha- tags for a tree it did not build.
   changes:
     if: >-
       (github.repository == 'chatbotkit/platform' || startsWith(github.repository, 'chatbotkit/platform-')) &&
@@ -370,17 +399,26 @@ jobs:
     # leaves the build's untagged digests unreachable in the registry and
     # publishes nothing. !cancelled() + accepting the skipped verify is
     # required: the implicit success() looks at the whole needs chain, and
-    # verify is skipped on main. A skipped build is accepted only when the
-    # changes job found a published sha- tag of the same tree to retag.
+    # verify is skipped on main. A skipped build is accepted when the changes
+    # job found a published sha- tag of the same tree to retag, or on main
+    # when nothing build-relevant changed and the `main` channel images stand
+    # in (see the changes job). On main the release metadata must be valid,
+    # since the version becomes an image tag here.
     if: >-
       !cancelled() &&
       (github.repository == 'chatbotkit/platform' || startsWith(github.repository, 'chatbotkit/platform-')) &&
-      (needs.build.result == 'success' || (needs.build.result == 'skipped' && needs.changes.outputs.reuse != '')) &&
+      (
+        needs.build.result == 'success' ||
+        (needs.build.result == 'skipped' && needs.changes.outputs.reuse != '') ||
+        (needs.build.result == 'skipped' && needs.changes.outputs.build == 'false' && github.ref == 'refs/heads/main')
+      ) &&
       (needs.verify.result == 'success' || needs.verify.result == 'skipped') &&
+      (github.ref != 'refs/heads/main' || needs.metadata.result == 'success') &&
       github.actor != 'github-actions[bot]' &&
       (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/next')
     name: Publish ${{ matrix.flavor.name }}
     needs:
+      - metadata
       - changes
       - build
       - verify
@@ -439,17 +477,25 @@ jobs:
 
       # @note with a reused build the source is the already multi-platform
       # sha- manifest list, which imagetools copies under the new tags; a
-      # fresh build supplies one per-architecture digest per image instead
+      # fresh build supplies one per-architecture digest per image instead.
+      # A main push without build-relevant changes carries the `main`
+      # channel images under the release version tag only: channel and sha-
+      # tags name the tree an image was built from, and this is not it.
       - name: Create multi-platform image manifests
         id: manifest
         env:
           APPLICATION_IMAGE: ${{ steps.image.outputs.application }}
+          BUILD: ${{ needs.changes.outputs.build }}
           CHANNEL: ${{ github.ref_name }}
           DIGESTS_DIR: ${{ runner.temp }}/platform-digests
           INITIALIZER_IMAGE: ${{ steps.image.outputs.initializer }}
+          RELEASE_VERSION: ${{ needs.metadata.outputs.version }}
           REUSE: ${{ needs.changes.outputs.reuse }}
         run: |
-          if [ -n "$REUSE" ]; then
+          if [ "$BUILD" = "false" ]; then
+            application_sources=("${APPLICATION_IMAGE}:${CHANNEL}")
+            initializer_sources=("${INITIALIZER_IMAGE}:${CHANNEL}")
+          elif [ -n "$REUSE" ]; then
             application_sources=("${APPLICATION_IMAGE}:sha-${REUSE}")
             initializer_sources=("${INITIALIZER_IMAGE}:sha-${REUSE}")
           else
@@ -472,19 +518,31 @@ jobs:
           fi
 
           short_sha="${GITHUB_SHA:0:7}"
-          application_tags=(--tag "${APPLICATION_IMAGE}:${CHANNEL}" --tag "${APPLICATION_IMAGE}:sha-${short_sha}")
-          initializer_tags=(--tag "${INITIALIZER_IMAGE}:${CHANNEL}" --tag "${INITIALIZER_IMAGE}:sha-${short_sha}")
+          application_tags=()
+          initializer_tags=()
+
+          if [ "$BUILD" != "false" ]; then
+            application_tags+=(--tag "${APPLICATION_IMAGE}:${CHANNEL}" --tag "${APPLICATION_IMAGE}:sha-${short_sha}")
+            initializer_tags+=(--tag "${INITIALIZER_IMAGE}:${CHANNEL}" --tag "${INITIALIZER_IMAGE}:sha-${short_sha}")
+          fi
 
           if [ "$CHANNEL" = "main" ]; then
-            application_tags+=(--tag "${APPLICATION_IMAGE}:latest")
-            initializer_tags+=(--tag "${INITIALIZER_IMAGE}:latest")
+            if [ "$BUILD" != "false" ]; then
+              application_tags+=(--tag "${APPLICATION_IMAGE}:latest")
+              initializer_tags+=(--tag "${INITIALIZER_IMAGE}:latest")
+            fi
+
+            # @note the release version tag is the one consumers pin; the
+            # release job below only runs once every flavor carries it
+            application_tags+=(--tag "${APPLICATION_IMAGE}:v${RELEASE_VERSION}")
+            initializer_tags+=(--tag "${INITIALIZER_IMAGE}:v${RELEASE_VERSION}")
           fi
 
           docker buildx imagetools create "${application_tags[@]}" "${application_sources[@]}"
           docker buildx imagetools create "${initializer_tags[@]}" "${initializer_sources[@]}"
 
-          application_digest=$(docker buildx imagetools inspect "${APPLICATION_IMAGE}:${CHANNEL}" --format '{{.Manifest.Digest}}')
-          initializer_digest=$(docker buildx imagetools inspect "${INITIALIZER_IMAGE}:${CHANNEL}" --format '{{.Manifest.Digest}}')
+          application_digest=$(docker buildx imagetools inspect "${application_sources[0]}" --format '{{.Manifest.Digest}}')
+          initializer_digest=$(docker buildx imagetools inspect "${initializer_sources[0]}" --format '{{.Manifest.Digest}}')
           echo "application_digest=${application_digest}" >> "$GITHUB_OUTPUT"
           echo "initializer_digest=${initializer_digest}" >> "$GITHUB_OUTPUT"
 
@@ -495,11 +553,14 @@ jobs:
       #
       #   docker compose -f oci://ghcr.io/chatbotkit/platform-community:latest up
       - name: Publish Compose distribution artifact
+        id: artifact
         env:
           APPLICATION_IMAGE: ${{ steps.image.outputs.application }}@${{ steps.manifest.outputs.application_digest }}
+          BUILD: ${{ needs.changes.outputs.build }}
           CHANNEL: ${{ github.ref_name }}
           FLAVOR: ${{ matrix.flavor.name }}
           INITIALIZER_IMAGE: ${{ steps.image.outputs.initializer }}@${{ steps.manifest.outputs.initializer_digest }}
+          RELEASE_VERSION: ${{ needs.metadata.outputs.version }}
           STACK_IMAGE: ${{ steps.image.outputs.stack }}
         run: |
           publish() {
@@ -507,17 +568,156 @@ jobs:
             PLATFORM_INIT_IMAGE="$INITIALIZER_IMAGE" \
               docker compose --file "docker/distro/${FLAVOR}/compose.yml" \
                 publish -y --resolve-image-digests "$1"
+            echo "reference=$1" >> "$GITHUB_OUTPUT"
           }
 
-          publish "${STACK_IMAGE}:${CHANNEL}"
-
-          if [ "$CHANNEL" = "main" ]; then
-            publish "${STACK_IMAGE}:latest"
+          if [ "$BUILD" != "false" ]; then
+            publish "${STACK_IMAGE}:${CHANNEL}"
           fi
 
+          if [ "$CHANNEL" = "main" ]; then
+            if [ "$BUILD" != "false" ]; then
+              publish "${STACK_IMAGE}:latest"
+            fi
+
+            publish "${STACK_IMAGE}:v${RELEASE_VERSION}"
+          fi
+
+      # @note the last artifact published is the one checked: on main that is
+      # the release version, elsewhere the channel
       - name: Smoke-test published distribution artifact
         env:
-          CHANNEL: ${{ github.ref_name }}
-          STACK_IMAGE: ${{ steps.image.outputs.stack }}
+          REFERENCE: ${{ steps.artifact.outputs.reference }}
         run: |
-          docker compose --file "oci://${STACK_IMAGE}:${CHANNEL}" config --quiet
+          docker compose --file "oci://${REFERENCE}" config --quiet
+
+  # @note the release exists only once every flavor's images and Compose
+  # artifact carry the version tag: a GitHub Release whose images are missing
+  # or still building would mislead operators pinning the version. The Git tag
+  # and the GitHub Release are created from the exact merge commit; on a
+  # retry an annotated tag already pointing at it is accepted, and a tag
+  # pointing elsewhere fails without being moved. The only write token in
+  # this workflow that reaches the repository lives here.
+  release:
+    name: Publish GitHub release
+    needs:
+      - metadata
+      - changes
+      - publish
+    if: >-
+      !cancelled() &&
+      (github.repository == 'chatbotkit/platform' || startsWith(github.repository, 'chatbotkit/platform-')) &&
+      needs.metadata.result == 'success' &&
+      needs.publish.result == 'success' &&
+      github.actor != 'github-actions[bot]' &&
+      github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - name: Require protected main for releases
+        env:
+          REF_PROTECTED: ${{ github.ref_protected }}
+        run: |
+          if [ "$REF_PROTECTED" != 'true' ]; then
+            echo 'Source releases require branch protection or an active ruleset on main.' >&2
+            exit 1
+          fi
+
+      - uses: actions/checkout@v7
+        with:
+          # @note tag the triggering merge, even if main has advanced since
+          ref: ${{ github.sha }}
+          fetch-tags: true
+
+      - uses: ./.github/actions/release-metadata
+        id: metadata
+
+      - name: Create and push the source snapshot
+        env:
+          NOTES_PATH: ${{ steps.metadata.outputs.notes-path }}
+          TAG: ${{ steps.metadata.outputs.tag }}
+          VERSION: ${{ steps.metadata.outputs.version }}
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+
+          if [ "$(git rev-parse HEAD)" != "$GITHUB_SHA" ]; then
+            echo 'The checkout must identify the triggering merge commit' >&2
+            exit 1
+          fi
+          if [ -n "$(git status --porcelain --untracked-files=all)" ]; then
+            echo 'The release checkout must be clean' >&2
+            exit 1
+          fi
+
+          if [ -n "$(git tag --list "$TAG")" ]; then
+            if [ "$(git cat-file -t "$TAG")" != 'tag' ] || [ "$(git rev-parse "${TAG}^{commit}")" != "$GITHUB_SHA" ]; then
+              echo "${TAG} already exists for another snapshot. Update package.json and CHANGELOG.md." >&2
+              exit 1
+            fi
+            echo "Snapshot ${TAG} already identifies ${GITHUB_SHA}"
+          else
+            { printf 'Platform %s\n\n' "$VERSION"; cat "$NOTES_PATH"; } | git tag -a "$TAG" "$GITHUB_SHA" -F -
+          fi
+
+          git push origin "refs/tags/${TAG}:refs/tags/${TAG}"
+
+      - name: Publish release with changelog notes
+        uses: actions/github-script@v9
+        env:
+          NOTES_PATH: ${{ steps.metadata.outputs.notes-path }}
+          TAG: ${{ steps.metadata.outputs.tag }}
+          VERSION: ${{ steps.metadata.outputs.version }}
+        with:
+          script: |
+            const { readFileSync } = require('node:fs')
+            const { NOTES_PATH, TAG: tag, VERSION: version } = process.env
+            const name = `Platform ${version}`
+            const body = readFileSync(NOTES_PATH, 'utf8').trim()
+
+            // @note require the pushed annotated tag to still identify the verified commit
+            const { data: ref } = await github.rest.git.getRef({
+              ...context.repo, ref: `tags/${tag}`,
+            })
+            if (ref.object.type !== 'tag') {
+              throw new Error(`${tag} must be an annotated tag`)
+            }
+            const { data: annotation } = await github.rest.git.getTag({
+              ...context.repo, tag_sha: ref.object.sha,
+            })
+            if (annotation.object.type !== 'commit' || annotation.object.sha !== context.sha) {
+              throw new Error(`${tag} does not identify the verified release commit`)
+            }
+
+            let existing
+            try {
+              const response = await github.rest.repos.getReleaseByTag({
+                ...context.repo, tag,
+              })
+              existing = response.data
+            } catch (error) {
+              if (error.status !== 404) throw error
+            }
+
+            if (existing) {
+              if (existing.draft || existing.prerelease || existing.name !== name ||
+                  (existing.body ?? '').replace(/\r\n/g, '\n').trim() !== body) {
+                throw new Error(`Existing release ${tag} differs from the verified release metadata`)
+              }
+              core.info(`Release already published: ${existing.html_url}`)
+              return
+            }
+
+            const { data: release } = await github.rest.repos.createRelease({
+              ...context.repo,
+              tag_name: tag,
+              target_commitish: context.sha,
+              name,
+              body,
+              draft: false,
+              prerelease: false,
+              make_latest: 'legacy',
+            })
+            core.info(`Published release: ${release.html_url}`)

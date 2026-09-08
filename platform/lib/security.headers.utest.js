@@ -93,6 +93,52 @@ describe('Security Headers Configuration', () => {
       )
     })
 
+    it.each([
+      ['http://cbk.localhost:3000', true],
+      ['https://cbk.example', false],
+    ])(
+      'allows plain-http sources on %s only when the site has no TLS',
+      (url, insecure) => {
+        jest.isolateModules(() => {
+          const previous = process.env.SITE_URL
+
+          process.env.SITE_URL = url
+
+          try {
+            const { DEFAULT_SECURITY_HEADERS: headers } = jest.requireActual(
+              '@/lib/security.headers'
+            )
+
+            const csp = Object.fromEntries(
+              headers.contentSecurityPolicy.split(';').map((d) => {
+                const [name, ...values] = d.trim().split(/\s+/)
+
+                return [name, values]
+              })
+            )
+
+            for (const name of [
+              'script-src',
+              'style-src',
+              'img-src',
+              'font-src',
+              'media-src',
+              'frame-src',
+              'worker-src',
+              'connect-src',
+            ]) {
+              expect(csp[name]).toContain('https:')
+              expect(csp[name].includes('http:')).toBe(insecure)
+            }
+
+            expect(csp['connect-src'].includes('ws:')).toBe(insecure)
+          } finally {
+            process.env.SITE_URL = previous
+          }
+        })
+      }
+    )
+
     it('constrains scripts, connections, forms and base URL', () => {
       expect(directives['default-src']).toBe("'self'")
       expect(directives['script-src']).toMatch(/^'self'/)

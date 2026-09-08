@@ -2,7 +2,9 @@
 # the committed lockfile and type-check cleanly with the public module defaults
 # - the exact environment every fresh checkout gets. The gate itself lives in
 # _verify.yaml so pushes to `next` can run the same checks before an image
-# build.
+# build. Pull requests into `main` additionally pass the release metadata
+# gate: the promotion is a source release, so the version and changelog must
+# be ready before it merges.
 #
 # SECURITY: this workflow is safe to run on code from strangers, and it is
 # designed to stay that way. Fork pull requests run through the plain
@@ -50,3 +52,24 @@ jobs:
     # run. Every other head branch (forks included) still gets its own run.
     if: github.event_name != 'pull_request' || github.head_ref != 'next'
     uses: ./.github/workflows/_verify.yaml
+
+  # @note the promotion is a release: publish-ghcr-platform.yaml tags the
+  # merge commit with the version in package.json, so the version must be
+  # unused and its changelog section written before the merge, not after.
+  # Configure this job as a required check on main. It reads no secrets and
+  # runs the same for forks, like verify above.
+  check_release:
+    name: Check source release
+    if: github.event_name == 'pull_request' && github.base_ref == 'main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # @note the gate rejects a version whose tag already exists
+          fetch-tags: true
+          persist-credentials: false
+
+      - uses: ./.github/actions/release-metadata
+        with:
+          reject-existing-tag: 'true'

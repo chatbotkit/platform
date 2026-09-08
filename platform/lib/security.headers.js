@@ -3,49 +3,56 @@
 import { siteUrl } from '../config/site.js'
 
 /**
- * @type {string}
- * @todo requires progressive hardening in the future
- */
-const ALLOWED_SCRIPTS = ['https:', 'blob:', 'data:'].join(' ')
-
-/**
- * @type {string}
- * @todo requires progressive hardening in the future
- */
-const ALLOWED_STYLES = ['https:', 'blob:', 'data:'].join(' ')
-
-/**
- * @type {string}
- * @todo requires progressive hardening in the future
- */
-const ALLOWED_IMAGES = ['https:', 'blob:', 'data:'].join(' ')
-
-/**
- * @type {string}
- * @todo requires progressive hardening in the future
- */
-const ALLOWED_FONTS = ['https:', 'blob:', 'data:'].join(' ')
-
-/**
- * @type {string}
- * @todo requires progressive hardening in the future
- */
-const ALLOWED_MEDIA = ['https:', 'blob:', 'data:'].join(' ')
-
-/**
- * @note `http:` and `ws:` join the list only when the site itself is served
- * without TLS. Such a deployment has no transport security for the policy to
- * preserve, and its local relay (RELAY_URL) speaks plain websockets. An
+ * @note `http:` and `ws:` join the fetch directives only when the site itself
+ * is served without TLS. Such a deployment has no transport security for the
+ * policy to preserve, its shells load banners across plain-http site and
+ * static origins, and its local relay (RELAY_URL) speaks plain websockets. An
  * https site never gets them - browsers refuse that mixed content anyway.
- *
+ */
+const INSECURE_SITE = new URL(siteUrl).protocol === 'http:'
+
+/** @type {string[]} */
+const HTTP_SCHEMES = ['https:', ...(INSECURE_SITE ? ['http:'] : [])]
+
+/** @type {string[]} */
+const WS_SCHEMES = ['wss:', ...(INSECURE_SITE ? ['ws:'] : [])]
+
+/**
+ * @type {string}
+ * @todo requires progressive hardening in the future
+ */
+const ALLOWED_SCRIPTS = [...HTTP_SCHEMES, 'blob:', 'data:'].join(' ')
+
+/**
+ * @type {string}
+ * @todo requires progressive hardening in the future
+ */
+const ALLOWED_STYLES = [...HTTP_SCHEMES, 'blob:', 'data:'].join(' ')
+
+/**
+ * @type {string}
+ * @todo requires progressive hardening in the future
+ */
+const ALLOWED_IMAGES = [...HTTP_SCHEMES, 'blob:', 'data:'].join(' ')
+
+/**
+ * @type {string}
+ * @todo requires progressive hardening in the future
+ */
+const ALLOWED_FONTS = [...HTTP_SCHEMES, 'blob:', 'data:'].join(' ')
+
+/**
+ * @type {string}
+ * @todo requires progressive hardening in the future
+ */
+const ALLOWED_MEDIA = [...HTTP_SCHEMES, 'blob:', 'data:'].join(' ')
+
+/**
  * @type {string}
  */
 const ALLOWED_CONNECTS = [
-  'https:',
-  'wss:',
-
-  ...(new URL(siteUrl).protocol === 'http:' ? ['http:', 'ws:'] : []),
-
+  ...HTTP_SCHEMES,
+  ...WS_SCHEMES,
   'blob:',
   'data:',
 ].join(' ')
@@ -54,13 +61,13 @@ const ALLOWED_CONNECTS = [
  * @type {string}
  * @todo requires progressive hardening in the future
  */
-const ALLOWED_FRAMES = ['https:', 'blob:', 'data:'].join(' ')
+const ALLOWED_FRAMES = [...HTTP_SCHEMES, 'blob:', 'data:'].join(' ')
 
 /**
  * @type {string}
  * @todo requires progressive hardening in the future
  */
-const ALLOWED_WORKERS = ['https:', 'blob:', 'data:'].join(' ')
+const ALLOWED_WORKERS = [...HTTP_SCHEMES, 'blob:', 'data:'].join(' ')
 
 /**
  * Ancestors that may frame embeddable surfaces. `*` only matches network

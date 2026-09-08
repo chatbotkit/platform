@@ -34,8 +34,9 @@ CPU, memory and network cache state.
 Trusted pushes to `main` and `next` publish matching application and database
 initializer images. Names follow `platform-<flavor>-<component>`; tags carry
 only the build: the moving `main` and `next` tags are channels (`latest`
-follows `main`), and `sha-<commit>` tags identify an immutable source
-revision.
+follows `main`), `sha-<commit>` tags identify an immutable source revision,
+and `v<version>` tags identify a release - the same images as the
+`platform/v<version>` source snapshot and its GitHub Release.
 
 The publication workflow derives the registry owner and image name from the
 GitHub repository. In `chatbotkit/platform` this resolves to the official image
@@ -83,8 +84,8 @@ stack. No checkout, no bind mounts:
 docker compose -f oci://ghcr.io/chatbotkit/platform-community:latest up
 ```
 
-The `latest` tag follows `main`; `next` follows the `next` branch. Compose
-v2.34 or newer is required. On `up`, Compose shows the stack's variables -
+The `latest` tag follows `main`; `next` follows the `next` branch; pin a
+release with `v<version>`. Compose v2.34 or newer is required. On `up`, Compose shows the stack's variables -
 site URL, secrets, optional provider keys - and their defaults before
 proceeding; set them in the shell, in a `.env` file in the directory the
 command runs from (picked up automatically), or via an explicit `--env-file`,
@@ -268,13 +269,13 @@ production infrastructure. A production deployment still needs:
   [module defaults](./module-defaults.md)
 - monitoring, restore testing and an upgrade and rollback procedure
 
-Promotions to `main` produce versioned source snapshots (`platform/v*`) and
-GitHub Releases with changelog notes and source downloads (see
-[CONTRIBUTING.md](../CONTRIBUTING.md#source-releases)), but images are
-still published only by branch and commit, without SBOMs or signed provenance,
-so they remain pre-release artifacts. This status concerns release provenance
-and compatibility, not whether Compose should provision the operator-owned
-infrastructure listed above.
+Promotions to `main` produce versioned source snapshots (`platform/v*`),
+GitHub Releases with changelog notes and source downloads, and `v<version>`
+image and Compose artifact tags (see
+[CONTRIBUTING.md](../CONTRIBUTING.md#source-releases)). Images still ship
+without SBOMs or signed provenance, so they remain pre-release artifacts. This
+status concerns release provenance and compatibility, not whether Compose
+should provision the operator-owned infrastructure listed above.
 
 The experimental Dockerfile builds with `.env.example`; Compose attaches the
 optional operator `.env` file only to the running container. Configuration
