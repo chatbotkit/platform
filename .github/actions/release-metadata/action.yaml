@@ -1,0 +1,89 @@
+# Validates the release metadata at the checked-out commit - the workspace root
+# `package.json` version and the matching CHANGELOG.md section - and exposes
+# the version, the `platform/v<version>` tag and the section's notes for the
+# jobs that tag images, push the Git tag and publish the GitHub Release.
+#
+# Shared by pull-request.yaml (the promotion gate) and
+# publish-ghcr-platform.yaml (the release itself) so both read one definition
+# of what a valid release looks like.
+
+name: Release metadata
+description: Validate the platform release version and changelog notes
+
+inputs:
+  reject-existing-tag:
+    description: >-
+      Fail when the release tag already exists in the checkout. Requires tags
+      to be fetched. Used by the promotion gate, where an existing tag means
+      the version was not bumped.
+    default: 'false'
+
+outputs:
+  version:
+    description: The release version from package.json
+    value: ${{ steps.metadata.outputs.version }}
+  tag:
+    description: The Git tag for the release
+    value: ${{ steps.metadata.outputs.tag }}
+  notes-path:
+    description: A file holding the changelog notes for the release
+    value: ${{ steps.metadata.outputs.notes-path }}
+
+runs:
+  using: composite
+  steps:
+    - name: Validate release metadata
+      id: metadata
+      shell: bash
+      env:
+        REJECT_EXISTING_TAG: ${{ inputs.reject-existing-tag }}
+      run: |
+        node --input-type=commonjs <<'NODE'
+        const { execFileSync } = require('node:child_process')
+        const { appendFileSync, readFileSync, writeFileSync } = require('node:fs')
+        const { join } = require('node:path')
+        const { version, private: isPrivate } = JSON.parse(readFileSync('package.json', 'utf8'))
+
+        if (typeof version !== 'string' || !/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/.test(version)) {
+          throw new Error('package.json must define a stable major.minor.patch version')
+        }
+        if (isPrivate !== true) {
+          throw new Error('The platform workspace must remain private')
+        }
+
+        const sections = readFileSync('CHANGELOG.md', 'utf8')
+          .replace(/\r\n/g, '\n').split(/^## /m).slice(1)
+          .map(section => {
+            const [heading, ...body] = section.split('\n')
+            return { heading, notes: body.join('\n').trim() }
+          })
+        const latest = sections[1]
+        const heading = latest?.heading.match(/^\[([^\]]+)\] - (\d{4}-\d{2}-\d{2})$/)
+
+        if (sections[0]?.heading !== '[Unreleased]' || heading?.[1] !== version) {
+          throw new Error(`CHANGELOG.md must start with [Unreleased], then [${version}] - YYYY-MM-DD`)
+        }
+        const date = new Date(`${heading[2]}T00:00:00Z`)
+        if (Number.isNaN(date.getTime()) || date.toISOString().slice(0, 10) !== heading[2]) {
+          throw new Error('The release date must be a valid calendar date')
+        }
+        if (sections.filter(section => section.heading.startsWith(`[${version}]`)).length !== 1) {
+          throw new Error(`CHANGELOG.md contains duplicate entries for ${version}`)
+        }
+        if (!/^- \S/m.test(latest.notes)) {
+          throw new Error(`Release ${version} must contain changelog entries`)
+        }
+
+        const tag = `platform/v${version}`
+        if (process.env.REJECT_EXISTING_TAG === 'true') {
+          const existing = execFileSync('git', ['tag', '--list', tag], { encoding: 'utf8' }).trim()
+          if (existing) {
+            throw new Error(`${tag} already exists. Update package.json and CHANGELOG.md before promoting to main.`)
+          }
+        }
+
+        const notesPath = join(process.env.RUNNER_TEMP, 'release-notes.md')
+        writeFileSync(notesPath, `${latest.notes}\n`)
+        appendFileSync(process.env.GITHUB_OUTPUT, `version=${version}\ntag=${tag}\nnotes-path=${notesPath}\n`)
+        console.log(`Release metadata valid: ${tag}`)
+        NODE

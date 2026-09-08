@@ -3422,6 +3422,18 @@ export async function createImage(
   // config - the model name passed here is already the provider-side identifier
 
   const modelNameToSizeMap = {
+    'gpt-image-2.5-flare': {
+      '1024x1024': '1024x1024',
+      '1024x1536': '1024x1536',
+      '1536x1024': '1536x1024',
+    },
+
+    'gpt-image-2.5-sunburst': {
+      '1024x1024': '1024x1024',
+      '1024x1536': '1024x1536',
+      '1536x1024': '1536x1024',
+    },
+
     'gpt-image-2': {
       '1024x1024': '1024x1024',
       '1024x1536': '1024x1536',
@@ -3460,6 +3472,8 @@ export async function createImage(
   }
 
   const modelNameToResponseFormatMap = {
+    'gpt-image-2.5-flare': undefined,
+    'gpt-image-2.5-sunburst': undefined,
     'gpt-image-2': undefined,
     'gpt-image-1': undefined,
     'gpt-image-1.5': undefined,
@@ -3590,9 +3604,11 @@ export async function createImage(
       break
     }
 
+    case 'gpt-image-2.5-flare':
+    case 'gpt-image-2.5-sunburst':
     case 'gpt-image-2': {
       usage = {
-        model: 'gpt-image-2',
+        model,
         inputTokens: 0,
         outputTokens: urls.length || 1,
       }
@@ -3724,6 +3740,18 @@ export async function editImage(
   // config - the model name passed here is already the provider-side identifier
 
   const modelNameToSizeMap = {
+    'gpt-image-2.5-flare': {
+      '1024x1024': '1024x1024',
+      '1024x1536': '1024x1536',
+      '1536x1024': '1536x1024',
+    },
+
+    'gpt-image-2.5-sunburst': {
+      '1024x1024': '1024x1024',
+      '1024x1536': '1024x1536',
+      '1536x1024': '1536x1024',
+    },
+
     'gpt-image-2': {
       '1024x1024': '1024x1024',
       '1024x1536': '1024x1536',
@@ -3750,6 +3778,8 @@ export async function editImage(
   }
 
   const modelNameToResponseFormatMap = {
+    'gpt-image-2.5-flare': undefined,
+    'gpt-image-2.5-sunburst': undefined,
     'gpt-image-2': undefined,
     'gpt-image-1': undefined,
     'gpt-image-1.5': undefined,
@@ -3867,9 +3897,11 @@ export async function editImage(
   let usage
 
   switch (model) {
+    case 'gpt-image-2.5-flare':
+    case 'gpt-image-2.5-sunburst':
     case 'gpt-image-2': {
       usage = {
-        model: 'gpt-image-2',
+        model,
         inputTokens: images.length,
         outputTokens: urls.length || 1,
       }

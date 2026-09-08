@@ -2,14 +2,12 @@
 # committed lockfile and type-check cleanly with the public module defaults
 # - the exact environment every fresh checkout gets.
 #
-# Called from three places:
+# Called from two places:
 #   - pull-request.yaml, where it gates every pull request (including forks;
 #     see the security notes there - this workflow uses no secrets and only
 #     ever needs `contents: read`)
 #   - publish-ghcr-platform.yaml, where it gates image publication on `next`
 #     pushes, which land directly without a pull request
-#   - release.yaml, where it gates source tags and GitHub Releases on the
-#     exact main commit, including manual release retries
 
 name: Verify
 

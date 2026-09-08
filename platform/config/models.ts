@@ -7368,8 +7368,66 @@ export const visibleLanguageModels: Record<string, AnyLanguageModel> =
 export const openaiImageModels: Record<string, AnyImageModel> =
   WITH_OPENAI_MODELS
     ? {
+        'gpt-image-2.5-flare': {
+          description: `GPT Image 2.5 Flare is OpenAI's image generation and editing model for fast creative workflows, with improved image fidelity, precise editing, and consistency across multiple edits.`,
+
+          provider: 'openai',
+
+          providerModel: 'gpt-image-2.5-flare',
+
+          family: 'gpt-image',
+
+          features: [],
+
+          pricing: {
+            // @todo-by 2026-09-10 verify Flare pricing and replace temporary GPT Image 2 ratios
+            tokenRatio: 11666.6667,
+            inputTokenRatio: 714.2857,
+            outputTokenRatio: 11666.6667,
+          },
+
+          region: 'us',
+          availableRegions: ['us'],
+
+          visible: true,
+          deprecated: false,
+
+          tags: [],
+
+          addedDate: '2026-09-08',
+        },
+
+        'gpt-image-2.5-sunburst': {
+          description: `GPT Image 2.5 Sunburst is OpenAI's image generation and editing model for detailed creative work, offering greater precision and tighter control across edits with longer generation times.`,
+
+          provider: 'openai',
+
+          providerModel: 'gpt-image-2.5-sunburst',
+
+          family: 'gpt-image',
+
+          features: [],
+
+          pricing: {
+            // @todo-by 2026-09-10 verify Sunburst pricing and replace temporary GPT Image 2 ratios
+            tokenRatio: 11666.6667,
+            inputTokenRatio: 714.2857,
+            outputTokenRatio: 11666.6667,
+          },
+
+          region: 'us',
+          availableRegions: ['us'],
+
+          visible: true,
+          deprecated: false,
+
+          tags: [],
+
+          addedDate: '2026-09-08',
+        },
+
         'gpt-image-2': {
-          description: `GPT Image 2 is OpenAI's latest image generation and editing model. It is a natively multimodal language model that accepts both text and image inputs, and produces image outputs with improved fidelity and editing capabilities.`,
+          description: `GPT Image 2 is OpenAI's image generation and editing model. It is a natively multimodal language model that accepts both text and image inputs, and produces image outputs with improved fidelity and editing capabilities.`,
 
           provider: 'openai',
 

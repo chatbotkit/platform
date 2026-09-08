@@ -124,50 +124,55 @@ To prepare a release:
    for breaking changes and call them out in the notes.
 2. Move the accumulated notes into `## [VERSION] - YYYY-MM-DD`, keeping an empty
    `## [Unreleased]` section above it.
-3. Complete the quality checks for the changes being released. The source
-   release workflow validates the version and changelog on pushes to `next`.
+3. Complete the quality checks for the changes being released. The
+   **Validate release metadata** job of the publication workflow checks the
+   version and changelog on every push to `next` as an early warning; it does
+   not hold back `next` images.
 4. Commit and push the release changes to `next`, then open the promotion pull
    request to `main`. The **Check source release** job checks the changelog and
    rejects a version whose tag already exists.
-5. Merge the promotion pull request. The **Platform Release** workflow
-   requires protected `main` and runs the full verification workflow on that
-   exact merge commit. Only after it passes does the workflow create and push
-   an annotated `platform/vVERSION` tag, using the changelog entry as its
-   annotation. It then publishes a GitHub Release titled `Platform VERSION`
-   against that tag, with the same changelog entry as its release notes.
-   The release page includes GitHub's source ZIP and tarball downloads.
+5. Merge the promotion pull request. The **Publish GHCR Platform** workflow
+   publishes the images and Compose artifacts for that merge commit under the
+   `v` + `VERSION` tag alongside the channel tags, and only once every flavor
+   carries it does the workflow create and push an annotated
+   `platform/vVERSION` tag, using the changelog entry as its annotation. It then
+   publishes a GitHub Release titled `Platform VERSION` against that tag, with
+   the same changelog entry as its release notes. The release page includes
+   GitHub's source ZIP and tarball downloads.
 
 Every promotion to `main` needs an unused version and dated changelog entry.
 Version bumps and notes are prepared in the source before promotion; CI does
 not write commits back to `main` or `next`. Configure **Check source release**
 as a required check in the repository's branch rules to enforce it before merge.
-The release workflow is independent of container image publication.
 
-Release verification installs from the frozen lockfile, builds the shared
-packages, and runs package and application lint, type checks, and tests in a
-fresh checkout. Failed, cancelled, or skipped verification cannot produce a
-tag or GitHub Release. The publishing job also requires a clean checkout at
-the triggering commit. Only that job has repository write permission. Application image builds
-and distribution smoke tests remain in the container publication workflow.
+The promotion pull request inherits the verification of its `next` head, which
+runs on the push to `next`. The merge commit carries the same tree, so the
+release does not verify it again; branch protection is what makes that hold,
+and the release job refuses to run on an unprotected `main`. A promotion that
+changes no build input still gets version-tagged images: the `main` channel
+images were built from the same build inputs, so they are carried under the
+version tag without minting new channel or commit tags.
 
 The same flow applies when a subtree manager pushes this workspace to `next`
 and opens the promotion pull request: the workflow travels inside this
-workspace's `.github/workflows` and runs in the destination repository.
+workspace's `.github` directory and runs in the destination repository.
 
-For a failed run, rerun **Platform Release**, or dispatch it on `main`.
-Manual dispatches pass the same protection and verification gates.
-An existing annotated tag on the same commit is accepted, so retries are safe.
-If the tag was pushed but release creation failed, the retry creates the missing
-GitHub Release. An already published release with matching title and notes is
-accepted; conflicting release metadata fails without overwriting it.
-A tag pointing elsewhere fails the release and is never moved. A manual dispatch
-uses the selected `main` commit; rerun the original job to retry an older merge.
+For a failed run, rerun **Publish GHCR Platform** on the failed run, or
+dispatch it on `main`. Retries are safe: already published images are found by
+their `sha-` tag and retagged, an existing annotated tag on the same commit is
+accepted, and if the tag was pushed but release creation failed, the retry
+creates the missing GitHub Release. An already published release with
+matching title and notes is accepted; conflicting release metadata fails
+without overwriting it. A tag pointing elsewhere fails the release and is never
+moved. A manual dispatch uses the selected `main` commit; rerun the original
+run to retry an older merge.
 
-All release validation and tagging logic lives in the GitHub workflow. There
-are no local release scripts or package commands. The workflow publishes the
-release tag and GitHub Release with its changelog notes. The source downloads
+All release validation, tagging and publication logic lives in the GitHub
+workflows and the shared `release-metadata` action under `.github/actions`.
+There are no local release scripts or package commands. The source downloads
 contain no installed dependencies, compiled application, databases, or container
-images. Package and container publishing remain separate.
+images; those are the version-tagged images and Compose artifacts. Only the
+release job holds a repository write token.
 
 Workflow checks govern tags created by this automation. To restrict direct tag
 pushes as well, configure a repository tag ruleset for `platform/v*`, limiting
