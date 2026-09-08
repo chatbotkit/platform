@@ -6,7 +6,6 @@ import relay from '@chatbotkit-dev/relay'
 
 import { assertTrustedSigninEnv } from '@/lib/auth.trusted'
 import { BANNER } from '@/lib/banner'
-import { startClock } from '@/lib/clock'
 import { warnlog } from '@/lib/debug'
 import { isDevelopment } from '@/lib/env'
 
@@ -20,6 +19,7 @@ export async function register() {
     // @note a hard stop, not a warning: trusted sign-in on a shared deployment
     // opens every account, so a process configured that way must not serve a
     // single request - see lib/auth.trusted.ts
+
     try {
       assertTrustedSigninEnv()
     } catch (e) {
@@ -38,6 +38,7 @@ export async function register() {
     // (lib/auth.providers.ts sendVerificationRequest), and RUNAS_USERID
     // impersonates any account for every session (lib/session.get.js
     // getSession)
+
     if (isDevelopment && process.env.NODE_ENV === 'production') {
       warnlog(
         'WARNING: TARGET_ENV=development on a production build - sign-in rate limits are disabled, sign-in codes are written to the log' +
@@ -50,6 +51,11 @@ export async function register() {
 
     // @note the one place the platform has that outlives a request - see
     // lib/clock.ts.
+    // @note keep the import inside the runtime guard: the clock's queue
+    // dependencies require Node APIs that the Edge compiler cannot resolve
+
+    const { startClock } = await import('@/lib/clock')
+
     startClock()
 
     // @note a relay that is a process rather than a service runs here, in the

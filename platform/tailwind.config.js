@@ -176,7 +176,8 @@ export default {
         // black: 'rgb(13, 17, 23)',
 
         white: '#fdfdfd',
-        black: '#0a0a0a',
+        // black: '#0a0a0a',
+        black: '#121212',
 
         gray: {
           50: colors.zinc[50],
@@ -186,10 +187,15 @@ export default {
           400: colors.zinc[400],
           500: colors.zinc[500],
           600: colors.zinc[600],
-          700: colors.zinc[700],
-          800: colors.zinc[800],
-          900: colors.zinc[900],
-          950: colors.zinc[950],
+          // @note charcoal steps separate the canvas, panels, raised surfaces and borders
+          // 700: colors.zinc[700],
+          // 800: colors.zinc[800],
+          // 900: colors.zinc[900],
+          // 950: colors.zinc[950],
+          700: '#3f3f3f',
+          800: '#2e2e2e',
+          900: '#222222',
+          950: '#181818',
         },
 
         // charts
