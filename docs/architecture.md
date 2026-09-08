@@ -27,8 +27,10 @@ dependency resolution across the application and its packages.
 
 The `next` branch is the development branch, and contributor pull requests
 target it. The `main` branch is the stable release branch and advances through
-a reviewed promotion from `next` after the required checks pass. See
-`CONTRIBUTING.md` for the current contribution workflow.
+a reviewed promotion from `next` after the required checks pass; each
+promotion produces a `platform/v*` source snapshot and a GitHub Release with
+the matching changelog notes. See `CONTRIBUTING.md`
+for the current contribution workflow and release steps.
 
 ## Swappable modules
 
