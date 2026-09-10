@@ -1,4 +1,25 @@
 // @note the suite pins the portal apex independently of deployment data
+// @note a portless production-style site, so the derived portal hosts do not
+// depend on whatever SITE_URL the shell exports
+jest.mock('@/config/site', () => {
+  const siteUrl = 'https://chatbotkit.com'
+
+  return {
+    siteUrl,
+    siteHostname: 'chatbotkit.com',
+    siteHost: 'chatbotkit.com',
+    staticUrl: siteUrl,
+    staticHostname: 'chatbotkit.com',
+    staticHost: 'chatbotkit.com',
+    widgetUrl: siteUrl,
+    widgetHostname: 'chatbotkit.com',
+    widgetHost: 'chatbotkit.com',
+    apiUrl: siteUrl,
+    apiHostname: 'chatbotkit.com',
+    apiHost: 'chatbotkit.com',
+  }
+})
+
 jest.mock('@/config/apexes', () => ({
   __esModule: true,
   portalApex: 'chatbotkit.agency',
@@ -198,5 +219,36 @@ describe('Portal Slug Utilities', () => {
         expect(host).toBe('my-portal_123.chatbotkit.agency')
       })
     })
+  })
+})
+
+describe('getPortalFrontendHost without a portal apex', () => {
+  it('falls back to the site host, port included', async () => {
+    let getPortalFrontendHostWithoutApex
+
+    // @note the suite's top-level apexes mock is already instantiated and
+    // would win over a doMock; a reset lets the isolated load see the new one
+    jest.resetModules()
+
+    jest.isolateModules(() => {
+      jest.doMock('@/config/apexes', () => ({
+        __esModule: true,
+        portalApex: undefined,
+      }))
+      jest.doMock('@/config/site', () => ({
+        siteHost: 'cbk.localhost:3000',
+        siteHostname: 'cbk.localhost',
+        siteUrl: 'http://cbk.localhost:3000',
+      }))
+
+      getPortalFrontendHostWithoutApex =
+        jest.requireActual('@/lib/portal.slug').getPortalFrontendHost
+    })
+
+    // @note the minted name has to be reachable, so it is the site host as
+    // configured - on a Compose stack that carries the port
+    await expect(
+      getPortalFrontendHostWithoutApex({ slug: 'my-portal' })
+    ).resolves.toBe('my-portal.cbk.localhost:3000')
   })
 })

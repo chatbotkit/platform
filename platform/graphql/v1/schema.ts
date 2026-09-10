@@ -32,7 +32,7 @@ import {
   getIntegrationVerification,
 } from '@/lib/integration.verification'
 import { OMIT_NULL, omit, omitNullExcept } from '@/lib/object'
-import { getPortalFrontendHost } from '@/lib/portal.slug'
+import { getPortalFrontendURL } from '@/lib/portal.slug'
 import { getRelatedUsers } from '@/lib/user.relation'
 
 import type {
@@ -1880,7 +1880,7 @@ const Portal = builder.prismaObject('Portal', {
       // domain), so it is resolved here rather than persisted or guessed by
       // clients
       resolve: async (portal) =>
-        portal.slug ? `https://${await getPortalFrontendHost(portal)}` : null,
+        portal.slug ? getPortalFrontendURL(portal) : null,
     }),
     blueprintId: t.exposeString('blueprintId', {
       description: 'The ID of the blueprint associated with the portal',

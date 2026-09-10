@@ -2,7 +2,7 @@
 
 import { memo, useCallback, useEffect, useMemo, useState } from 'react'
 
-import { getExternalAPIHost, getExternalAPIHostURL } from '@/lib/host'
+import useExternalAPIURL from '@/hooks/useExternalAPIURL'
 import { LuBookMarked, LuCopy, LuRefreshCcw, LuSearch } from 'react-icons/lu'
 
 import toast from '@/lib/toast'
@@ -238,6 +238,8 @@ function Section({ title, badge, children }) {
 }
 
 function Inspector({ operation, loading }) {
+  const getAPIURL = useExternalAPIURL()
+
   if (!operation) {
     return (
       <div className="flex min-w-0 flex-1 items-center justify-center p-8 text-center font-mono text-xs text-gray-400">
@@ -272,7 +274,7 @@ function Inspector({ operation, loading }) {
             /v1{operation.path}
           </code>
           <CopyButton
-            text={getExternalAPIHostURL(`/v1${operation.path}`)}
+            text={getAPIURL(`/v1${operation.path}`)}
             message="Endpoint URL copied to your clipboard"
             className="tag hover:tag-darker ml-auto inline-flex h-6 shrink-0 cursor-pointer items-center gap-1.5 px-2 text-[11px] leading-none"
           >
@@ -608,7 +610,8 @@ function CodeTabs({ tabs, activeTab, setActiveTab }) {
 function RequestCodeBlock({ requestSchema, method, path }) {
   const tabs = ['Node', 'Go', 'JavaScript', 'cURL', 'HTTP']
   const [activeTab, setActiveTab] = useState(tabs[0])
-  const url = getExternalAPIHostURL(`/v1${path}`)
+  const getAPIURL = useExternalAPIURL()
+  const url = getAPIURL(`/v1${path}`)
 
   function generateCurl(body) {
     return [
@@ -628,9 +631,11 @@ function RequestCodeBlock({ requestSchema, method, path }) {
   }
 
   function generateHttp(body) {
+    const endpoint = new URL(url)
+
     return [
-      `${method.toUpperCase()} /v1${path} HTTP/1.1`,
-      `Host: ${getExternalAPIHost()}`,
+      `${method.toUpperCase()} ${endpoint.pathname}${endpoint.search} HTTP/1.1`,
+      `Host: ${endpoint.host}`,
       'Authorization: Bearer CBK_API_SECRET',
       ...(method !== 'get'
         ? ['Content-Type: application/json', '', toPrettyJson(body)]
@@ -668,7 +673,8 @@ function RequestCodeBlock({ requestSchema, method, path }) {
       "import { ChatBotKit } from '@chatbotkit/sdk'",
       '',
       'const cbk = new ChatBotKit({',
-      '  secret: process.env.CHATBOTKIT_API_KEY!',
+      '  secret: process.env.CHATBOTKIT_API_KEY!,',
+      `  baseUrl: ${JSON.stringify(new URL(url).origin)},`,
       '})',
       '',
       `const response = await cbk.${methodChain}(`,
@@ -704,6 +710,7 @@ function RequestCodeBlock({ requestSchema, method, path }) {
       '',
       'client := sdk.New(sdk.Options{',
       '  Secret: os.Getenv("CHATBOTKIT_API_KEY"),',
+      `  BaseURL: ${JSON.stringify(new URL(url).origin)},`,
       '})',
       '',
       `response, err := client.${clientChain}(ctx${

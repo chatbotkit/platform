@@ -1,6 +1,6 @@
 import { resolveBuilderExperience } from '@/lib/experience'
 
-import { getDocumentHostname } from '@/hooks/useHostname'
+import { getDocumentHost } from '@/hooks/useHost'
 import { getPartnerFromDocument } from '@/hooks/usePartner'
 
 import template from '@/templates/onboarding'
@@ -9,8 +9,8 @@ jest.mock('@/lib/experience', () => ({
   resolveBuilderExperience: jest.fn(),
 }))
 
-jest.mock('@/hooks/useHostname', () => ({
-  getDocumentHostname: jest.fn(),
+jest.mock('@/hooks/useHost', () => ({
+  getDocumentHost: jest.fn(),
 }))
 
 jest.mock('@/hooks/usePartner', () => ({
@@ -26,7 +26,7 @@ describe('onboarding template', () => {
     delete window.location
     window.location = { href: '', hostname: 'chatbotkit.com' }
 
-    getDocumentHostname.mockReturnValue('chatbotkit.com')
+    getDocumentHost.mockReturnValue('chatbotkit.com')
     getPartnerFromDocument.mockReturnValue(null)
     resolveBuilderExperience.mockReturnValue(true)
 
@@ -48,7 +48,7 @@ describe('onboarding template', () => {
 
     it('skips the intent step on the platform experience', () => {
       resolveBuilderExperience.mockReturnValue(false)
-      getDocumentHostname.mockReturnValue('platform.example.com')
+      getDocumentHost.mockReturnValue('platform.example.com')
 
       expect(template.steps).toEqual([
         ':disabled',
@@ -64,7 +64,7 @@ describe('onboarding template', () => {
     })
 
     it('resolves the experience a partner pins over the hostname', () => {
-      getDocumentHostname.mockReturnValue('backend.acme.dev')
+      getDocumentHost.mockReturnValue('backend.acme.dev')
       getPartnerFromDocument.mockReturnValue({
         name: 'AgenticOS',
         experience: 'builder',
@@ -161,6 +161,25 @@ describe('onboarding template', () => {
           fetch: fetchMock,
         })
       ).rejects.toThrow('update failed')
+    })
+  })
+})
+
+describe('onboarding template on a host that carries a port', () => {
+  it('resolves the experience by hostname', () => {
+    jest.clearAllMocks()
+
+    resolveBuilderExperience.mockReturnValue(false)
+    getPartnerFromDocument.mockReturnValue(null)
+    getDocumentHost.mockReturnValue('platform.example.com:3000')
+
+    template.steps
+
+    // @note the document carries the host; the experience table is keyed by
+    // hostname
+    expect(resolveBuilderExperience).toHaveBeenCalledWith({
+      partnerExperience: undefined,
+      hostname: 'platform.example.com',
     })
   })
 })

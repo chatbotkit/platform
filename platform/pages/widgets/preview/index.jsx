@@ -55,7 +55,7 @@ export function PreviewInput({ className, ...props }) {
         if (input.startsWith('http')) {
           const url = new URL(input)
 
-          location = url.hostname + url.pathname
+          location = url.host + url.pathname
         } else {
           location = input
         }

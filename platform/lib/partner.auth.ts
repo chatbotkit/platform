@@ -28,16 +28,16 @@ const EmailProvider: typeof EmailProviderType =
     .default ?? (_EmailProvider as unknown as typeof EmailProviderType)
 
 export async function getPartnerAuthInitialAdapter(
-  host: string
+  hostname: string
 ): Promise<AuthOptions['adapter']> {
-  debug(`getPartnerAuthInitialAdapter`, { host }).log(
+  debug(`getPartnerAuthInitialAdapter`, { hostname }).log(
     'partner.auth.getPartnerAuthInitialAdapter'
   )
 
-  const slug = getPartnerSlugFromHostname(host)
+  const slug = getPartnerSlugFromHostname(hostname)
 
   if (!slug) {
-    debug(`partner not found`, { host }).log(
+    debug(`partner not found`, { hostname }).log(
       'partner.auth.getPartnerAuthInitialAdapter'
     )
 
@@ -47,7 +47,7 @@ export async function getPartnerAuthInitialAdapter(
   // @note validate slug doesn't contain unexpected characters or data
 
   if (!/^[a-zA-Z0-9-]+$/.test(slug)) {
-    debug(`invalid slug format`, { host, slug }).log(
+    debug(`invalid slug format`, { hostname, slug }).log(
       'portal.auth.getPortalAuthInitialAdapter'
     )
 
@@ -267,16 +267,16 @@ export async function getPartnerAuthInitialAdapter(
 }
 
 export async function getPartnerAuthProviders(
-  host: string
+  hostname: string
 ): Promise<AuthOptions['providers']> {
-  debug(`getPartnerAuthProviders`, { host }).log(
+  debug(`getPartnerAuthProviders`, { hostname }).log(
     'partner.auth.getPartnerAuthProviders'
   )
 
-  const slug = getPartnerSlugFromHostname(host)
+  const slug = getPartnerSlugFromHostname(hostname)
 
   if (!slug) {
-    debug(`partner not found`, { host }).log(
+    debug(`partner not found`, { hostname }).log(
       'partner.auth.getPartnerAuthProviders'
     )
 
@@ -395,9 +395,9 @@ export async function getPartnerAuthProviders(
 }
 
 export async function getPartnerAuthInitialCallbacks(
-  host: string
+  hostname: string
 ): Promise<AuthOptions['callbacks']> {
-  debug(`getPartnerAuthInitialCallbacks`, { host }).log(
+  debug(`getPartnerAuthInitialCallbacks`, { hostname }).log(
     'partner.auth.getPartnerAuthInitialCallbacks'
   )
 

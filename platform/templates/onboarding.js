@@ -1,7 +1,8 @@
 // @ts-check
 import { resolveBuilderExperience } from '@/lib/experience'
+import { hostToHostname } from '@/lib/host.parse'
 
-import { getDocumentHostname } from '@/hooks/useHostname'
+import { getDocumentHost } from '@/hooks/useHost'
 import { getPartnerFromDocument } from '@/hooks/usePartner'
 
 const allSteps = [
@@ -37,7 +38,7 @@ export const template = {
 
     const builder = resolveBuilderExperience({
       partnerExperience: getPartnerFromDocument()?.experience,
-      hostname: getDocumentHostname(),
+      hostname: hostToHostname(getDocumentHost()),
     })
 
     if (builder) {

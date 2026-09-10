@@ -809,3 +809,49 @@ describe('call', () => {
     })
   })
 })
+
+describe('Pipedream relative apps on a host that carries a port', () => {
+  it('folds the target down to its path by hostname', async () => {
+    const mockFetch = jest.requireMock('@/lib/fetch').default
+    const mockTryVerify = jest.requireMock('@/lib/jwt').tryVerify
+    const mockTtlCache = jest.requireMock('@/lib/cache').ttlCache
+    const { decode } = jest.requireActual('@/lib/b64')
+
+    mockFetch.mockResolvedValue(new Response('OK', { status: 200 }))
+    mockTtlCache.mockImplementation((key, ttl, fn) => fn())
+    mockTryVerify.mockResolvedValue({
+      type: 'pipedream_access_token',
+      projectId: 'test-project-id',
+      externalUserId: 'user-123',
+      accountId: 'account-456',
+      secretId: 'secret-789',
+      environment: 'production',
+    })
+
+    prisma.secret.findUnique = jest.fn().mockResolvedValue({
+      id: 'secret-789',
+      name: 'Test Secret',
+    })
+    jest
+      .requireMock('@/lib/secret.oauth')
+      .getSecretOAuthConfig.mockResolvedValue({
+        clientId: 'test-client-id',
+        clientSecret: 'test-client-secret',
+      })
+    jest
+      .requireMock('@/lib/oauth.authorization')
+      .getClientCredentialsGrantCredentials.mockResolvedValue({
+        accessToken: 'pipedream-access-token',
+      })
+
+    await call('https://acme.zendesk.com:8443/api/v2/tickets?x=1', {
+      headers: { authorization: 'Bearer jwt.token' },
+    })
+
+    const calledUrl = mockFetch.mock.calls[0][0]
+    const encoded = calledUrl.pathname.split('/proxy/')[1]
+
+    // @note a port on the target does not make it a foreign host
+    expect(decode(encoded)).toBe('/api/v2/tickets?x=1')
+  })
+})

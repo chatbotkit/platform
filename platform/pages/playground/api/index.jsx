@@ -352,6 +352,7 @@ export default function Index() {
 
     url.protocol = window.location.protocol
     url.hostname = window.location.hostname
+    url.port = window.location.port
 
     if (!url.pathname.startsWith('/api')) {
       url.pathname = `/api${url.pathname}`

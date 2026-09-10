@@ -23,6 +23,7 @@ import { getRootDomain } from '@/lib/domain'
 import { captureError } from '@/lib/error'
 import { logAudit } from '@/lib/log'
 import memcache from '@/lib/memcache'
+import { hostToHostname } from '@/lib/host.parse'
 import { notifyEmailLogin } from '@/lib/notify'
 import { getPortalGlobalConfig } from '@/lib/portal.config'
 import {
@@ -55,16 +56,16 @@ function userInPortalConfigs(
 }
 
 export async function getPortalAuthInitialAdapter(
-  host: string
+  hostname: string
 ): Promise<AuthOptions['adapter']> {
-  debug(`getPortalAuthInitialAdapter`, { host }).log(
+  debug(`getPortalAuthInitialAdapter`, { hostname }).log(
     'portal.auth.getPortalAuthInitialAdapter'
   )
 
-  const slug = getPortalSlugFromHostname(host)
+  const slug = getPortalSlugFromHostname(hostname)
 
   if (!slug) {
-    debug(`portal not found`, { host }).log(
+    debug(`portal not found`, { hostname }).log(
       'portal.auth.getPortalAuthInitialAdapter'
     )
 
@@ -74,7 +75,7 @@ export async function getPortalAuthInitialAdapter(
   // @note validate slug doesn't contain unexpected characters or data
 
   if (!/^[a-zA-Z0-9-]+$/.test(slug)) {
-    debug(`invalid slug format`, { host, slug }).log(
+    debug(`invalid slug format`, { hostname, slug }).log(
       'portal.auth.getPortalAuthInitialAdapter'
     )
 
@@ -92,7 +93,7 @@ export async function getPortalAuthInitialAdapter(
   } catch (error) {
     // @note catch Prisma errors and log for debugging
 
-    debug(`prisma error finding portal`, { host, slug, error }).log(
+    debug(`prisma error finding portal`, { hostname, slug, error }).log(
       'portal.auth.getPortalAuthInitialAdapter'
     )
 
@@ -102,7 +103,7 @@ export async function getPortalAuthInitialAdapter(
   }
 
   if (!portal) {
-    debug(`portal not found`, { host }).log(
+    debug(`portal not found`, { hostname }).log(
       'portal.auth.getPortalAuthInitialAdapter'
     )
 
@@ -370,16 +371,16 @@ export async function getPortalAuthInitialAdapter(
 }
 
 export async function getPortalAuthProviders(
-  host: string
+  hostname: string
 ): Promise<AuthOptions['providers']> {
-  debug(`getPortalAuthProviders`, { host }).log(
+  debug(`getPortalAuthProviders`, { hostname }).log(
     'portal.auth.getPortalAuthProviders'
   )
 
-  const slug = getPortalSlugFromHostname(host)
+  const slug = getPortalSlugFromHostname(hostname)
 
   if (!slug) {
-    debug(`portal not found`, { host }).log(
+    debug(`portal not found`, { hostname }).log(
       'portal.auth.getPortalAuthProviders'
     )
 
@@ -388,7 +389,7 @@ export async function getPortalAuthProviders(
 
   // @note validate slug doesn't contain unexpected characters or data
   if (!/^[a-zA-Z0-9-]+$/.test(slug)) {
-    debug(`invalid slug format`, { host, slug }).log(
+    debug(`invalid slug format`, { hostname, slug }).log(
       'portal.auth.getPortalAuthProviders'
     )
 
@@ -405,7 +406,7 @@ export async function getPortalAuthProviders(
     })
   } catch (error) {
     // @note catch Prisma errors and log for debugging
-    debug(`prisma error finding portal`, { host, slug, error }).log(
+    debug(`prisma error finding portal`, { hostname, slug, error }).log(
       'portal.auth.getPortalAuthProviders'
     )
 
@@ -415,7 +416,7 @@ export async function getPortalAuthProviders(
   }
 
   if (!portal) {
-    debug(`portal not found`, { host }).log(
+    debug(`portal not found`, { hostname }).log(
       'portal.auth.getPortalAuthProviders'
     )
 
@@ -481,7 +482,11 @@ export async function getPortalAuthProviders(
         if (process.env.SKIP_VERIFICATION_REQUEST) {
           log(`skipping verification request`)
         } else {
-          const effectiveHost = getRootDomain(getContextFrontendHost() || host)
+          // @note the frontend host may carry a port; the domain parser wants
+          // a hostname
+          const effectiveHost = getRootDomain(
+            hostToHostname(getContextFrontendHost()) || hostname
+          )
 
           const sidebar =
             typeof portalConfig?.layout?.sidebar === 'object'
@@ -555,9 +560,9 @@ export async function getPortalAuthProviders(
 }
 
 export async function getPortalAuthInitialCallbacks(
-  host: string
+  hostname: string
 ): Promise<AuthOptions['callbacks']> {
-  debug(`getPortalAuthInitialCallbacks`, { host }).log(
+  debug(`getPortalAuthInitialCallbacks`, { hostname }).log(
     'portal.auth.getPortalAuthInitialCallbacks'
   )
 

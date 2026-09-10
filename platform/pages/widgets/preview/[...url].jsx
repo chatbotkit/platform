@@ -6,7 +6,8 @@ import Head from 'next/head'
 
 import { assertUnreachable } from '@chatbotkit-dev/typescript-utils/unreachable'
 
-import { siteHostname } from '@/config/site'
+import { siteHost } from '@/config/site'
+import { getExternalFrontendHostURL } from '@/lib/host'
 
 import demos from '@/data/demos.yaml'
 
@@ -846,12 +847,12 @@ export async function getServerSideProps(context) {
     }
 
     const frontendHost =
-      getContextFrontendHost() || getContextRequestHost() || siteHostname
+      getContextFrontendHost() || getContextRequestHost() || siteHost
 
     if (capture) {
       const url = new URL(
         context.resolvedUrl.replace('/capture/', '/'),
-        `https://${frontendHost}`
+        getExternalFrontendHostURL('/', frontendHost)
       )
 
       url.searchParams.set('layout', 'fullscreen')
@@ -872,7 +873,7 @@ export async function getServerSideProps(context) {
     if (screenshot) {
       const url = new URL(
         context.resolvedUrl.replace('/screenshot/', '/'),
-        `https://${frontendHost}`
+        getExternalFrontendHostURL('/', frontendHost)
       )
 
       url.searchParams.set('layout', 'fullscreen')
@@ -893,7 +894,7 @@ export async function getServerSideProps(context) {
     if (card) {
       const url = new URL(
         context.resolvedUrl.replace('/card/', '/'),
-        `https://${frontendHost}`
+        getExternalFrontendHostURL('/', frontendHost)
       )
 
       url.searchParams.set('layout', 'default')

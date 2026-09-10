@@ -25,7 +25,7 @@ jest.mock('@/lib/context.store', () => ({
 }))
 jest.mock('@/lib/method', () => ({ withAny: (fn) => fn }))
 jest.mock('@/lib/partner.auth', () => ({}))
-jest.mock('@/lib/partner.helpers', () => ({ isPartnerHost: () => false }))
+jest.mock('@/lib/partner.helpers', () => ({ isPartnerHostname: () => false }))
 jest.mock('@/lib/portal.auth', () => ({ getPortalAuthProviders: jest.fn() }))
 jest.mock('@/lib/portal.hostname', () => ({ isPortalHostname: jest.fn(() => false) }))
 
@@ -197,5 +197,33 @@ describe('auth surface dispatch host', () => {
     await expect(getProviders('zelektro.glimps.group')).resolves.toEqual([])
 
     expect(getPortalAuthProviders).not.toHaveBeenCalled()
+  })
+})
+
+describe('auth surface dispatch on a host that carries a port', () => {
+  beforeEach(() => {
+    jest.clearAllMocks()
+  })
+
+  it('dispatches portal providers by hostname', async () => {
+    const portalProviders = [{ id: 'email' }]
+
+    isPortalHostname.mockImplementation(
+      (hostname) => hostname === 'zelektro-glimps-group.chatbotkit.agency'
+    )
+    getPortalAuthProviders.mockResolvedValue(portalProviders)
+
+    // @note the dispatch host is the Host header, port included; portal
+    // identity is a hostname
+    await expect(
+      getProviders('zelektro-glimps-group.chatbotkit.agency:3000')
+    ).resolves.toBe(portalProviders)
+
+    expect(isPortalHostname).toHaveBeenCalledWith(
+      'zelektro-glimps-group.chatbotkit.agency'
+    )
+    expect(getPortalAuthProviders).toHaveBeenCalledWith(
+      'zelektro-glimps-group.chatbotkit.agency'
+    )
   })
 })

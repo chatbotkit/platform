@@ -10,7 +10,7 @@ import Image from '@/components/Image'
 import Link from '@/components/Link'
 import YoutubePlayer from '@/components/YoutubePlayer'
 
-import useHostname from '@/hooks/useHostname'
+import { useHostname } from '@/hooks/useHost'
 
 import clsx from 'clsx'
 import rehypeRaw from 'rehype-raw'

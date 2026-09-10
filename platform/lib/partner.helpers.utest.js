@@ -4,11 +4,12 @@ jest.mock('@/config/apexes', () => ({
   partnersApex: 'chatbotkit.partners',
 }))
 
+import { hostToHostname } from '@/lib/host.parse'
 import {
   getPartnerByHostname,
   getPartnerByIdentifier,
   getPartnerSlugFromHostname,
-  isPartnerHost,
+  isPartnerHostname,
 } from '@/lib/partner.helpers'
 
 jest.mock('@chatbotkit-dev/partners', () => ({
@@ -284,67 +285,67 @@ describe('partner helper functions', () => {
     })
   })
 
-  describe('isPartnerHost', () => {
+  describe('isPartnerHostname', () => {
     describe('valid partner hosts', () => {
       it('should return true for valid partner hostname', () => {
-        expect(isPartnerHost('aperture.chatbotkit.partners')).toBe(true)
+        expect(isPartnerHostname('aperture.chatbotkit.partners')).toBe(true)
       })
 
       it('should return true for different partner hostname', () => {
-        expect(isPartnerHost('faro.chatbotkit.partners')).toBe(true)
+        expect(isPartnerHostname('faro.chatbotkit.partners')).toBe(true)
       })
 
       it('should return true for test partner hostname', () => {
-        expect(isPartnerHost('testpartner.chatbotkit.partners')).toBe(true)
+        expect(isPartnerHostname('testpartner.chatbotkit.partners')).toBe(true)
       })
 
       it('should return true for custom partner domain', () => {
-        expect(isPartnerHost('backend.acme.dev')).toBe(true)
+        expect(isPartnerHostname('backend.acme.dev')).toBe(true)
       })
     })
 
     describe('invalid hosts', () => {
       it('should return false for non-partner hostname', () => {
-        expect(isPartnerHost('example.com')).toBe(false)
+        expect(isPartnerHostname('example.com')).toBe(false)
       })
 
       it('should return false for chatbotkit.com', () => {
-        expect(isPartnerHost('www.chatbotkit.com')).toBe(false)
+        expect(isPartnerHostname('www.chatbotkit.com')).toBe(false)
       })
 
       it('should return false for empty string', () => {
-        expect(isPartnerHost('')).toBe(false)
+        expect(isPartnerHostname('')).toBe(false)
       })
 
       it('should return false for non-existent partner', () => {
-        expect(isPartnerHost('nonexistent.chatbotkit.partners')).toBe(false)
+        expect(isPartnerHostname('nonexistent.chatbotkit.partners')).toBe(false)
       })
 
       it('should return false for hostname with wrong TLD', () => {
-        expect(isPartnerHost('aperture.chatbotkit.com')).toBe(false)
+        expect(isPartnerHostname('aperture.chatbotkit.com')).toBe(false)
       })
 
       it('should return false for malformed hostname', () => {
-        expect(isPartnerHost('not-a-hostname')).toBe(false)
+        expect(isPartnerHostname('not-a-hostname')).toBe(false)
       })
     })
 
     describe('edge cases', () => {
       it('should return false for hostname with multiple subdomains', () => {
-        expect(isPartnerHost('sub.aperture.chatbotkit.partners')).toBe(false)
+        expect(isPartnerHostname('sub.aperture.chatbotkit.partners')).toBe(false)
       })
 
       it('should return false for hostname with port', () => {
-        expect(isPartnerHost('aperture.chatbotkit.partners:8080')).toBe(false)
+        expect(isPartnerHostname('aperture.chatbotkit.partners:8080')).toBe(false)
       })
 
       it('should return false for uppercase hostname', () => {
-        expect(isPartnerHost('APERTURE.chatbotkit.partners')).toBe(false)
+        expect(isPartnerHostname('APERTURE.chatbotkit.partners')).toBe(false)
       })
 
       it('should throw for null-ish values', () => {
-        expect(() => isPartnerHost(null)).toThrow()
-        expect(() => isPartnerHost(undefined)).toThrow()
+        expect(() => isPartnerHostname(null)).toThrow()
+        expect(() => isPartnerHostname(undefined)).toThrow()
       })
     })
 
@@ -352,7 +353,7 @@ describe('partner helper functions', () => {
       it('should return same result as checking slug !== null', () => {
         const hostname = 'aperture.chatbotkit.partners'
         const hasSlug = getPartnerSlugFromHostname(hostname) !== null
-        const isPartner = isPartnerHost(hostname)
+        const isPartner = isPartnerHostname(hostname)
 
         expect(isPartner).toBe(hasSlug)
       })
@@ -360,7 +361,7 @@ describe('partner helper functions', () => {
       it('should be consistent for invalid hostname', () => {
         const hostname = 'invalid.example.com'
         const hasSlug = getPartnerSlugFromHostname(hostname) !== null
-        const isPartner = isPartnerHost(hostname)
+        const isPartner = isPartnerHostname(hostname)
 
         expect(isPartner).toBe(hasSlug)
         expect(isPartner).toBe(false)
@@ -369,7 +370,7 @@ describe('partner helper functions', () => {
       it('should be consistent for non-existent partner', () => {
         const hostname = 'nonexistent.chatbotkit.partners'
         const hasSlug = getPartnerSlugFromHostname(hostname) !== null
-        const isPartner = isPartnerHost(hostname)
+        const isPartner = isPartnerHostname(hostname)
 
         expect(isPartner).toBe(hasSlug)
         expect(isPartner).toBe(false)
@@ -400,8 +401,13 @@ describe('partner helper functions', () => {
       })
     })
 
-    it('should handle hostname with port', async () => {
-      const partner = await getPartnerByHostname('backend.acme.dev:443')
+    it('takes a hostname - callers reduce a host first', async () => {
+      // @note a host is not a hostname; passed as-is nothing matches
+      expect(await getPartnerByHostname('backend.acme.dev:443')).toBeNull()
+
+      const partner = await getPartnerByHostname(
+        hostToHostname('backend.acme.dev:443')
+      )
 
       expect(partner).toEqual({
         id: 'cm4ts8opg1i9euawcdv8ewj70',

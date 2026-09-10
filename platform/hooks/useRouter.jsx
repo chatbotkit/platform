@@ -1,4 +1,4 @@
-/* eslint-disable custom-eslint-rules/no-restricted-client-imports -- href resolution seam - the runtime hostname overlays via useHostname; the constants are the fallback */
+/* eslint-disable custom-eslint-rules/no-restricted-client-imports -- href resolution seam - the runtime host overlays via useHost; the constants are the fallback */
 
 /* eslint-disable custom-eslint-rules/require-custom-use-router */
 import { useCallback, useMemo } from 'react'
@@ -19,14 +19,15 @@ import {
   isAppPathname,
 } from '@/lib/app.helpers'
 import { getExternalFrontendHostURL } from '@/lib/host'
-import { tryDomain } from '@/lib/url'
+import { hostToHostname } from '@/lib/host.parse'
+import { tryHostname } from '@/lib/url'
 
 import {
-  useAppSlugToHostnameMap,
-  useAudienceHostname,
-  useCookieHostname,
-  useSiteHostname,
-} from '@/hooks/useHostname'
+  useAppSlugToHostMap,
+  useAudienceHost,
+  useCookieHost,
+  useSiteHost,
+} from '@/hooks/useHost'
 
 import i18n from '@/i18n.config'
 import base from '@/next.config.d/base.config'
@@ -37,17 +38,37 @@ const TRANSFERRED_QUERY_KEYS = ['_supertools', '_widget', '_experience']
 
 // --- Helpers ---
 
-function appendTransferredQueryOptions(href, searchParams) {
+/**
+ * The parsed form of an absolute href, null for anything else.
+ *
+ * @param {unknown} href
+ * @returns {URL|null}
+ */
+function parseAbsoluteHref(href) {
+  if (typeof href !== 'string' || !/^[a-z][a-z\d+.-]*:/i.test(href)) {
+    return null
+  }
+
+  try {
+    return new URL(href)
+  } catch {
+    return null
+  }
+}
+
+function appendTransferredQueryOptions(href, searchParams, ownOrigins = []) {
   if (!href || typeof href !== 'string') {
     return href
   }
 
-  if (/^[a-z][a-z\d+.-]*:/i.test(href) && !href.startsWith('https://')) {
-    return href
-  }
+  // @note an absolute href only carries the options over when it stays on the
+  // origin the page is served on; foreign origins get the href untouched
+  if (/^[a-z][a-z\d+.-]*:/i.test(href)) {
+    const parsed = parseAbsoluteHref(href)
 
-  if (href.startsWith('https://') && (!siteUrl || !href.startsWith(siteUrl))) {
-    return href
+    if (!parsed || !ownOrigins.includes(parsed.origin)) {
+      return href
+    }
   }
 
   const transferEntries = TRANSFERRED_QUERY_KEYS.flatMap((key) => {
@@ -115,6 +136,7 @@ function appendTransferredQueryOptions(href, searchParams) {
  *   isFallback: boolean,
  *   isReady: boolean,
  *   isPreview: boolean,
+ *   host: string,
  *   hostname: string,
  *   isSite: boolean,
  *   isAppHostname: boolean,
@@ -143,15 +165,29 @@ export default function useRouter() {
     }
   }
 
-  const cookieHostname = useCookieHostname()
-  const audienceHostname = useAudienceHostname()
-  const siteHostnameRuntime = useSiteHostname()
+  // @note these are hosts - port included - as the data-* attributes and the
+  // host cookie carry them; the app tables hold hosts too and are looked up
+  // by hostname
+
+  const cookieHost = useCookieHost()
+  const audienceHost = useAudienceHost()
+  const siteHostRuntime = useSiteHost()
+
+  const host = cookieHost || audienceHost
+  const hostname = hostToHostname(host)
+
+  // @note the origin the page is served on, known once the host is - the
+  // configured site url is not "own" on a shell, portal or partner host
+  const ownOrigins = useMemo(
+    () => (host ? [new URL(getExternalFrontendHostURL('/', host)).origin] : []),
+    [host]
+  )
 
   // @note the build-time hostname table reads server-only environment, so in
   // the browser it carries no apex hosts - the runtime overlay keeps app and
   // portal hosts recognisable after hydration
 
-  const hostnameMap = useAppSlugToHostnameMap()
+  const hostMap = useAppSlugToHostMap()
 
   // @note only force an absolute http:// href up to https when the current
   // page is actually served over https. On an http deployment (local /
@@ -167,16 +203,16 @@ export default function useRouter() {
       : siteUrl.startsWith('https://')
 
   const appSlug = useMemo(() => {
-    if (isAppHostname(cookieHostname, hostnameMap)) {
-      return getAppSlugByHostname(cookieHostname, hostnameMap)
-    }
+    for (const candidate of [cookieHost, audienceHost]) {
+      const candidateHostname = hostToHostname(candidate)
 
-    if (isAppHostname(audienceHostname, hostnameMap)) {
-      return getAppSlugByHostname(audienceHostname, hostnameMap)
+      if (isAppHostname(candidateHostname, hostMap)) {
+        return getAppSlugByHostname(candidateHostname, hostMap)
+      }
     }
 
     return null
-  }, [cookieHostname, audienceHostname, hostnameMap])
+  }, [cookieHost, audienceHost, hostMap])
 
   const normalizeHref = useCallback(
     (href) => {
@@ -211,9 +247,9 @@ export default function useRouter() {
         }
       }
 
-      return appendTransferredQueryOptions(result, searchParams)
+      return appendTransferredQueryOptions(result, searchParams, ownOrigins)
     },
-    [isSecure, pathname, searchParams]
+    [isSecure, pathname, searchParams, ownOrigins]
   )
 
   const resolveHref = useCallback(
@@ -242,7 +278,7 @@ export default function useRouter() {
             }
 
             if (!APP_TYPES.includes(appSlug)) {
-              for (const slug of Object.keys(hostnameMap)) {
+              for (const slug of Object.keys(hostMap)) {
                 const lookup = `/${slug}`
 
                 if (result === lookup) {
@@ -262,12 +298,13 @@ export default function useRouter() {
             }
           }
         } else {
-          if (result?.startsWith?.(siteUrl)) {
-            result = result.slice(siteUrl.length)
+          // @note an absolute href on the page's own origin is a relative
+          // transition - compared as origins, so a look-alike host or a
+          // different port never gets its prefix cut off
+          const parsed = parseAbsoluteHref(result)
 
-            if (!result) {
-              result = '/'
-            }
+          if (parsed && ownOrigins.includes(parsed.origin)) {
+            result = `${parsed.pathname}${parsed.search}${parsed.hash}` || '/'
           }
         }
       }
@@ -286,38 +323,40 @@ export default function useRouter() {
         }
       }
 
-      return appendTransferredQueryOptions(result, searchParams)
+      return appendTransferredQueryOptions(result, searchParams, ownOrigins)
     },
-    [appSlug, isSecure, pathname, searchParams, hostnameMap]
+    [appSlug, isSecure, pathname, searchParams, hostMap, ownOrigins]
   )
 
   const absoluteHref = useCallback(
     (href) => {
-      return getExternalFrontendHostURL(
-        normalizeHref(href),
-        cookieHostname || audienceHostname || undefined
-      )
+      return getExternalFrontendHostURL(normalizeHref(href), host || undefined)
     },
-    [normalizeHref, cookieHostname, audienceHostname]
+    [normalizeHref, host]
   )
 
   const isKnownHref = useCallback(
     (href) => {
-      const domain = tryDomain(href)
+      // @note compare hostnames, not registrable domains: the domain of
+      // apps.chatbotkit.com is chatbotkit.com, so an app host only ever
+      // matched through the site entry, and never on its own
+      const hostname = tryHostname(href)
 
-      if (!domain) {
+      if (!hostname) {
         return false
       }
 
-      const knownHostnames = Object.values(hostnameMap).concat([
-        siteHostnameRuntime,
-      ])
+      const knownHostnames = Object.values(hostMap)
+        .concat([siteHostRuntime])
+        .map(hostToHostname)
 
       return knownHostnames.some((knownHostname) => {
-        return domain === knownHostname || domain.endsWith(`.${knownHostname}`)
+        return (
+          hostname === knownHostname || hostname.endsWith(`.${knownHostname}`)
+        )
       })
     },
-    [siteHostnameRuntime, hostnameMap]
+    [siteHostRuntime, hostMap]
   )
 
   const compareHref = useCallback(
@@ -434,20 +473,26 @@ export default function useRouter() {
             return value
           }
 
+          case 'host': {
+            let value = host
+
+            return value
+          }
+
           case 'hostname': {
-            let value = cookieHostname
+            let value = hostname
 
             return value
           }
 
           case 'isSite': {
-            let value = cookieHostname === siteHostnameRuntime
+            let value = host === siteHostRuntime
 
             return value
           }
 
           case 'isAppHostname': {
-            let value = isAppHostname(cookieHostname || '', hostnameMap)
+            let value = isAppHostname(hostname, hostMap)
 
             return value
           }
@@ -515,11 +560,13 @@ export default function useRouter() {
 
     pathname,
 
-    cookieHostname,
+    host,
 
-    siteHostnameRuntime,
+    hostname,
 
-    hostnameMap,
+    siteHostRuntime,
+
+    hostMap,
 
     normalizeHref,
     resolveHref,

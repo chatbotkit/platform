@@ -17,7 +17,7 @@ import FOC from '@/components/FOC'
 import Portal from '@/components/Portal'
 
 import useDashboardWidgetSend from '@/hooks/useDashboardWidgetSend'
-import { useApexHostURL, usePortalApex } from '@/hooks/useHostname'
+import { useApexHostURL, usePortalApex } from '@/hooks/useHost'
 import useTeamSwitch from '@/hooks/useTeamSwitch'
 import useUserSwitch from '@/hooks/useUserSwitch'
 

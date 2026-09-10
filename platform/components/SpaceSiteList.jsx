@@ -8,7 +8,7 @@ import { useConfirmDelete } from '@/components/Confirm'
 import List from '@/components/List'
 
 import useFetch from '@/hooks/useFetch'
-import { useApexHostURL, useSpaceApex } from '@/hooks/useHostname'
+import { useApexHostURL, useSpaceApex } from '@/hooks/useHost'
 import usePopup from '@/hooks/usePopup'
 
 /**

@@ -54,6 +54,54 @@ async function loadProxy(apex, portalApex = '', appConfiguration = {}) {
   }
 }
 
+describe('host cookie', () => {
+  it.each([
+    ['http://cbk.localhost:3000', false],
+    ['https://cbk.example', true],
+  ])('records the request host, secure only on a TLS site (%s)', async (siteUrl, secure) => {
+    const proxy = await loadProxy('space.localhost', '', { SITE_URL: siteUrl })
+    const request = new NextRequest('http://localhost:3000/', {
+      headers: { host: 'CBK-Labs.localhost:3000' },
+    })
+    const response = proxy(request)
+    const header = response.headers.get('set-cookie')
+
+    // @note the cookie carries the host - port included, unencoded - lower-cased
+    expect(header).toContain('chatbotkit.host=cbk-labs.localhost:3000; Path=/')
+    expect(header).toContain('SameSite=Lax')
+    expect(header.includes('Secure')).toBe(secure)
+  })
+
+  it.each([
+    ['true', 'public.example'],
+    [undefined, 'upstream:3000'],
+  ])(
+    'records the forwarded host only behind a trusted proxy (TRUST_PROXY_HEADERS=%s)',
+    async (trust, expected) => {
+      const proxy = await loadProxy('space.localhost', '', {
+        SITE_URL: 'https://public.example',
+        TRUST_PROXY_HEADERS: trust,
+      })
+      const response = proxy(
+        new NextRequest('http://localhost:3000/', {
+          headers: { host: 'upstream:3000', 'x-forwarded-host': 'public.example' },
+        })
+      )
+
+      expect(response.headers.get('set-cookie')).toContain(
+        `chatbotkit.host=${expected};`
+      )
+    }
+  )
+
+  it('sets no cookie without a Host header', async () => {
+    const proxy = await loadProxy('space.localhost')
+    const response = proxy(new NextRequest('http://localhost:3000/'))
+
+    expect(response.headers.get('set-cookie')).toBeNull()
+  })
+})
+
 describe('runtime space host routing', () => {
   it('classifies a space host without rewriting its URL', async () => {
     const proxy = await loadProxy('space.localhost')
@@ -173,6 +221,31 @@ describe('runtime space host routing', () => {
 })
 
 describe('runtime portal host selection', () => {
+  it('does not turn a service-host mapping into a custom-domain portal mapping', async () => {
+    const proxy = await loadProxy('space.localhost', 'portal.localhost', {
+      HOSTS_CONFIG: JSON.stringify({
+        customer: {
+          match: ['customer.partner.example'],
+          site: 'customer-partner-example.portal.localhost',
+          api: 'api.platform.example',
+          static: 'static.platform.example',
+          widgets: 'widgets.platform.example',
+        },
+      }),
+    })
+
+    const response = proxy(
+      new NextRequest('https://customer.partner.example/', {
+        headers: { host: 'customer.partner.example' },
+      })
+    )
+
+    expect(response.headers.get('x-middleware-request-x-cbk-portal')).toBeNull()
+    expect(response.headers.get('x-middleware-request-host')).toBe(
+      'customer.partner.example'
+    )
+  })
+
   it.each([
     'test.portal.localhost:3000',
     'TEST.PORTAL.LOCALHOST:3000',
@@ -271,6 +344,22 @@ describe('runtime app host routing', () => {
       },
     ]),
   }
+
+  it('classifies an IPv6 literal shell origin', async () => {
+    const proxy = await loadProxy('space.localhost', 'portal.localhost', {
+      ...appConfiguration,
+      APP_MAIN_ORIGIN: 'http://[::1]:3000',
+    })
+    const response = proxy(
+      new NextRequest('http://localhost:3000/', {
+        headers: { host: '[::1]:3000' },
+      })
+    )
+
+    expect(response.headers.get('x-middleware-request-x-cbk-app-shell')).toBe(
+      '1'
+    )
+  })
 
   it.each([
     ['apps.localhost:3000', '1', null],
@@ -951,5 +1040,52 @@ describe('runtime browser security host selection', () => {
     expect(response.headers.get('content-security-policy')).toContain(
       'frame-ancestors * capacitor: ionic:'
     )
+  })
+})
+
+describe('runtime host routing with configured targets that carry a port', () => {
+  const configuration = {
+    SITE_URL: 'http://cbk.localhost:3000',
+    API_URL: '',
+    STATIC_URL: '',
+    HOSTS_CONFIG: JSON.stringify({
+      local: {
+        match: ['cbk.localhost:3000'],
+        site: 'cbk.localhost:3000',
+        api: 'cbk-api.localhost:3000',
+        static: 'cbk-static.localhost:3000',
+        widgets: 'cbk-widgets.localhost:3000',
+      },
+    }),
+  }
+
+  it.each([
+    ['cbk-api.localhost:3000', 'x-cbk-api'],
+    ['cbk-api.localhost', 'x-cbk-api'],
+    ['cbk-static.localhost:3000', 'x-cbk-static'],
+    ['CBK-STATIC.localhost:8080', 'x-cbk-static'],
+  ])('routes %s to its mapped target by hostname', async (host, marker) => {
+    // @note the mapping names its targets as hosts; routing compares
+    // hostnames, so the request port does not matter
+    const proxy = await loadProxy('', '', configuration)
+    const response = proxy(
+      new NextRequest('http://internal:3000/v1/probe', { headers: { host } })
+    )
+
+    expect(response.headers.get(`x-middleware-request-${marker}`)).toBe('1')
+  })
+
+  it('leaves the ported site host unrestricted', async () => {
+    const proxy = await loadProxy('', '', configuration)
+    const response = proxy(
+      new NextRequest('http://internal:3000/v1/probe', {
+        headers: { host: 'cbk.localhost:3000' },
+      })
+    )
+
+    expect(response.headers.get('x-middleware-request-x-cbk-api')).toBeNull()
+    expect(
+      response.headers.get('x-middleware-request-x-cbk-static')
+    ).toBeNull()
   })
 })

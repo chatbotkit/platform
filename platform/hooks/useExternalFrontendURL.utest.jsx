@@ -3,12 +3,12 @@ import useExternalFrontendURL from './useExternalFrontendURL'
 import '@testing-library/jest-dom'
 import { renderHook } from '@testing-library/react'
 
-jest.mock('@/hooks/useHostname', () => ({
+jest.mock('@/hooks/useHost', () => ({
   __esModule: true,
   default: jest.fn(() => 'example.chatbotkit.com'),
 }))
 
-const useHostname = jest.requireMock('@/hooks/useHostname').default
+const useHost = jest.requireMock('@/hooks/useHost').default
 
 describe('useExternalFrontendURL', () => {
   it('builds an https url on the resolved hostname', () => {
@@ -20,7 +20,7 @@ describe('useExternalFrontendURL', () => {
   })
 
   it('downgrades to http on localhost', () => {
-    useHostname.mockReturnValue('localhost:3000')
+    useHost.mockReturnValue('localhost:3000')
 
     const { result } = renderHook(() => useExternalFrontendURL())
 

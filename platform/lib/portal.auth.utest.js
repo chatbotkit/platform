@@ -764,3 +764,46 @@ describe('getPortalAuthInitialCallbacks', () => {
     expect(result).toBe(true)
   })
 })
+
+describe('sendVerificationRequest on a frontend host that carries a port', () => {
+  it('derives the mail domain from the hostname', async () => {
+    jest.clearAllMocks()
+
+    getPortalSlugFromHostname.mockReturnValue('test-portal')
+    prisma.portal.findUnique.mockResolvedValue({
+      id: 'portal123',
+      userId: 'user123',
+      slug: 'test-portal',
+      name: 'Test Portal',
+      config: {},
+    })
+    prisma.user.findUnique.mockResolvedValue({
+      id: 'user123',
+      email: 'owner@example.com',
+    })
+    userInConfig.mockReturnValue(true)
+    notifyEmailLogin.mockResolvedValue()
+    isPortalHostname.mockReturnValue(true)
+
+    const providers = await getPortalAuthProviders('test-portal.chatbotkit.agency')
+
+    getContextFrontendHost.mockReturnValue('custom.example.com:3000')
+    getRootDomain.mockReturnValue('example.com')
+    isPortalRootHostname.mockReturnValue(false)
+    isPortalHostname.mockReturnValue(false)
+    createEmailTransport.mockReturnValue({ send: jest.fn() })
+
+    await providers[0].options.sendVerificationRequest({
+      identifier: 'user@example.com',
+      url: 'https://test-portal.chatbotkit.agency/api/auth/callback',
+      token: 'abc123',
+    })
+
+    // @note the domain parser wants a hostname; the port would make it
+    // unparsable
+    expect(getRootDomain).toHaveBeenCalledWith('custom.example.com')
+    expect(createEmailTransport).toHaveBeenCalledWith(
+      'notifications@example.com'
+    )
+  })
+})

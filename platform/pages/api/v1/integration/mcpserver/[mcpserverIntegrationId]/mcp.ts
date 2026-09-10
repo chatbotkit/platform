@@ -30,6 +30,7 @@ import {
   getExternalFrontendHostURL,
   getExternalHostURL,
   getExternalStaticHostURL,
+  getExternalWidgetHostURL,
 } from '@/lib/host'
 import type { JsonSchemaObject } from '@/lib/jsonschema'
 import { logEvent } from '@/lib/log'
@@ -153,10 +154,18 @@ export default async function handler(
           const externalStaticHostURL = new URL(getExternalStaticHostURL())
             .origin
 
-          const allowedWidgetOrigins = Array.from(
-            getAllowedWidgetDomains(),
-            (domain) => `https://${domain}`
-          )
+          // @note the allowlist holds hostnames; the deployment's own origins
+          // come from the URL builders, which carry the scheme and port
+          const externalWidgetHostURL = new URL(getExternalWidgetHostURL())
+            .origin
+
+          const allowedWidgetOrigins = [
+            ...Array.from(
+              getAllowedWidgetDomains(),
+              (domain) => `https://${domain}`
+            ),
+            externalWidgetHostURL,
+          ]
 
           const mcpserverIntegration =
             await prisma.mcpserverIntegration.findUnique({
@@ -621,10 +630,15 @@ export default async function handler(
                     'openai/widgetDomain': 'https://chatgpt.com',
                     'openai/widgetCSP': {
                       connect_domains: ['https://chatgpt.com'],
-                      resource_domains: [
-                        'https://unpkg.com',
-                        'https://cdn.jsdelivr.net',
-                      ],
+                      // @note the bundle loads from the validated manifest's
+                      // origin, which may be the deployment itself
+                      resource_domains: Array.from(
+                        new Set([
+                          'https://unpkg.com',
+                          'https://cdn.jsdelivr.net',
+                          new URL(cdnUrl).origin,
+                        ])
+                      ),
                     },
                     // @note add description if provided to reduce model narration
                     ...(widgetConfig.description && {

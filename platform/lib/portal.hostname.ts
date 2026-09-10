@@ -1,9 +1,6 @@
 import { portalApex } from '@/config/apexes'
 
-import {
-  getContextFrontendHost,
-  getContextRequestHost,
-} from '@/lib/context.store'
+import { getContextRequestHost } from '@/lib/context.store'
 
 // @note without a configured portal apex no hostname is a portal hostname
 
@@ -43,21 +40,12 @@ export function getPortalSlugFromHostname(hostname: string): string | null {
 }
 
 export function getPortalSlug(): string | null {
-  const hostname = getContextRequestHost()
+  const host = getContextRequestHost()
 
-  if (!hostname) {
+  if (!host) {
     return null
   }
 
-  return getPortalSlugFromHostname(hostname)
-}
-
-export function getPortalURL(path?: string): URL | null {
-  const hostname = getContextFrontendHost() || getContextRequestHost()
-
-  if (!hostname) {
-    return null
-  }
-
-  return new URL(path || '', `https://${hostname}`)
+  // @note the slug helper reduces the host itself
+  return getPortalSlugFromHostname(host)
 }

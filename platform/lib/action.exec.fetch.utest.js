@@ -63,6 +63,7 @@ jest.mock('@/lib/fetch', () => {
 
 jest.mock('@/lib/context.store', () => ({
   getContextContact: jest.fn(),
+  getContextFrontendHost: jest.fn(),
   getContextTimezone: jest.fn(),
 }))
 

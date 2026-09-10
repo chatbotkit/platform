@@ -2,7 +2,9 @@
 import { template as t } from '@chatbotkit-dev/template'
 import { ONE_DAY_IN_SECONDS, getStartOfDay } from '@chatbotkit-dev/time'
 
-import { siteHostname } from '@/config/site'
+import { siteHost } from '@/config/site'
+import { getExternalFrontendHostURL } from '@/lib/host'
+import { hostToHostname } from '@/lib/host.parse'
 import { autoWidgetModel, autoWidgetUserId } from '@/config/widget'
 
 import { getConversationDetails } from '@/lib/bot.conversation'
@@ -53,7 +55,13 @@ export async function getServerSideProps(context) {
     }
 
     const frontendHost =
-      getContextFrontendHost() || getContextRequestHost() || siteHostname
+      getContextFrontendHost() || getContextRequestHost() || siteHost
+
+    // @note the origin the embedding page is served from - scheme and port
+    // follow the deployment, not a hard-coded https
+    const frontendOrigin = new URL(
+      getExternalFrontendHostURL('/', frontendHost)
+    ).origin
 
     const session = await getSoftSession(context.req, context.res)
 
@@ -390,10 +398,10 @@ export async function getServerSideProps(context) {
       let backstory = widgetIntegration.backstory
 
       {
-        const partner = await getPartnerByHostname(frontendHost)
+        const partner = await getPartnerByHostname(hostToHostname(frontendHost))
 
         if (partner) {
-          const origin = `https://${frontendHost}`
+          const origin = frontendOrigin
 
           backstory = t`
           ${backstory}
@@ -463,7 +471,7 @@ export async function getServerSideProps(context) {
 
     context.res.setHeader(
       'Content-Security-Policy',
-      `frame-ancestors 'self' https://${frontendHost}`
+      `frame-ancestors 'self' ${frontendOrigin}`
     )
 
     return {

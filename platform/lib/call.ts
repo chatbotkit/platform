@@ -110,7 +110,7 @@ export async function call(
 
                   if (
                     PIPEDREAM_RELATIVE_APPS.some((app) =>
-                      targetUrl.host.endsWith(app)
+                      targetUrl.hostname.endsWith(app)
                     )
                   ) {
                     destination = targetUrl.pathname + targetUrl.search

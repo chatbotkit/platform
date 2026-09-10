@@ -1,11 +1,13 @@
+import { hosts } from '@/config/hosts'
 import {
-  apiHostname,
+  apiHost,
   apiUrl,
+  siteHost,
   siteHostname,
   siteUrl,
-  staticHostname,
+  staticHost,
   staticUrl,
-  widgetHostname,
+  widgetHost,
   widgetUrl,
 } from '@/config/site'
 
@@ -18,6 +20,7 @@ import {
   getContextWidgetHost,
 } from '@/lib/context.store'
 import { isDevelopment, isTest } from '@/lib/env'
+import { hostToHostname } from '@/lib/host.parse'
 import { isLocalhost } from '@/lib/localhost'
 
 import { z } from 'zod'
@@ -51,12 +54,31 @@ const env = z
   })
 
 /**
- * Builds a URL on a host, picking the scheme the host actually answers on.
- * Loopback and `*.localhost` hosts are plain http (the community stack has
- * no TLS), the site host follows SITE_URL, the request host follows the
- * request scheme. Anything else is https.
+ * The host a URL has under a given scheme - a default port for that scheme
+ * (`:80` for http, `:443` for https) is dropped, as the browser drops it.
  */
-function buildHostURL(path: string, base: string): string {
+function hostUnder(url: URL, protocol: string): string {
+  const candidate = new URL(url)
+
+  candidate.protocol = protocol
+
+  return candidate.host
+}
+
+type HostURLOptions = {
+  // @note hydration uses configured schemes until the client takes over
+  useRequestProtocol?: boolean
+}
+
+/**
+ * Builds a URL using the configured scheme or the scheme of its request.
+ * Loopback and `*.localhost` hosts use plain HTTP.
+ */
+function buildHostURL(
+  path: string,
+  base: string,
+  { useRequestProtocol = true }: HostURLOptions = {}
+): string {
   const url = new URL(path, base)
 
   if (
@@ -65,13 +87,52 @@ function buildHostURL(path: string, base: string): string {
     url.hostname.endsWith('.localhost')
   ) {
     url.protocol = 'http:'
-  } else if (url.hostname === siteHostname) {
+  } else if (
+    useRequestProtocol &&
+    typeof window !== 'undefined' &&
+    hostUnder(url, window.location.protocol) === window.location.host
+  ) {
+    // @note in the browser the page itself is the request; its own host -
+    // an alternate port or address of the site, a LAN address - keeps the
+    // scheme it was reached on, ahead of what the site url would say
+    url.protocol = window.location.protocol
+  } else if (hostUnder(url, new URL(siteUrl).protocol) === siteHost) {
     url.protocol = new URL(siteUrl).protocol
-  } else if (url.host === getContextRequestHost()) {
-    url.protocol = `${getContextRequestProtocol() || 'https'}:`
+  } else {
+    const requestHost = useRequestProtocol ? getContextRequestHost() : undefined
+    const requestProtocol = requestHost
+      ? `${getContextRequestProtocol() || 'https'}:`
+      : undefined
+
+    if (
+      requestHost &&
+      requestProtocol &&
+      hostUnder(url, requestProtocol) ===
+        new URL(`${requestProtocol}//${requestHost}`).host
+    ) {
+      // @note compare both hosts under the request scheme, which drops :80 on
+      // http even when only the mapping explicitly names that default port
+      url.protocol = requestProtocol
+    } else if (url.hostname === siteHostname) {
+      url.protocol = new URL(siteUrl).protocol
+    }
   }
 
   return url.toString()
+}
+
+/**
+ * The frontend host the deployment resolved for this request: the request
+ * context on the server, the value it stamped on the document in the browser.
+ */
+function getResolvedFrontendHost(): string | undefined {
+  return (
+    getContextFrontendHost() ||
+    (typeof document !== 'undefined'
+      ? document.documentElement.dataset.siteHost
+      : undefined) ||
+    getExternalFrontendHost()
+  )
 }
 
 /**
@@ -172,35 +233,38 @@ export function getExternalFrontendHost(): string {
  */
 export function getExternalFrontendHostURL(
   path: string = '/',
-  host: string = getExternalFrontendHost()
+  host: string = getExternalFrontendHost(),
+  options?: HostURLOptions
 ): string {
-  return buildHostURL(path, `https://${host}`)
+  return buildHostURL(path, `https://${host}`, options)
 }
 
 /**
  * Gets the deployment's externally reachable static host.
  */
 export function getExternalStaticHost(): string {
-  return getContextStaticHost() || staticHostname
+  return getContextStaticHost() || staticHost
 }
 
 /**
  * Gets a URL on the deployment's externally reachable static host.
  */
-export function getExternalStaticHostURL(path: string = '/'): string {
-  const host = getExternalStaticHost()
-
-  return new URL(
-    path,
-    host === staticHostname ? staticUrl : `https://${host}`
-  ).toString()
+export function getExternalStaticHostURL(
+  path: string = '/',
+  host: string = getExternalStaticHost()
+): string {
+  // @note a configured origin is used verbatim - its scheme is explicit;
+  // a mapped host has none, so it goes through the scheme inference
+  return host === staticHost
+    ? new URL(path, staticUrl).toString()
+    : buildHostURL(path, `https://${host}`)
 }
 
 /**
  * Gets the request-affine host for private MCP widget bundles.
  */
 export function getExternalWidgetHost(): string {
-  return getContextWidgetHost() || widgetHostname
+  return getContextWidgetHost() || widgetHost
 }
 
 /**
@@ -209,10 +273,9 @@ export function getExternalWidgetHost(): string {
 export function getExternalWidgetHostURL(path: string = '/'): string {
   const host = getExternalWidgetHost()
 
-  return new URL(
-    path,
-    host === widgetHostname ? widgetUrl : `https://${host}`
-  ).toString()
+  return host === widgetHost
+    ? new URL(path, widgetUrl).toString()
+    : buildHostURL(path, `https://${host}`)
 }
 
 /**
@@ -264,24 +327,56 @@ export function getExternalAPIHost(host?: string): string {
 
   host = host ?? getExternalHost()
 
-  const siteHost = siteHostname.startsWith('api.')
-    ? siteHostname.slice(4)
-    : siteHostname.startsWith('next.')
-    ? siteHostname.slice(5)
-    : siteHostname
+  // @note site-family membership is a hostname question: the request may
+  // arrive on any port, the API is still the configured one
+  const stripFamilyPrefix = (hostname: string): string =>
+    hostname.startsWith('api.')
+      ? hostname.slice(4)
+      : hostname.startsWith('next.')
+        ? hostname.slice(5)
+        : hostname
 
-  const bareHost = host.startsWith('api.')
-    ? host.slice(4)
-    : host.startsWith('next.')
-    ? host.slice(5)
+  return stripFamilyPrefix(hostToHostname(host)) ===
+    stripFamilyPrefix(siteHostname)
+    ? apiHost
     : host
+}
 
-  // @note keep hostname-only callers working while also matching the configured
-  // port carried by request hosts and background callbacks
-  return bareHost === siteHost ||
-    (configuredSite.port && bareHost === `${siteHost}:${configuredSite.port}`)
-    ? apiHostname
-    : host
+/**
+ * Whether an API host serves the API at its root (`/v1`) rather than under
+ * `/api`. api.* hosts do by convention, except when the API hostname is also
+ * a site hostname - configured (API_URL on SITE_URL's hostname), mapped (a
+ * HOSTS_CONFIG site target) or the resolved frontend host - in which case
+ * the API still lives under /api. The proxy makes the same call by hostname,
+ * ports aside, so the two must agree.
+ *
+ * @note the mapping table is server-only, so the server stamps its decision
+ * for the resolved API host on the document and the browser reads it back
+ */
+export function servesCleanAPIRoutes(host: string): boolean {
+  if (typeof document !== 'undefined') {
+    const { apiHost: stampedHost, apiCleanRoutes } =
+      document.documentElement.dataset
+
+    if (
+      stampedHost === host &&
+      (apiCleanRoutes === '1' || apiCleanRoutes === '0')
+    ) {
+      return apiCleanRoutes === '1'
+    }
+  }
+
+  const hostname = hostToHostname(host)
+
+  const isSiteHostname =
+    hostname === siteHostname ||
+    hosts.site.some((site) => hostToHostname(site) === hostname) ||
+    hostname === hostToHostname(getResolvedFrontendHost())
+
+  // @note api.* is the spelling convention for clean routes; the browser
+  // knows the configured hosts from the document and no mappings, which is
+  // why the server stamps its decision for the resolved host
+  return host.startsWith('api.') && !isSiteHostname
 }
 
 /**
@@ -291,10 +386,11 @@ export function getExternalAPIHost(host?: string): string {
  */
 export function getExternalAPIHostURL(
   path: string = '/',
-  host: string = getExternalAPIHost()
+  host: string = getExternalAPIHost(),
+  options?: HostURLOptions
 ): string {
   if (
-    !host.startsWith('api.') &&
+    !servesCleanAPIRoutes(host) &&
     !path.startsWith('/api/') &&
     !path.startsWith('/.well-known') &&
     !path.startsWith('/oauth')
@@ -302,5 +398,15 @@ export function getExternalAPIHostURL(
     path = `/api${path.startsWith('/') ? '' : '/'}${path}`
   }
 
-  return buildHostURL(path, host === apiHostname ? apiUrl : `https://${host}`)
+  // @note a separate API origin has an explicit scheme, like static and
+  // widget origins; the site fallback still follows its request after hydration
+  if (host === apiHost && apiUrl !== siteUrl) {
+    return new URL(path, apiUrl).toString()
+  }
+
+  return buildHostURL(
+    path,
+    host === apiHost ? apiUrl : `https://${host}`,
+    options
+  )
 }

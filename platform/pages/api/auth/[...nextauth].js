@@ -32,13 +32,14 @@ import {
   getPartnerAuthInitialCallbacks,
   getPartnerAuthProviders,
 } from '@/lib/partner.auth'
-import { isPartnerHost } from '@/lib/partner.helpers'
+import { isPartnerHostname } from '@/lib/partner.helpers'
 import {
   getPortalAuthInitialAdapter,
   getPortalAuthInitialCallbacks,
   getPortalAuthProviders,
 } from '@/lib/portal.auth'
 import { isPortalHostname } from '@/lib/portal.hostname'
+import { hostToHostname } from '@/lib/host.parse'
 
 // @ts-expect-error because NextAuth does not support ESM
 const NextAuth = _NextAuth.default
@@ -48,13 +49,17 @@ const NextAuth = _NextAuth.default
  * @returns {Promise<import('next-auth').AuthOptions['adapter']>}
  */
 export async function getInitialAdapter(host) {
+  // @note portal and partner identity is a hostname; the dispatch host may
+  // carry a port
+  const hostname = hostToHostname(host)
+
   switch (true) {
-    case host && isPortalHostname(host): {
-      return await getPortalAuthInitialAdapter(host)
+    case hostname && isPortalHostname(hostname): {
+      return await getPortalAuthInitialAdapter(hostname)
     }
 
-    case host && isPartnerHost(host): {
-      return await getPartnerAuthInitialAdapter(host)
+    case hostname && isPartnerHostname(hostname): {
+      return await getPartnerAuthInitialAdapter(hostname)
     }
 
     default: {
@@ -68,13 +73,17 @@ export async function getInitialAdapter(host) {
  * @returns {Promise<import('next-auth').AuthOptions['providers']>}
  */
 export async function getProviders(host) {
+  // @note portal and partner identity is a hostname; the dispatch host may
+  // carry a port
+  const hostname = hostToHostname(host)
+
   switch (true) {
-    case host && isPortalHostname(host): {
-      return await getPortalAuthProviders(host)
+    case hostname && isPortalHostname(hostname): {
+      return await getPortalAuthProviders(hostname)
     }
 
-    case host && isPartnerHost(host): {
-      return await getPartnerAuthProviders(host)
+    case hostname && isPartnerHostname(hostname): {
+      return await getPartnerAuthProviders(hostname)
     }
 
     default: {
@@ -88,13 +97,17 @@ export async function getProviders(host) {
  * @returns {Promise<import('next-auth').AuthOptions['callbacks']>}
  */
 export async function getInitialCallbacks(host) {
+  // @note portal and partner identity is a hostname; the dispatch host may
+  // carry a port
+  const hostname = hostToHostname(host)
+
   switch (true) {
-    case host && isPortalHostname(host): {
-      return await getPortalAuthInitialCallbacks(host)
+    case hostname && isPortalHostname(hostname): {
+      return await getPortalAuthInitialCallbacks(hostname)
     }
 
-    case host && isPartnerHost(host): {
-      return await getPartnerAuthInitialCallbacks(host)
+    case hostname && isPartnerHostname(hostname): {
+      return await getPartnerAuthInitialCallbacks(hostname)
     }
 
     default: {

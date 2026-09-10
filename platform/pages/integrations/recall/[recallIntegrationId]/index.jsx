@@ -27,18 +27,21 @@ import RevealToken from '@/components/RevealToken'
 import ThisSolution from '@/components/ThisSolution'
 import WebhookSetupSection from '@/components/WebhookSetupSection'
 
+import useExternalAPIURL from '@/hooks/useExternalAPIURL'
 import useFetch from '@/hooks/useFetch'
 import useRouter from '@/hooks/useRouter'
 import useScopedCreateData from '@/hooks/useScopedCreateData'
 
-export function getInstallDetails({ integration }) {
+export function getInstallDetails({
+  integration,
+  // @note pages pass the runtime builder; the default serves requestless callers
+  getAPIURL = getExternalAPIHostURL,
+}) {
   return {
     endpoints: [
       {
         label: 'Bot Status Webhook',
-        url: getExternalAPIHostURL(
-          `/v1/integration/recall/${integration.id}/webhook`
-        ),
+        url: getAPIURL(`/v1/integration/recall/${integration.id}/webhook`),
         description:
           'Use this URL as the Bot Status Change webhook in your Recall workspace dashboard. ChatBotKit listens for the bot.call_ended event and finalises the meeting conversation.',
         required: true,
@@ -396,8 +399,9 @@ export function Initiate({ integration }) {
 }
 
 export default function Index({ integration }) {
-  const installDetails = getInstallDetails({ integration })
-  const installPopupDetails = getInstallPopupDetails({ integration })
+  const getAPIURL = useExternalAPIURL()
+
+  const installDetails = getInstallDetails({ integration, getAPIURL })
 
   return (
     <PageSections className="pt-12">
@@ -406,7 +410,7 @@ export default function Index({ integration }) {
           <Form
             key={integration.id || 'new'}
             integration={integration}
-            installDetails={installPopupDetails}
+            installDetails={installDetails}
           />
         </div>
       </section>

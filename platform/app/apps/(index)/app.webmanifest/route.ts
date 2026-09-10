@@ -1,6 +1,6 @@
 import { headers } from 'next/headers'
 
-import { siteHostname } from '@/config/site'
+import { siteHost } from '@/config/site'
 
 import { getPublicAppConfig } from '@/lib/app.router.app.config'
 import { setupHeadersContext } from '@/lib/context.setup'
@@ -18,7 +18,7 @@ export async function GET(): Promise<Response> {
     setupHeadersContext(thisHeaders)
 
     const host =
-      getContextFrontendHost() || getContextRequestHost() || siteHostname
+      getContextFrontendHost() || getContextRequestHost() || siteHost
 
     const config = await getPublicAppConfig()
 

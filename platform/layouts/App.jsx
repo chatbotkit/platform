@@ -15,6 +15,7 @@ import { FIVE_MINUTE_IN_MILLISECONDS } from '@chatbotkit-dev/time'
 
 import { CUSTOM_TYPE, PORTAL_TYPE, apps as configApps } from '@/config/apps'
 
+import { getExternalFrontendHostURL } from '@/lib/host'
 import { getAppTypeByHostname } from '@/lib/app.helpers'
 import { isProduction } from '@/lib/env'
 import { toKebabCase, toTitleCase } from '@/lib/string'
@@ -1317,7 +1318,11 @@ export function AppMain({
         favicon={favicon}
         image={image}
         appManifest={appManifest}
-        baseUrl={router.hostname ? `https://${router.hostname}` : undefined}
+        baseUrl={
+          router.host
+            ? getExternalFrontendHostURL('/', router.host)
+            : undefined
+        }
       />
       {gtag ? <GTag gtag={gtag} disabled={!isProduction} /> : null}
       {/* the following code prevents the rubber-band effect */}

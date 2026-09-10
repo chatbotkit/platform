@@ -54,7 +54,7 @@ import { isCuid } from '@/lib/cuid'
 import { assert, warn } from '@/lib/debug'
 import { getShortDescription } from '@/lib/description.parse'
 import { isDevelopment, isProduction } from '@/lib/env'
-import { getExternalAPIHost } from '@/lib/host'
+import { resolvePlatformApiUrl } from '@/lib/api.tool.url'
 import { toThemeAwareIcon } from '@/lib/icon.theme'
 import {
   buildTemplateInstruction,
@@ -17951,19 +17951,7 @@ export function Assistant({ blueprintId }) {
             // @note ensure we use relative URLs to stay within the platform
             // and include auth cookies
 
-            const u = new URL(url, window.location.origin)
-
-            // @note translate the deployment api host urls to local /api
-
-            if (u.hostname === getExternalAPIHost()) {
-              const localOrigin = new URL(window.location.origin)
-
-              u.protocol = localOrigin.protocol
-              u.host = localOrigin.host
-              u.pathname = u.pathname.startsWith('/api/')
-                ? u.pathname
-                : `/api${u.pathname}`
-            }
+            const u = resolvePlatformApiUrl(url)
 
             // @note only allow same-origin requests for security
 

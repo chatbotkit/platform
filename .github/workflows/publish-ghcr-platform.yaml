@@ -360,8 +360,9 @@ jobs:
             --volume "$volume:/data" \
             "$APPLICATION_IMAGE"
 
-          # @note /signin renders per request, so its markup must carry the
-          # runtime site host stamped by the request context
+          # @note the markup stamps the configured origins from the runtime
+          # environment, so the probe proves SITE_URL supplied at run time
+          # reached the page rather than the image's build-time default
           for attempt in $(seq 1 90); do
             if docker exec "$container" node -e \
               "fetch('http://127.0.0.1:3000/signin').then(async (response) => { const body = await response.text(); process.exit(response.status < 500 && body.includes('smoke-test.invalid') ? 0 : 1) }).catch(() => process.exit(1))"

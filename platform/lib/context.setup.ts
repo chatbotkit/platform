@@ -25,37 +25,9 @@ import {
   getUserAgentHeader,
 } from '@/lib/header'
 import { injectInternalAssertionContext } from '@/lib/header.assertion'
+import { hostToHostname, normalizeRequestHost } from '@/lib/host.parse'
 import { isIpAddress } from '@/lib/ip'
 import { getQuery } from '@/lib/query.get'
-
-/**
- * Resolves the untrusted request host at the request-normalization boundary.
- * Portal-originated URLs must prefer the separately authenticated frontend
- * host; this value remains ordinary request metadata.
- */
-function normalizeRequestHost(value: string | null): string | null {
-  if (!value) {
-    return null
-  }
-
-  try {
-    const url = new URL(`https://${value.trim()}`)
-
-    if (
-      url.username ||
-      url.password ||
-      url.pathname !== '/' ||
-      url.search ||
-      url.hash
-    ) {
-      return null
-    }
-
-    return url.host
-  } catch {
-    return null
-  }
-}
 
 function normalizeRequestProtocol(value: string | null): string | null {
   const protocol = value?.trim().toLowerCase()
@@ -70,8 +42,17 @@ function shouldTrustProxyHeaders(): boolean {
 function injectMappedHosts(): void {
   const host = getContextFrontendHost() || getContextRequestHost()
 
+  // @note an entry naming the exact host wins, so mappings may differ by
+  // port; otherwise selection is by hostname, as proxy host routing is, so a
+  // mapping may list its hosts without the port the deployment is reached on
+  const hostname = hostToHostname(host)
+  const mappings = Object.values(hostsConfig)
+
   const mapping = host
-    ? Object.values(hostsConfig).find(({ match }) => match.includes(host))
+    ? mappings.find(({ match }) => match.includes(host)) ||
+      mappings.find(({ match }) =>
+        match.some((candidate) => hostToHostname(candidate) === hostname)
+      )
     : undefined
 
   setContextStaticHost(mapping?.static)

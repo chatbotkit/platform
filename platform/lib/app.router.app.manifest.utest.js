@@ -29,6 +29,14 @@ describe('getAppManifestPath', () => {
     getContextRequestHost.mockReturnValue(null)
   })
 
+  it('reduces a context host with a port to a hostname before the lookup', () => {
+    getContextRequestHost.mockReturnValue('cbk-labs.localhost:3000')
+    isAppHostname.mockReturnValue(true)
+
+    expect(getAppManifestPath()).toBe('/app.webmanifest')
+    expect(isAppHostname).toHaveBeenCalledWith('cbk-labs.localhost')
+  })
+
   describe('basic functionality', () => {
     it('should return manifest path for app hostnames', () => {
       getContextRequestHost.mockReturnValue('chat.chatbotkit.app')

@@ -79,6 +79,17 @@ describe('mcp.widget', () => {
       )
     })
 
+    it('drops the port from mapped runtime hosts', () => {
+      const { getExternalWidgetHost } = require('@/lib/host')
+
+      getExternalWidgetHost.mockReturnValueOnce('runtime-widgets.example:8443')
+
+      expect(getAllowedWidgetDomains()).toContain('runtime-widgets.example')
+      expect(getAllowedWidgetDomains()).not.toContain(
+        'runtime-widgets.example:8443'
+      )
+    })
+
     it('does not duplicate a runtime domain already in the baseline', () => {
       const { getExternalStaticHost } = require('@/lib/host')
 

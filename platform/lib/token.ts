@@ -1,6 +1,7 @@
 import { appSlugs } from '@/config/apps'
 
 import { isAppHostname } from '@/lib/app.helpers'
+import { hostToHostname } from '@/lib/host.parse'
 import {
   API_AUDIENCE,
   APP_AUDIENCE,
@@ -210,7 +211,7 @@ export const payloadVerifiers: Record<string, PayloadVerifierFactory> = {
     // portal session
 
     const host = [getContextFrontendHost(), getContextRequestHost()].find(
-      (candidate) => candidate && isAppHostname(candidate)
+      (candidate) => candidate && isAppHostname(hostToHostname(candidate))
     )
 
     if (host) {

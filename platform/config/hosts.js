@@ -1,7 +1,7 @@
 // @ts-check
 import { z } from 'zod'
 
-const hostname = z
+const host = z
   .string()
   .transform((value) => value.trim().toLowerCase())
   .refine((value) => {
@@ -23,15 +23,15 @@ const hostname = z
     } catch {
       return false
     }
-  }, 'Expected a hostname without a protocol, wildcard, path, query, or hash')
+  }, 'Expected a host without a protocol, wildcard, path, query, or hash')
 
 export const hostMappingSchema = z
   .object({
-    match: z.array(hostname).min(1),
-    site: hostname,
-    api: hostname,
-    static: hostname,
-    widgets: hostname,
+    match: z.array(host).min(1),
+    site: host,
+    api: host,
+    static: host,
+    widgets: host,
   })
   .strict()
   .superRefine((mapping, ctx) => {
@@ -41,7 +41,7 @@ export const hostMappingSchema = z
       if (seen.has(value)) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: `Duplicate match hostname: ${value}`,
+          message: `Duplicate match host: ${value}`,
           path: ['match', index],
         })
       }
@@ -90,7 +90,7 @@ export const hostsSchema = z
         if (existing) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
-            message: `Match hostname ${value} is already used by ${existing}`,
+            message: `Match host ${value} is already used by ${existing}`,
             path: [name, 'match'],
           })
         } else {

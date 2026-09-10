@@ -4,35 +4,44 @@ import { useCallback, useState } from 'react'
 import { portalApex, spaceApex } from '@/config/apexes'
 import {
   BUILTIN_TYPE,
+  LABS_TYPE,
   MAIN_TYPE,
   PORTAL_TYPE,
-  appSlugToHostnameMap,
+  appSlugToHostMap,
   appSlugs,
 } from '@/config/apps'
 import { HOST_COOKIE_NAME } from '@/config/cookie'
 import {
+  siteHost,
   siteHostname,
   siteUrl,
-  staticHostname,
-  widgetHostname,
+  staticHost,
+  widgetHost,
 } from '@/config/site'
 
 import { parse } from '@/lib/cookie'
 import { isProduction } from '@/lib/env'
 import { getExternalAPIHost } from '@/lib/host'
 import { isLocalhost } from '@/lib/localhost'
+import { hostToHostname, normalizeRequestHost } from '@/lib/host.parse'
 
 import useCookie from '@/hooks/useCookie'
 import useHydrated from '@/hooks/useHydrated'
 import useHydrationSafeLayoutEffect from '@/hooks/useHydrationSafeLayoutEffect'
 
-export function useCookieHostname(): string {
+// @note every value here is a host - hostname plus port when the deployment
+// has one - matching the data-* attributes and the host cookie; reduce with
+// hostToHostname where a hostname is wanted
+
+export function useCookieHost(): string {
   const cookie = useCookie(HOST_COOKIE_NAME)
 
-  return cookie || ''
+  // @note the cookie is client-held input: anything that is not a host is
+  // ignored rather than handed to a URL builder that would throw in render
+  return normalizeRequestHost(cookie) || ''
 }
 
-export function useAudienceHostname(): string {
+export function useAudienceHost(): string {
   // @note keep the initial render empty so hydration matches the server HTML,
   // then read the attribute in a layout effect - it lands before the browser
   // paints, so the resolved hostname is never visibly late
@@ -45,46 +54,46 @@ export function useAudienceHostname(): string {
   return htmlAudience
 }
 
-export function useSiteHostname(): string {
-  const [hostname, setHostname] = useState<string>(siteHostname)
+export function useSiteHost(): string {
+  const [host, setHost] = useState<string>(siteHost)
 
   useHydrationSafeLayoutEffect(() => {
-    setHostname(document.documentElement.dataset.siteHost || siteHostname)
+    setHost(document.documentElement.dataset.siteHost || siteHost)
   }, [])
 
-  return hostname
+  return host
 }
 
-export function useStaticHostname(): string {
-  const [hostname, setHostname] = useState<string>(staticHostname)
+export function useStaticHost(): string {
+  const [host, setHost] = useState<string>(staticHost)
 
   useHydrationSafeLayoutEffect(() => {
-    setHostname(document.documentElement.dataset.staticHost || staticHostname)
+    setHost(document.documentElement.dataset.staticHost || staticHost)
   }, [])
 
-  return hostname
+  return host
 }
 
-export function useWidgetHostname(): string {
-  const [hostname, setHostname] = useState<string>(widgetHostname)
+export function useWidgetHost(): string {
+  const [host, setHost] = useState<string>(widgetHost)
 
   useHydrationSafeLayoutEffect(() => {
-    setHostname(document.documentElement.dataset.widgetHost || widgetHostname)
+    setHost(document.documentElement.dataset.widgetHost || widgetHost)
   }, [])
 
-  return hostname
+  return host
 }
 
-export function useAPIHostname(): string {
-  const fallbackHostname = getExternalAPIHost(siteHostname)
+export function useAPIHost(): string {
+  const fallbackHost = getExternalAPIHost(siteHost)
 
-  const [hostname, setHostname] = useState<string>(fallbackHostname)
+  const [host, setHost] = useState<string>(fallbackHost)
 
   useHydrationSafeLayoutEffect(() => {
-    setHostname(document.documentElement.dataset.apiHost || fallbackHostname)
-  }, [fallbackHostname])
+    setHost(document.documentElement.dataset.apiHost || fallbackHost)
+  }, [fallbackHost])
 
-  return hostname
+  return host
 }
 
 export function usePortalApex(): string {
@@ -138,16 +147,16 @@ export function useApexHostURL(): (slug: string, apex: string) => string {
 }
 
 /**
- * The app slug to hostname table with the runtime deployment hosts overlaid.
+ * The app slug to host table with the runtime deployment hosts overlaid.
  * The build-time constants carry no apex values in the browser - they read
  * server-only environment - so href resolution keyed off the constants alone
  * stops recognising app and portal hosts after hydration. The data-*
  * attributes are the runtime source, mirroring how the constants table is
  * built server-side.
  */
-export function useAppSlugToHostnameMap(): Readonly<Record<string, string>> {
+export function useAppSlugToHostMap(): Readonly<Record<string, string>> {
   const [map, setMap] =
-    useState<Readonly<Record<string, string>>>(appSlugToHostnameMap)
+    useState<Readonly<Record<string, string>>>(appSlugToHostMap)
 
   useHydrationSafeLayoutEffect(() => {
     const dataset = document.documentElement.dataset
@@ -155,11 +164,17 @@ export function useAppSlugToHostnameMap(): Readonly<Record<string, string>> {
     const runtimeAppApex = dataset.appApex || ''
     const runtimePortalApex = dataset.portalApex || ''
     const runtimeAppMainHost = dataset.appMainHost || ''
+    const runtimeAppLabsHost = dataset.appLabsHost || ''
 
-    const overlay: Record<string, string> = { ...appSlugToHostnameMap }
+    const overlay: Record<string, string> = { ...appSlugToHostMap }
 
     if (runtimeAppApex) {
+      // @note shell slugs (`:main`, `:labs`) answer on their own origins
       for (const slug of appSlugs) {
+        if (slug.startsWith(':')) {
+          continue
+        }
+
         overlay[slug] = `${slug}.${runtimeAppApex}`
       }
 
@@ -174,6 +189,10 @@ export function useAppSlugToHostnameMap(): Readonly<Record<string, string>> {
       overlay[MAIN_TYPE] = runtimeAppMainHost
     }
 
+    if (runtimeAppLabsHost) {
+      overlay[LABS_TYPE] = runtimeAppLabsHost
+    }
+
     setMap(Object.freeze(overlay))
   }, [])
 
@@ -183,28 +202,36 @@ export function useAppSlugToHostnameMap(): Readonly<Record<string, string>> {
 // @note data-audience is set by the server on <html> and reflects the
 // request host more accurately than the cookie, which may be stale
 
-function resolveHostname(
+function resolveHost(
   htmlAudience: string,
   cookie: string,
-  fallbackHostname: string
+  fallbackHost: string
 ): string {
-  let hostname = htmlAudience || cookie
+  let host = htmlAudience || cookie
 
-  if (hostname === siteHostname) {
-    hostname = cookie
+  // @note an audience that is exactly the bare site hostname carries no
+  // deployment identity, so the cookie may know better; an audience with the
+  // deployment's port is the public host and always wins over the cookie,
+  // which behind a proxy may hold an internal upstream
+  if (host === siteHostname) {
+    host = cookie
   }
 
-  if (isProduction) {
-    if (isLocalhost(hostname || siteHostname)) {
-      hostname = siteHostname
+  // @note a loopback host (localhost, 127.x) in production is a misconfigured
+  // request, so the site host stands in - unless the site itself is loopback
+  // (a local stack reached as localhost instead of 127.0.0.1), where the
+  // swap would send every link to a different origin with its own cookie jar
+  if (isProduction && !isLocalhost(siteHost)) {
+    if (isLocalhost(host || siteHost)) {
+      host = siteHost
     }
   }
 
-  if (!hostname) {
-    hostname = fallbackHostname
+  if (!host) {
+    host = fallbackHost
   }
 
-  return hostname
+  return host
 }
 
 /**
@@ -212,12 +239,12 @@ function resolveHostname(
  * running. This is not the same as the `window.location.host` because it is
  * dependent on intermediary proxy servers.
  *
- * This is the literal hostname not the site.
+ * This is the literal host - port included - not the site.
  */
-export default function useHostname(): string {
-  const cookie = useCookieHostname()
+export default function useHost(): string {
+  const cookie = useCookieHost()
 
-  const htmlAudience = useAudienceHostname()
+  const htmlAudience = useAudienceHost()
 
   // @note neither source is readable while the server renders: the document
   // does not exist and useCookie reads the request cookie through Next's
@@ -228,27 +255,36 @@ export default function useHostname(): string {
 
   const hydrated = useHydrated()
 
-  return resolveHostname(
+  return resolveHost(
     hydrated ? htmlAudience : '',
     hydrated ? cookie : '',
-    new URL(siteUrl).hostname
+    new URL(siteUrl).host
   )
 }
 
 /**
- * Plain (non-hook) variant of useHostname for code that runs outside the
+ * The hostname of the current host - see useHost.
+ */
+export function useHostname(): string {
+  return hostToHostname(useHost())
+}
+
+/**
+ * Plain (non-hook) variant of useHost for code that runs outside the
  * React render cycle, such as template tasks. The host cookie and the
  * data-audience attribute are set by the server and reflect the real request
  * host behind intermediary proxies - window.location is only a fallback.
  */
-export function getDocumentHostname(): string {
+export function getDocumentHost(): string {
   if (typeof document === 'undefined') {
-    return new URL(siteUrl).hostname
+    return new URL(siteUrl).host
   }
 
-  const cookie = parse(document.cookie || '').get(HOST_COOKIE_NAME) || ''
+  const cookie =
+    normalizeRequestHost(parse(document.cookie || '').get(HOST_COOKIE_NAME)) ||
+    ''
 
   const htmlAudience = document.documentElement.dataset.audience || ''
 
-  return resolveHostname(htmlAudience, cookie, window.location.hostname)
+  return resolveHost(htmlAudience, cookie, window.location.host)
 }

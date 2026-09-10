@@ -245,6 +245,83 @@ describe('context.setup', () => {
       )
     })
 
+    it('should select a mapping by hostname when the request host carries a port', async () => {
+      await withRuntime(
+        { vercel: false, hostsConfig },
+        async ({ context, contextSetup }) => {
+          await context.executeInContext(async () => {
+            contextSetup.setupHeadersContext(
+              new Headers({ host: 'api.example.com:3000' })
+            )
+
+            expect(context.getContextAPIHost()).toBe('api.example.com')
+            expect(context.getContextStaticHost()).toBe('static.example.com')
+          })
+        }
+      )
+    })
+
+    it('should prefer the mapping that names the exact host over a hostname match', async () => {
+      await withRuntime(
+        {
+          vercel: false,
+          hostsConfig: {
+            a: {
+              match: ['console.example:8080'],
+              site: 'console.example:8080',
+              api: 'console.example:8080',
+              static: 'static-a.example:8080',
+              widgets: 'widgets-a.example:8080',
+            },
+            b: {
+              match: ['console.example:8443'],
+              site: 'console.example:8443',
+              api: 'console.example:8443',
+              static: 'static-b.example:8443',
+              widgets: 'widgets-b.example:8443',
+            },
+          },
+        },
+        async ({ context, contextSetup }) => {
+          await context.executeInContext(async () => {
+            contextSetup.setupHeadersContext(
+              new Headers({ host: 'console.example:8443' })
+            )
+
+            expect(context.getContextStaticHost()).toBe('static-b.example:8443')
+          })
+        }
+      )
+    })
+
+    it('should select a mapping whose match entries carry a port', async () => {
+      await withRuntime(
+        {
+          vercel: false,
+          hostsConfig: {
+            local: {
+              match: ['cbk.localhost:3000'],
+              site: 'cbk.localhost:3000',
+              api: 'cbk.localhost:3000',
+              static: 'cbk-static.localhost:3000',
+              widgets: 'cbk-widgets.localhost:3000',
+            },
+          },
+        },
+        async ({ context, contextSetup }) => {
+          await context.executeInContext(async () => {
+            contextSetup.setupHeadersContext(
+              new Headers({ host: 'cbk.localhost' })
+            )
+
+            expect(context.getContextStaticHost()).toBe(
+              'cbk-static.localhost:3000'
+            )
+          })
+        }
+      )
+    })
+
     it('should select hosts from the authenticated frontend assertion', async () => {
       await withRuntime(
         { vercel: false, hostsConfig },

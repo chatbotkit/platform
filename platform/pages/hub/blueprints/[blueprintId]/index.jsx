@@ -21,7 +21,7 @@ import {
   useApexHostURL,
   usePortalApex,
   useSpaceApex,
-} from '@/hooks/useHostname'
+} from '@/hooks/useHost'
 import useSession from '@/hooks/useSession'
 
 import faq from '@/content/faqs/platform-blueprints.yaml'

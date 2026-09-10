@@ -4,7 +4,7 @@ import {
   ensureCharset,
   getContentTypeForPath,
   getSitePathCandidates,
-  getSpaceSiteHost,
+  getSpaceSiteHostname,
   getSpaceSiteMountBaseHref,
   injectHtmlBase,
   normalizeSiteStoragePath,
@@ -44,7 +44,7 @@ function req(url = `https://acme.chatbotkit.space${MOUNT}`): Request {
   return { url } as unknown as Request
 }
 
-describe('getSpaceSiteHost', () => {
+describe('getSpaceSiteHostname', () => {
   beforeEach(() => {
     jest.clearAllMocks()
     getContextFrontendHost.mockReturnValue(null)
@@ -55,19 +55,19 @@ describe('getSpaceSiteHost', () => {
     getContextFrontendHost.mockReturnValue('ACME.chatbotkit.space:443')
     getContextRequestHost.mockReturnValue('internal:3000')
 
-    expect(getSpaceSiteHost()).toBe('acme.chatbotkit.space')
+    expect(getSpaceSiteHostname()).toBe('acme.chatbotkit.space')
   })
 
   it('falls back to the request host in context', () => {
     getContextRequestHost.mockReturnValue('docs.chatbotkit.space')
 
-    expect(getSpaceSiteHost()).toBe('docs.chatbotkit.space')
+    expect(getSpaceSiteHostname()).toBe('docs.chatbotkit.space')
   })
 
   it('returns null when there is no host', () => {
     getContextRequestHost.mockReturnValue(null)
 
-    expect(getSpaceSiteHost()).toBeNull()
+    expect(getSpaceSiteHostname()).toBeNull()
   })
 })
 

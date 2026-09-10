@@ -3,7 +3,14 @@ import NextDocument, { Head, Html, Main, NextScript } from 'next/document'
 
 import { appApex, partnersApex, portalApex, spaceApex } from '@/config/apexes'
 import { appLabsHost, appMainHost } from '@/config/origins'
-import { siteHostname } from '@/config/site'
+import {
+  apiUrl,
+  siteHost,
+  siteUrl,
+  staticUrl,
+  widgetUrl,
+} from '@/config/site'
+import { hostToHostname } from '@/lib/host.parse'
 
 import { setupRequestContext } from '@/lib/context.setup'
 import {
@@ -16,6 +23,7 @@ import {
   getExternalFrontendHost,
   getExternalStaticHost,
   getExternalWidgetHost,
+  servesCleanAPIRoutes,
 } from '@/lib/host'
 import {
   getPartnerByIdentifier,
@@ -40,13 +48,13 @@ export default class Document extends NextDocument {
           ? getContextFrontendHost() || getContextRequestHost()
           : null
 
-        _host = _host || siteHostname
+        _host = _host || siteHost
       }
 
       let _partner = null
 
       {
-        const _hostname = (_host || '').split(':')[0]
+        const _hostname = hostToHostname(_host)
 
         const partnerSlug = getPartnerSlugFromHostname(_hostname)
 
@@ -68,11 +76,27 @@ export default class Document extends NextDocument {
       return {
         ...initialProps,
 
-        _host: _host,
-        _siteHost: getExternalFrontendHost(),
+        // @note the configured origins and the hosts derived from them do not
+        // depend on a request, so they are always stamped - a prerendered page
+        // otherwise leaves the browser seeding the static, widget and API
+        // hosts from the page origin, and that carries into client-side
+        // navigation. Only the request host itself needs a request; without
+        // one the browser falls back to the host cookie and the page origin
+        _siteUrl: siteUrl,
+        _staticUrl: staticUrl,
+        _widgetUrl: widgetUrl,
+        _apiUrl: apiUrl,
         _staticHost: getExternalStaticHost(),
         _widgetHost: getExternalWidgetHost(),
         _apiHost: getExternalAPIHost(),
+        _apiCleanRoutes: servesCleanAPIRoutes(getExternalAPIHost()) ? '1' : '0',
+
+        ...(ctx.req
+          ? {
+              _host: _host,
+              _siteHost: getExternalFrontendHost(),
+            }
+          : {}),
 
         _appApex: appApex,
         _portalApex: portalApex,
@@ -92,10 +116,15 @@ export default class Document extends NextDocument {
       <Html
         lang="en"
         data-audience={this.props._host}
+        data-site-url={this.props._siteUrl}
+        data-static-url={this.props._staticUrl}
+        data-widget-url={this.props._widgetUrl}
+        data-api-url={this.props._apiUrl}
         data-site-host={this.props._siteHost}
         data-static-host={this.props._staticHost}
         data-widget-host={this.props._widgetHost}
         data-api-host={this.props._apiHost}
+        data-api-clean-routes={this.props._apiCleanRoutes}
         data-app-apex={this.props._appApex}
         data-portal-apex={this.props._portalApex}
         data-space-apex={this.props._spaceApex}

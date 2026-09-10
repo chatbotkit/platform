@@ -3,6 +3,7 @@ import { siteHostname, staticHostname, widgetHostname } from '@/config/site'
 import debug from '@/lib/debug'
 import standardFetch from '@/lib/egress.fetch'
 import { withNextCache } from '@/lib/fetch'
+import { hostToHostname } from '@/lib/host.parse'
 import {
   getExternalFrontendHost,
   getExternalStaticHost,
@@ -42,12 +43,16 @@ const ALLOWED_WIDGET_DOMAINS = [
  * module load.
  */
 export function getAllowedWidgetDomains(): Set<string> {
+  // @note the runtime seams return hosts; the allowlist is matched against
+  // URL hostnames, so the port is dropped here
   return new Set([
     ...ALLOWED_WIDGET_DOMAINS,
 
-    getExternalFrontendHost(),
-    getExternalStaticHost(),
-    getExternalWidgetHost(),
+    ...[
+      getExternalFrontendHost(),
+      getExternalStaticHost(),
+      getExternalWidgetHost(),
+    ].map(hostToHostname),
   ])
 }
 

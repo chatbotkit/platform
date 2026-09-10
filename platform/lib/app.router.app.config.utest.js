@@ -865,3 +865,31 @@ describe('getUserAppConfig', () => {
     })
   })
 })
+
+describe('getPublicAppConfig on a request host that carries a port', () => {
+  beforeEach(() => {
+    jest.clearAllMocks()
+
+    getContextFrontendHost.mockReturnValue(null)
+    getContextRequestHost.mockReturnValue('portal.chatbotkit.com:3000')
+    isAppHostname.mockReturnValue(true)
+    getPortalSlugFromHostname.mockReturnValue(null)
+    getAppSlugByHostname.mockReturnValue(null)
+    getPublicConfig.mockImplementation((config) => config)
+    getShadowConfig.mockImplementation((config) => config)
+    merge.mockImplementation((...configs) => Object.assign({}, ...configs))
+  })
+
+  it('reduces the host to a hostname before every lookup', async () => {
+    await getPublicAppConfig()
+
+    // @note the app and portal tables hold hostnames; a port would match
+    // nothing and the request would fall through to the platform config
+    expect(isAppHostname).toHaveBeenCalledWith('portal.chatbotkit.com')
+    expect(isAppHostname).not.toHaveBeenCalledWith('portal.chatbotkit.com:3000')
+    expect(getPortalSlugFromHostname).toHaveBeenCalledWith(
+      'portal.chatbotkit.com'
+    )
+    expect(getAppSlugByHostname).toHaveBeenCalledWith('portal.chatbotkit.com')
+  })
+})
