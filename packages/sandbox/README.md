@@ -54,12 +54,15 @@ community image.
   served by a driver in this process, so they are as slow as the store and as
   plain as an object store is - no symlinks, no partial writes, a rename is a
   copy and a delete.
-- **Fast pipelines.** A pipe between two commands can stall for the
-  runtime's ten-second blocking-read limit at end of stream, once per stage.
-  Upstream defect, tracked in
-  [rivet-dev/agentos#1959](https://github.com/rivet-dev/agentos/issues/1959).
-  @todo check the ticket when bumping the runtime and drop this entry once
-  a release fixes it.
+- **Reliable Node output redirection.** Node's `console.log`, `console.error`
+  and stdout/stderr streams can lose output when redirected to a pipe or
+  file. Tracked in
+  [rivet-dev/agentos#1967](https://github.com/rivet-dev/agentos/pull/1967).
+- **Blocking reads from slow writers.** A writer that stays quiet beyond
+  `maxBlockingReadMs` can still cause a pipe reader to fail with `EAGAIN` and
+  lose output. The default limit is unchanged; lowering it makes this easier
+  to trigger. Tracked in
+  [rivet-dev/agentos#1966](https://github.com/rivet-dev/agentos/pull/1966).
 - **A clean `ls -la` of `/workspace`.** The listing prints, then the command
   exits 1 with `Invalid argument` from the mount's directory entries at this
   version. `ls -l` is unaffected.
@@ -98,6 +101,11 @@ run.
 | `SANDBOX_DATA_DIR` | `<tmpdir>/chatbotkit-sandbox` | Where workspaces live, one directory per `sandboxId`. Point it at a volume in a deployment; the compose files use `/data/sandbox` |
 
 ## Requirements
+
+The runtime is pinned to `@rivet-dev/agentos-core@0.2.20-rc.1`, a release
+candidate that fixes the fast-pipeline stalls in
+[rivet-dev/agentos#1959](https://github.com/rivet-dev/agentos/issues/1959).
+The Node redirection and slow-writer limitations above remain in this version.
 
 The sidecar is a native binary the package resolves for the current platform:
 Linux x64 and arm64 with glibc, and macOS. Alpine images cannot load it; the

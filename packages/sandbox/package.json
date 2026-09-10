@@ -28,7 +28,7 @@
     "@chatbotkit-dev/sandbox-spec": "workspace:*",
     "@chatbotkit-dev/storage": "workspace:*",
     "@chatbotkit-dev/storage-spec": "workspace:*",
-    "@rivet-dev/agentos-core": "0.2.19"
+    "@rivet-dev/agentos-core": "0.2.20-rc.1"
   },
   "devDependencies": {
     "@chatbotkit-dev/eslint-config": "workspace:*",

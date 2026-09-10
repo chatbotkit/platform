@@ -5,6 +5,20 @@ here. The release version is defined in the workspace root `package.json`.
 
 ## [Unreleased]
 
+## [0.2.2] - 2026-09-10
+
+### Fixed
+
+- Upgrade the default sandbox runtime to AgentOS `0.2.20-rc.1` so fast shell
+  pipelines finish without waiting for the blocking-read watchdog at each
+  stage. Node output redirection and slow-writer limitations remain documented
+  in the sandbox package.
+- Pin the multi-architecture image manifests in the published Compose
+  distribution artifacts. A freshly built release pinned one arbitrary
+  per-architecture digest per image, so `docker compose -f oci://...` failed
+  with `unsupported: "platform linux/arm64"` (or amd64) depending on the
+  build.
+
 ## [0.2.1] - 2026-09-10
 
 ### Fixed

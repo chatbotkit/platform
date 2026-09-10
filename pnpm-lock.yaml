@@ -2300,8 +2300,8 @@ importers:
         specifier: workspace:*
         version: link:../storage-spec
       '@rivet-dev/agentos-core':
-        specifier: 0.2.19
-        version: 0.2.19
+        specifier: 0.2.20-rc.1
+        version: 0.2.20-rc.1
     devDependencies:
       '@chatbotkit-dev/eslint-config':
         specifier: workspace:*
@@ -3905,8 +3905,8 @@ packages:
     peerDependencies:
       zod: 3.25.67
 
-  '@agentos-software/common@0.2.19':
-    resolution: {integrity: sha512-yJE7ItT4xx8znxws6+Rr1Sy03UEvnwMH70+A4VJ4vdieFk4KYSKzNsQ6yxnCDwuS9nJBW9Qt9eF7iNKPE+3Mvg==}
+  '@agentos-software/common@0.2.20-rc.1':
+    resolution: {integrity: sha512-pctVTdFjTZusCvYIKjyHVb5M886GgldLu2jcgzfpOL5tOR7+UCmHhf35cy+9QYypHgrlXzcXqq/p/ibLeOUXDQ==}
 
   '@agentos-software/coreutils@0.3.4':
     resolution: {integrity: sha512-tGd0gQjUjHnm+5KgOBwidwUtlkKnl9biQuD7X2sZl15VOhYqUJpnyLF33h/nF3r9WtOTclSiLj/dc2xCxmAXnw==}
@@ -3926,8 +3926,8 @@ packages:
   '@agentos-software/gzip@0.3.4':
     resolution: {integrity: sha512-l7Y/Vwiwsqgna68yYwdNCnUBPGBg5zdmtjEFeG3hnDDFLe/02h17q0gUIqJmDBIAy1q9GoizqcFi7zXO2xygKg==}
 
-  '@agentos-software/manifest@0.2.19':
-    resolution: {integrity: sha512-3HN9i4FJ50jPeln2tWKaVTSgimex7N4RHAorSFsgSlqaFx2Q1clIERSe+VVrTkSu8D1IX7An/+Tw+8/dzOLwVg==}
+  '@agentos-software/manifest@0.2.20-rc.1':
+    resolution: {integrity: sha512-HbS3Jkrsq895uTdBGSoqcfwBEF0sXgEiU3dQyWh1NcUq70Bixhxwo1z1tXRXKLWuyLPDOmW8gmZgaxHKyRz22Q==}
 
   '@agentos-software/sed@0.3.4':
     resolution: {integrity: sha512-J10nZnZmme2SvXK5WMK2unQlOVncMQVUCS20GZB579a2gNoayLJYHGvfJ9a4+42wOHgDKL1u74byWlydCkEyOQ==}
@@ -7072,70 +7072,70 @@ packages:
     resolution: {integrity: sha512-FqALmHI8D4o6lk/LRWDnhw95z5eO+eAa6ORjVg09YRR7BkcM6oPHU9uyC0gtQG5vpFLvgpeU4+zEAz2H8APHNw==}
     engines: {node: '>= 10'}
 
-  '@rivet-dev/agentos-core@0.2.19':
-    resolution: {integrity: sha512-0eYZWF276l0L060KLV3xQQS+7bzmZiWGl4K9ghZUIYRBw84HvoLmXFrCSFIqVYeNwjlXtjtzL44NWWmGKVYvLg==}
+  '@rivet-dev/agentos-core@0.2.20-rc.1':
+    resolution: {integrity: sha512-DPpznTTgjJbbQ26QxpmzbfEvyM8eaNJkOsu2Im089CWC84q9ArBOwTPGSFaHxFabXNG6uV8vuRI93MsTsStG4g==}
 
-  '@rivet-dev/agentos-runtime-core@0.2.19':
-    resolution: {integrity: sha512-vp/4Z2zGkr/i5wzuqqDttvgcfb0USr831TuwWP67OMg1+SadKDRcCCE1oMg4WTdki7FMTUsGA+9z0mp9RGZkpQ==}
+  '@rivet-dev/agentos-runtime-core@0.2.20-rc.1':
+    resolution: {integrity: sha512-vMmYImfpoUagEXY22FjIgyZOWBxZPvbqmneDNpsMCbcr9oJ86SqWS0drQKNHA9lPPcx8gH0BJT9tzq5PMKUX8w==}
 
-  '@rivet-dev/agentos-runtime-sidecar-darwin-arm64@0.2.19':
-    resolution: {integrity: sha512-AVZalUse6R9reQikbonWNHz/132hTSbpXe/povZJoDzPsd5Gno7SIEMLAXfc68z2ED5sBx0WM9u5G7UWW2UYTg==}
+  '@rivet-dev/agentos-runtime-sidecar-darwin-arm64@0.2.20-rc.1':
+    resolution: {integrity: sha512-0qqm9aNUAxzBvI5ElRQKXL0W9sr7sDzEVLaYPZOukOeXfv6qyHCULIU3R7hRxGZqZXi82O+w+jH1sj5QZ+ISTw==}
     engines: {node: '>=20'}
     cpu: [arm64]
     os: [darwin]
 
-  '@rivet-dev/agentos-runtime-sidecar-darwin-x64@0.2.19':
-    resolution: {integrity: sha512-t4Y4QzmPo2l5uS1bfvNrM2ENwbdLD6Qmq7AQcLXlwFlUzkTrMAQPjSyF+b9GktU0sGojrBM5ssIxeXnEocv3Sg==}
+  '@rivet-dev/agentos-runtime-sidecar-darwin-x64@0.2.20-rc.1':
+    resolution: {integrity: sha512-77oVCsvqqTVeL0fg+tSb5c2DPUguE8PY2y3V5nU7hq0JbpW7hYrkPwlIUbtSfSR5P5VzHfxLuvsEeDQEv3uNqA==}
     engines: {node: '>=20'}
     cpu: [x64]
     os: [darwin]
 
-  '@rivet-dev/agentos-runtime-sidecar-linux-arm64-gnu@0.2.19':
-    resolution: {integrity: sha512-rDYO54jvKkUEIHDEyxd09mp+zlcTNaImWnKUxYh/6PHtJUi85EcDa8VXfVRX7rJV9FFHT2lYSWtZtOlziNZsbA==}
-    engines: {node: '>=20'}
-    cpu: [arm64]
-    os: [linux]
-    libc: [glibc]
-
-  '@rivet-dev/agentos-runtime-sidecar-linux-x64-gnu@0.2.19':
-    resolution: {integrity: sha512-BgT+BB6Q7GnKqckFiSEJprWPoOZW+I7ndYri3Sz4tjtbnrkPbllviGavcOqQZb3+3AEq7yLGiecoC4StI4Nu9A==}
-    engines: {node: '>=20'}
-    cpu: [x64]
-    os: [linux]
-    libc: [glibc]
-
-  '@rivet-dev/agentos-runtime-sidecar@0.2.19':
-    resolution: {integrity: sha512-+M+egdMdyGNPjth/H62RdESVFuTLQUUX5pilxPDKZc55tLEElky0EGQv5EQ94XnxJhJav32DqtQDGWJCXp9b3g==}
-    engines: {node: '>=20'}
-
-  '@rivet-dev/agentos-sidecar-darwin-arm64@0.2.19':
-    resolution: {integrity: sha512-xiH9VhvGRtjaTW1IySbnEnwGmmRbdjuxqDd+9w+uURwJnX7Z0qTL/FSz3/S9UFKZ/RwpEL/B40c3M3njtL754g==}
-    engines: {node: '>=20'}
-    cpu: [arm64]
-    os: [darwin]
-
-  '@rivet-dev/agentos-sidecar-darwin-x64@0.2.19':
-    resolution: {integrity: sha512-Jd7FkmvAjqKG23reAV76+5idw5FUGYHJ/xKxB0O11MoRKwwO6fLNhZ6ZLdiSHQW9fULZ1VjQJgUe8Pawdex48w==}
-    engines: {node: '>=20'}
-    cpu: [x64]
-    os: [darwin]
-
-  '@rivet-dev/agentos-sidecar-linux-arm64-gnu@0.2.19':
-    resolution: {integrity: sha512-V+Fag9whzHA0kDPJW3IMe4BhIDry76TcvMNEgoHuLaWKkTyK+SmzhLO243gi/frt+0i4ImHQQIA+Unzh2ijZLg==}
+  '@rivet-dev/agentos-runtime-sidecar-linux-arm64-gnu@0.2.20-rc.1':
+    resolution: {integrity: sha512-3s2E4Fz72irjdl9D/vrxT2k/N6hsi0bZISEN42DobDAgPaqbcZCNrWKGc1jKgUTBRDRWiN3C8EuMC81HM7MaaA==}
     engines: {node: '>=20'}
     cpu: [arm64]
     os: [linux]
     libc: [glibc]
 
-  '@rivet-dev/agentos-sidecar-linux-x64-gnu@0.2.19':
-    resolution: {integrity: sha512-22LiFiR1k7ehRZB/05i0qGOo5tq661GrTDZJW5+4B2w7yFOSIq7tKqlz4bZihaih2V47H8B6HfZCnQVx6C6jfA==}
+  '@rivet-dev/agentos-runtime-sidecar-linux-x64-gnu@0.2.20-rc.1':
+    resolution: {integrity: sha512-m+/HEnr4EMyy2QUvZwJg9h96bPQ3XQ3M61V/xuj7AtMJg/PsbKGZcLxpJW6vqmq5hs0giDt775VIungkSqcl3g==}
     engines: {node: '>=20'}
     cpu: [x64]
     os: [linux]
     libc: [glibc]
 
-  '@rivet-dev/agentos-sidecar@0.2.19':
-    resolution: {integrity: sha512-Ar+ZYb2xxjIBMS/3OWNCOr2JM4CpYMAp0Iw8ulDpMoyhoG8RVzrTvAfGDzrEs/xkM68qastNMYQuaOZtnkBnvA==}
+  '@rivet-dev/agentos-runtime-sidecar@0.2.20-rc.1':
+    resolution: {integrity: sha512-b9pTc8LTje4RFlzyH4kHl96LjyMw/mqlxyefbkd0VEX17IQGxGtrnoD5jXmAD+ZvMs3hPC8IcuBilZTsLoNnCQ==}
+    engines: {node: '>=20'}
+
+  '@rivet-dev/agentos-sidecar-darwin-arm64@0.2.20-rc.1':
+    resolution: {integrity: sha512-tfoRakmgU/l6jbvKkpgYuitoORCY2s3ub8DrOBDIRcr4HPGiTQc8Fi6W4KkQRZ4FokPjh/vWtjPLHQR9uddnGQ==}
+    engines: {node: '>=20'}
+    cpu: [arm64]
+    os: [darwin]
+
+  '@rivet-dev/agentos-sidecar-darwin-x64@0.2.20-rc.1':
+    resolution: {integrity: sha512-z94u55yVYTwbfm12v42Uy8sYiKmK0iImUUKDGsHrrHeNr6fhPYrc1/7apA+tOD0baR7E413zK86l5NRqGMUs9g==}
+    engines: {node: '>=20'}
+    cpu: [x64]
+    os: [darwin]
+
+  '@rivet-dev/agentos-sidecar-linux-arm64-gnu@0.2.20-rc.1':
+    resolution: {integrity: sha512-0oIa4Uy8/rOMweey823wNZpUmU90Lx4grUK6dC4FQOtk3kJO+4vQYOZHJJ2t7nSO9en05U4r3SS4r3n95bvcIg==}
+    engines: {node: '>=20'}
+    cpu: [arm64]
+    os: [linux]
+    libc: [glibc]
+
+  '@rivet-dev/agentos-sidecar-linux-x64-gnu@0.2.20-rc.1':
+    resolution: {integrity: sha512-g8iGDSq+aU4aZGb0nvqUxL5R0biw+zcACtSUUokloLJTt7S/F7fs/hTzHheCyxMOQjLpKPf/Sgyfko5ugwpCHA==}
+    engines: {node: '>=20'}
+    cpu: [x64]
+    os: [linux]
+    libc: [glibc]
+
+  '@rivet-dev/agentos-sidecar@0.2.20-rc.1':
+    resolution: {integrity: sha512-hFNE4LeRjOe+qEiarQqjvTnpVIMuC/2fyvanvs/rgYFr5K6WOxKiQGBML71NDVm2QT5/Lmc1WyMOJI0QChfY/Q==}
     engines: {node: '>=20'}
 
   '@rivetkit/bare-ts@0.6.2':
@@ -17254,7 +17254,7 @@ snapshots:
     dependencies:
       zod: 4.4.3
 
-  '@agentos-software/common@0.2.19':
+  '@agentos-software/common@0.2.20-rc.1':
     dependencies:
       '@agentos-software/coreutils': 0.3.4
       '@agentos-software/diffutils': 0.3.4
@@ -17277,7 +17277,7 @@ snapshots:
 
   '@agentos-software/gzip@0.3.4': {}
 
-  '@agentos-software/manifest@0.2.19': {}
+  '@agentos-software/manifest@0.2.20-rc.1': {}
 
   '@agentos-software/sed@0.3.4': {}
 
@@ -21081,13 +21081,13 @@ snapshots:
 
   '@resvg/resvg-wasm@2.6.2': {}
 
-  '@rivet-dev/agentos-core@0.2.19':
+  '@rivet-dev/agentos-core@0.2.20-rc.1':
     dependencies:
       '@agentclientprotocol/sdk': 0.16.1(zod@4.4.3)
-      '@agentos-software/common': 0.2.19
-      '@agentos-software/manifest': 0.2.19
-      '@rivet-dev/agentos-runtime-core': 0.2.19
-      '@rivet-dev/agentos-sidecar': 0.2.19
+      '@agentos-software/common': 0.2.20-rc.1
+      '@agentos-software/manifest': 0.2.20-rc.1
+      '@rivet-dev/agentos-runtime-core': 0.2.20-rc.1
+      '@rivet-dev/agentos-sidecar': 0.2.20-rc.1
       '@rivetkit/bare-ts': 0.6.2
       '@xterm/headless': 6.0.0
       better-sqlite3: 12.11.1
@@ -21097,49 +21097,49 @@ snapshots:
       zod: 4.4.3
       zod-to-json-schema: 3.25.2(zod@4.4.3)
 
-  '@rivet-dev/agentos-runtime-core@0.2.19':
+  '@rivet-dev/agentos-runtime-core@0.2.20-rc.1':
     dependencies:
-      '@rivet-dev/agentos-runtime-sidecar': 0.2.19
+      '@rivet-dev/agentos-runtime-sidecar': 0.2.20-rc.1
       '@rivetkit/bare-ts': 0.6.2
       zod: 4.4.3
 
-  '@rivet-dev/agentos-runtime-sidecar-darwin-arm64@0.2.19':
+  '@rivet-dev/agentos-runtime-sidecar-darwin-arm64@0.2.20-rc.1':
     optional: true
 
-  '@rivet-dev/agentos-runtime-sidecar-darwin-x64@0.2.19':
+  '@rivet-dev/agentos-runtime-sidecar-darwin-x64@0.2.20-rc.1':
     optional: true
 
-  '@rivet-dev/agentos-runtime-sidecar-linux-arm64-gnu@0.2.19':
+  '@rivet-dev/agentos-runtime-sidecar-linux-arm64-gnu@0.2.20-rc.1':
     optional: true
 
-  '@rivet-dev/agentos-runtime-sidecar-linux-x64-gnu@0.2.19':
+  '@rivet-dev/agentos-runtime-sidecar-linux-x64-gnu@0.2.20-rc.1':
     optional: true
 
-  '@rivet-dev/agentos-runtime-sidecar@0.2.19':
+  '@rivet-dev/agentos-runtime-sidecar@0.2.20-rc.1':
     optionalDependencies:
-      '@rivet-dev/agentos-runtime-sidecar-darwin-arm64': 0.2.19
-      '@rivet-dev/agentos-runtime-sidecar-darwin-x64': 0.2.19
-      '@rivet-dev/agentos-runtime-sidecar-linux-arm64-gnu': 0.2.19
-      '@rivet-dev/agentos-runtime-sidecar-linux-x64-gnu': 0.2.19
+      '@rivet-dev/agentos-runtime-sidecar-darwin-arm64': 0.2.20-rc.1
+      '@rivet-dev/agentos-runtime-sidecar-darwin-x64': 0.2.20-rc.1
+      '@rivet-dev/agentos-runtime-sidecar-linux-arm64-gnu': 0.2.20-rc.1
+      '@rivet-dev/agentos-runtime-sidecar-linux-x64-gnu': 0.2.20-rc.1
 
-  '@rivet-dev/agentos-sidecar-darwin-arm64@0.2.19':
+  '@rivet-dev/agentos-sidecar-darwin-arm64@0.2.20-rc.1':
     optional: true
 
-  '@rivet-dev/agentos-sidecar-darwin-x64@0.2.19':
+  '@rivet-dev/agentos-sidecar-darwin-x64@0.2.20-rc.1':
     optional: true
 
-  '@rivet-dev/agentos-sidecar-linux-arm64-gnu@0.2.19':
+  '@rivet-dev/agentos-sidecar-linux-arm64-gnu@0.2.20-rc.1':
     optional: true
 
-  '@rivet-dev/agentos-sidecar-linux-x64-gnu@0.2.19':
+  '@rivet-dev/agentos-sidecar-linux-x64-gnu@0.2.20-rc.1':
     optional: true
 
-  '@rivet-dev/agentos-sidecar@0.2.19':
+  '@rivet-dev/agentos-sidecar@0.2.20-rc.1':
     optionalDependencies:
-      '@rivet-dev/agentos-sidecar-darwin-arm64': 0.2.19
-      '@rivet-dev/agentos-sidecar-darwin-x64': 0.2.19
-      '@rivet-dev/agentos-sidecar-linux-arm64-gnu': 0.2.19
-      '@rivet-dev/agentos-sidecar-linux-x64-gnu': 0.2.19
+      '@rivet-dev/agentos-sidecar-darwin-arm64': 0.2.20-rc.1
+      '@rivet-dev/agentos-sidecar-darwin-x64': 0.2.20-rc.1
+      '@rivet-dev/agentos-sidecar-linux-arm64-gnu': 0.2.20-rc.1
+      '@rivet-dev/agentos-sidecar-linux-x64-gnu': 0.2.20-rc.1
 
   '@rivetkit/bare-ts@0.6.2': {}
 
