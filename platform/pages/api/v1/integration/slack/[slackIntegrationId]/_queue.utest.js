@@ -50,6 +50,27 @@ import {
 
 // @note partner ownership is covered by portal.config.utest.js; the
 // custom-domain cases here pin only frontend host propagation
+// @note a portless production-style site, so the derived portal hosts do not
+// depend on whatever SITE_URL the shell exports
+jest.mock('@/config/site', () => {
+  const siteUrl = 'https://chatbotkit.com'
+
+  return {
+    siteUrl,
+    siteHostname: 'chatbotkit.com',
+    siteHost: 'chatbotkit.com',
+    staticUrl: siteUrl,
+    staticHostname: 'chatbotkit.com',
+    staticHost: 'chatbotkit.com',
+    widgetUrl: siteUrl,
+    widgetHostname: 'chatbotkit.com',
+    widgetHost: 'chatbotkit.com',
+    apiUrl: siteUrl,
+    apiHostname: 'chatbotkit.com',
+    apiHost: 'chatbotkit.com',
+  }
+})
+
 jest.mock('@/lib/portal.config', () => ({
   getPortalGlobalConfig: jest.fn((portal) =>
     portal.slug.endsWith('-acme-dev') ? { domain: 'acme.dev' } : null
@@ -198,6 +219,8 @@ jest.mock('@/lib/slack.references', () => ({
 jest.mock('@/lib/context.store', () => ({
   setContextUser: jest.fn(),
   setContextFrontendHost: jest.fn(),
+  getContextRequestHost: jest.fn(),
+  getContextRequestProtocol: jest.fn(),
 }))
 
 jest.mock('@/lib/session.context', () => ({ updateSessionStore: jest.fn() }))

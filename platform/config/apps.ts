@@ -214,11 +214,11 @@ if (shellHosts[LABS_TYPE]) {
 export const appSlugs = Object.freeze(apps.map(({ slug }) => slug))
 
 /**
- * Create a list of app hostnames. Hostless apps (a deployment with no
+ * Create a list of app hosts. Hostless apps (a deployment with no
  * deployment hostname configuration) simply do not appear - nothing matches
  * by host.
  */
-export const appHostnames = Object.freeze(
+export const appHosts = Object.freeze(
   apps.map(({ host }) => host).filter((host): host is string => !!host)
 )
 
@@ -234,10 +234,11 @@ export const appSlugToUrlMap = Object.freeze({
 })
 
 /**
- * Create a mapping of app slug to hostname. Hostless entries are omitted so
- * host matching never compares against nothing.
+ * Create a mapping of app slug to host - port included when the origin has
+ * one. Hostless entries are omitted so host matching never compares against
+ * nothing.
  */
-export const appSlugToHostnameMap: Readonly<Record<string, string>> =
+export const appSlugToHostMap: Readonly<Record<string, string>> =
   Object.freeze({
     ...Object.fromEntries(
       apps

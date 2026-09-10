@@ -53,7 +53,7 @@ export async function getPartnerByIdentifier(
 export async function getPartnerByHostname(
   hostname: string
 ): Promise<Partner | null> {
-  const slug = getPartnerSlugFromHostname((hostname || '').split(':')[0])
+  const slug = getPartnerSlugFromHostname(hostname || '')
 
   if (!slug) {
     return null
@@ -96,6 +96,6 @@ export function getPartnerSlugFromHostname(hostname: string): string | null {
   return null
 }
 
-export function isPartnerHost(host: string): boolean {
-  return getPartnerSlugFromHostname(host) !== null
+export function isPartnerHostname(hostname: string): boolean {
+  return getPartnerSlugFromHostname(hostname) !== null
 }

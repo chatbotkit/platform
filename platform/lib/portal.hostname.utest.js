@@ -2,7 +2,6 @@
 import {
   getPortalSlug,
   getPortalSlugFromHostname,
-  getPortalURL,
   isPortalHostname,
 } from './portal.hostname'
 
@@ -233,54 +232,4 @@ describe('portal.hostname', () => {
     })
   })
 
-  describe('getPortalURL', () => {
-    it('should construct URL from request hostname with path', () => {
-      getContextRequestHost.mockReturnValue('myportal.chatbotkit.agency')
-
-      const url = getPortalURL('/some/path')
-
-      expect(url).toBeInstanceOf(URL)
-      expect(url.href).toBe('https://myportal.chatbotkit.agency/some/path')
-    })
-
-    it('should construct URL from request hostname without path', () => {
-      getContextRequestHost.mockReturnValue('test.chatbotkit.agency')
-
-      const url = getPortalURL()
-
-      expect(url).toBeInstanceOf(URL)
-      expect(url.href).toBe('https://test.chatbotkit.agency/')
-    })
-
-    it('should prefer frontend hostname over request hostname', () => {
-      getContextFrontendHost.mockReturnValue('frontend.chatbotkit.agency')
-      getContextRequestHost.mockReturnValue('backend.chatbotkit.agency')
-
-      const url = getPortalURL('/path')
-
-      expect(url.href).toBe('https://frontend.chatbotkit.agency/path')
-    })
-
-    it('should return null when no hostname', () => {
-      getContextRequestHost.mockReturnValue(null)
-
-      expect(getPortalURL()).toBeNull()
-    })
-
-    it('should handle paths with query strings', () => {
-      getContextRequestHost.mockReturnValue('portal.chatbotkit.agency')
-
-      const url = getPortalURL('/path?query=value')
-
-      expect(url.href).toBe('https://portal.chatbotkit.agency/path?query=value')
-    })
-
-    it('should handle empty path parameter', () => {
-      getContextRequestHost.mockReturnValue('portal.chatbotkit.agency')
-
-      const url = getPortalURL('')
-
-      expect(url.href).toBe('https://portal.chatbotkit.agency/')
-    })
-  })
 })

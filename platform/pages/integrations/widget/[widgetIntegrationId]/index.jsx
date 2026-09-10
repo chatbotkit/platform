@@ -10,7 +10,7 @@ import {
 
 import { getExamplesWithExportedThemes } from '@/lib/example.fetch'
 import { formToData } from '@/lib/form'
-import { getExternalHostURL } from '@/lib/host'
+import { getExternalStaticHostURL } from '@/lib/host'
 import { typeToFileName } from '@/lib/mime'
 import { getSoftSession } from '@/lib/session.get'
 import { withWidgetIntegrationResources } from '@/lib/solution'
@@ -47,7 +47,7 @@ import WidgetPluginsSelect from '@/components/WidgetPluginsSelect'
 import useControlledState from '@/hooks/useControlledState'
 import useDropzone from '@/hooks/useDropzone'
 import useFetch from '@/hooks/useFetch'
-import { useStaticHostname } from '@/hooks/useHostname'
+import { useStaticHost } from '@/hooks/useHost'
 import usePopup from '@/hooks/usePopup'
 import useRouter from '@/hooks/useRouter'
 import useScopedCreateData from '@/hooks/useScopedCreateData'
@@ -73,17 +73,17 @@ function getAttributes(options) {
   return div.outerHTML.replace(/^<div|><\/div>$/g, '').trim()
 }
 
-export function getInstallCode(integration, staticHostname) {
-  return `<script id="chatbotkit-widget" src="${getExternalHostURL(
+export function getInstallCode(integration, staticHost) {
+  return `<script id="chatbotkit-widget" src="${getExternalStaticHostURL(
     '/integrations/widget/v2.js',
-    staticHostname
+    staticHost
   )}" ${getAttributes({ widget: integration.id })}></script>`
 }
 
 export function Install({ integration }) {
-  const staticHostname = useStaticHostname()
+  const staticHost = useStaticHost()
 
-  const code = getInstallCode(integration, staticHostname)
+  const code = getInstallCode(integration, staticHost)
 
   return (
     <>

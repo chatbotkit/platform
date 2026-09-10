@@ -5,20 +5,31 @@ import partnersConfig from '@chatbotkit-dev/partners'
 
 import { partnersApex } from '@/config/apexes'
 import { apps } from '@/config/apps'
+import { HOST_COOKIE_NAME } from '@/config/cookie'
 import { hosts } from '@/config/hosts'
-import { apiHostname, siteHostname, staticHostname } from '@/config/site'
+import {
+  apiHostname,
+  siteHostname,
+  siteUrl,
+  staticHostname,
+} from '@/config/site'
 
 import { getPortalSlugFromHostname } from '@/lib/portal.hostname'
 import { getSecurityHeaders } from '@/lib/security.headers'
 import { getSpaceSiteSlug } from '@/lib/space.site'
+import { hostToHostname, normalizeRequestHost } from '@/lib/host.parse'
 
 import { apiCorsHeaders } from '@/next.config.d/api.config'
 
 // @note host routing ignores ports, matching Next's former host conditions
 
+// @note whether forwarded headers are trusted is deployment configuration,
+// read once at startup like the host tables
+const trustProxyHeaders = process.env.TRUST_PROXY_HEADERS === 'true'
+
 const appsByHostname = new Map(
   apps.flatMap((app) =>
-    app.host ? [[app.host.split(':')[0].toLowerCase(), app.slug]] : []
+    app.host ? [[hostToHostname(app.host), app.slug]] : []
   )
 )
 
@@ -32,13 +43,21 @@ const partnerSuffix = partnersApex
   ? `.${partnersApex.toLowerCase()}`
   : undefined
 
-// @note API and static targets that also serve the site must not capture its pages
-const siteHostnames = new Set([siteHostname, ...hosts.site])
+// @note API and static targets that also serve the site must not capture its
+// pages; the configured targets are hosts, routing compares hostnames
+const siteHostnames = new Set([
+  siteHostname,
+  ...hosts.site.map(hostToHostname),
+])
 const apiHostnames = new Set(
-  [...hosts.api, apiHostname].filter((host) => !siteHostnames.has(host))
+  [...hosts.api.map(hostToHostname), apiHostname].filter(
+    (hostname) => !siteHostnames.has(hostname)
+  )
 )
 const staticHostnames = new Set(
-  [...hosts.static, staticHostname].filter((host) => !siteHostnames.has(host))
+  [...hosts.static.map(hostToHostname), staticHostname].filter(
+    (hostname) => !siteHostnames.has(hostname)
+  )
 )
 
 /**
@@ -49,7 +68,8 @@ export function proxy(request: NextRequest): NextResponse {
   // @note match the actual Host header, as Next's host rewrites did; forwarded
   // and internal assertion headers remain subject to request-context validation
 
-  const hostname = request.headers.get('host')?.split(':')[0].toLowerCase()
+  const host = request.headers.get('host')?.toLowerCase()
+  const hostname = host ? hostToHostname(host) : undefined
 
   const appSlug = hostname ? appsByHostname.get(hostname) : undefined
   const isApiHost = !!hostname && apiHostnames.has(hostname)
@@ -222,6 +242,25 @@ export function proxy(request: NextRequest): NextResponse {
     for (const { key, value } of getSecurityHeaders(pathname)) {
       response.headers.set(key, value)
     }
+  }
+
+  // @note the browser reads the request host back from this cookie; it
+  // records the same host the request context trusts - the forwarded host
+  // behind a trusted proxy, the Host header otherwise - so the two never
+  // disagree. `Secure` only on a TLS site, or plain-http deployments never
+  // receive it. Written raw: the cookie API percent-encodes the port separator
+  const cookieHost =
+    (trustProxyHeaders
+      ? normalizeRequestHost(request.headers.get('x-forwarded-host'))
+      : null) || normalizeRequestHost(host)
+
+  if (cookieHost) {
+    response.headers.append(
+      'set-cookie',
+      `${HOST_COOKIE_NAME}=${cookieHost}; Path=/; SameSite=Lax${
+        siteUrl.startsWith('https://') ? '; Secure' : ''
+      }`
+    )
   }
 
   if (partnerSlug && Object.hasOwn(partnersConfig, partnerSlug)) {

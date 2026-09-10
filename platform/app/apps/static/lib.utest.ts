@@ -187,6 +187,23 @@ describe('space site base href resolvers', () => {
       )
     })
 
+    it('serves from the bare root when the app own host carries a port', () => {
+      ;(getContextRequestHost as jest.Mock).mockReturnValue(
+        'static.chatbotkit.app:3000'
+      )
+
+      // @note the internal app-prefixed path: only the own-host branch strips
+      // it back to the bare root, the fallback would answer /static/about/
+      const req = new Request(
+        'http://static.chatbotkit.app:3000/apps/static/about/',
+        { headers: { 'x-forwarded-host': 'static.chatbotkit.app:3000' } }
+      )
+
+      expect(getAppMountBaseHref(req, { params: { path: ['about'] } })).toBe(
+        '/about/'
+      )
+    })
+
     it('keeps the app-prefixed mount for a portal host', () => {
       ;(getContextRequestHost as jest.Mock).mockReturnValue(
         'acme.chatbotkit.agency'
@@ -299,5 +316,25 @@ describe('static site helpers', () => {
         getDirectoryIndexStoragePath({ path: 'about', prefix: 'public/site' })
       ).toBe('public/site/about/index.html')
     })
+  })
+})
+
+describe('resolveSpaceSiteConfig on a host that carries a port', () => {
+  beforeEach(() => {
+    jest.clearAllMocks()
+    ;(getContextFrontendHost as jest.Mock).mockReturnValue(
+      'acme.chatbotkit.agency:3000'
+    )
+    ;(getContextRequestHost as jest.Mock).mockReturnValue(null)
+    ;(getPortalSlugFromHostname as jest.Mock).mockReturnValue(null)
+  })
+
+  it('looks the portal slug up by hostname', async () => {
+    await resolveSpaceSiteConfig()
+
+    // @note the context carries the host; the slug table holds hostnames
+    expect(getPortalSlugFromHostname).toHaveBeenCalledWith(
+      'acme.chatbotkit.agency'
+    )
   })
 })

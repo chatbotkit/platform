@@ -89,12 +89,12 @@ const config = [
             {
               source: '@/config/site',
               reason:
-                'siteUrl and the hostnames freeze at build and ignore the serving (partner) host - use the @/hooks/useHostname family or router.absoluteHref.',
+                'siteUrl and the hostnames freeze at build and ignore the serving (partner) host - use the @/hooks/useHost family or router.absoluteHref.',
             },
             {
               source: '@/config/apexes',
               reason:
-                'the apexes freeze at build - use usePortalApex/useSpaceApex from @/hooks/useHostname.',
+                'the apexes freeze at build - use usePortalApex/useSpaceApex from @/hooks/useHost.',
             },
             {
               source: '@/config/origins',

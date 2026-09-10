@@ -1,9 +1,10 @@
 import {
+  getContextAPIHost,
   getContextFrontendHost,
   getContextRequestHost,
   getContextRequestProtocol,
 } from '@/lib/context.store'
-import { getExternalAPIHost } from '@/lib/host'
+import { getExternalAPIHost, getExternalFrontendHostURL } from '@/lib/host'
 
 import handler from './spec'
 
@@ -14,6 +15,7 @@ jest.mock('fs', () => ({
 }))
 
 jest.mock('@/lib/context.store', () => ({
+  getContextAPIHost: jest.fn(),
   getContextFrontendHost: jest.fn(),
   getContextRequestHost: jest.fn(),
   getContextRequestProtocol: jest.fn(),
@@ -29,6 +31,22 @@ describe('/api/v1/spec', () => {
     getContextFrontendHost.mockReturnValue(undefined)
     getContextRequestHost.mockReturnValue(undefined)
     getContextRequestProtocol.mockReturnValue(undefined)
+  })
+
+  it.each([
+    ['api.mapped.localhost:4300', '/v1/spec', '/v1'],
+    ['api.mapped.localhost:4300', '/api/v1/spec', '/v1'],
+    ['mapped.localhost:4300', '/v1/spec', '/api/v1'],
+  ])('advertises the mapped API %s from %s', async (apiHost, pathname, apiPath) => {
+    fs.readFileSync.mockReturnValueOnce(JSON.stringify({ openapi: '3.0.0' }))
+    getContextFrontendHost.mockReturnValue('mapped.localhost:4300')
+    getContextRequestHost.mockReturnValue(apiHost)
+    getContextAPIHost.mockReturnValue(apiHost)
+
+    const response = await handler(new Request(`http://${apiHost}${pathname}`))
+    const body = await response.json()
+
+    expect(body.servers).toEqual([{ url: `http://${apiHost}${apiPath}` }])
   })
 
   it('returns spec with server URL using frontend host and context protocol', async () => {
@@ -69,6 +87,18 @@ describe('/api/v1/spec', () => {
     expect(body.servers).toEqual([{ url: 'https://api.example.com/api/v1' }])
   })
 
+  it('stays on http for a loopback deployment without a request scheme', async () => {
+    fs.readFileSync.mockReturnValueOnce(JSON.stringify({ openapi: '3.0.0' }))
+    getContextRequestHost.mockReturnValue('cbk.localhost:3000')
+
+    const response = await handler(
+      new Request('http://ignored.example.com/api/v1/spec')
+    )
+    const body = await response.json()
+
+    expect(body.servers).toEqual([{ url: 'http://cbk.localhost:3000/api/v1' }])
+  })
+
   it('uses platform default host when no host headers are available', async () => {
     fs.readFileSync.mockReturnValueOnce(
       JSON.stringify({
@@ -81,6 +111,9 @@ describe('/api/v1/spec', () => {
     )
     const body = await response.json()
 
-    expect(body.servers).toEqual([{ url: `https://${getExternalAPIHost()}/` }])
+    // @note the scheme follows the deployment for its own host
+    expect(body.servers).toEqual([
+      { url: getExternalFrontendHostURL('/', getExternalAPIHost()) },
+    ])
   })
 })

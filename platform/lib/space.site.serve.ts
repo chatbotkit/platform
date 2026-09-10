@@ -5,6 +5,7 @@ import {
   getContextFrontendHost,
   getContextRequestHost,
 } from '@/lib/context.store'
+import { hostToHostname } from '@/lib/host.parse'
 import { captureException } from '@/lib/error'
 import fetch from '@/lib/fetch'
 import { getSpaceSiteSlug } from '@/lib/space.site'
@@ -60,16 +61,20 @@ function withTrailingSlash(pathname: string): string {
 }
 
 /**
- * Extracts the request host as a bare domain (no port), lower-cased.
+ * The space-site hostname, with the frontend identity taking precedence.
  */
-export function getSpaceSiteHost(): string | null {
-  const host = getContextFrontendHost() || getContextRequestHost()
+export function getSpaceSiteHostname(): string | null {
+  const hostnames = [getContextFrontendHost(), getContextRequestHost()]
+    .map(hostToHostname)
+    .filter(Boolean)
 
-  if (!host) {
-    return null
-  }
-
-  return host.split(':')[0].trim().toLowerCase() || null
+  // @note a mapped frontend can name the platform site while the request
+  // retains the space-site slug selected by host routing
+  return (
+    hostnames.find((hostname) => getSpaceSiteSlug(hostname)) ||
+    hostnames[0] ||
+    null
+  )
 }
 
 /**
@@ -106,13 +111,13 @@ export function getSpaceSiteMountBaseHref(req: Request): string {
  * backing `spaceId` - never owner or other private fields.
  */
 export async function resolveSpaceSiteConfigByHost(): Promise<SpaceSiteServeConfig> {
-  const host = getSpaceSiteHost()
+  const hostname = getSpaceSiteHostname()
 
-  if (!host) {
+  if (!hostname) {
     return {}
   }
 
-  const slug = getSpaceSiteSlug(host)
+  const slug = getSpaceSiteSlug(hostname)
 
   if (!slug) {
     return {}

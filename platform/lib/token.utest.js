@@ -254,6 +254,12 @@ describe('APP_AUDIENCE host selection', () => {
 
     expect(throwNotAuthorized).toHaveBeenCalled()
   })
+
+  it('accepts an app session on an app host that carries a port', async () => {
+    await verify(null, 'quench-qsbx-ai.chatbotkit.agency:3000')
+
+    expect(throwNotAuthorized).not.toHaveBeenCalled()
+  })
 })
 
 describe('getPayloadVerifier', () => {

@@ -28,7 +28,11 @@ jest.mock('@/hooks/useSession', () =>
 jest.mock('@/hooks/useIsTop', () => jest.fn(() => true))
 jest.mock('@/hooks/useSignin', () => jest.fn(() => ({ signin: jest.fn() })))
 jest.mock('@/hooks/useSignout', () => jest.fn(() => ({ signout: jest.fn() })))
-jest.mock('@/hooks/useHostname', () => jest.fn(() => 'chatbotkit.com'))
+jest.mock('@/hooks/useHost', () => ({
+  __esModule: true,
+  default: jest.fn(() => 'chatbotkit.com'),
+  useHostname: jest.fn(() => 'chatbotkit.com'),
+}))
 jest.mock('@/lib/error', () => ({ captureException: jest.fn() }))
 jest.mock('@/lib/toast', () => ({ success: jest.fn() }))
 jest.mock('@/lib/email.validation', () => ({

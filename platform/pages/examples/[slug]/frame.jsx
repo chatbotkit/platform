@@ -1,7 +1,8 @@
 /* eslint-disable custom-eslint-rules/no-restricted-client-imports -- used inside getServerSideProps only */
 import { ONE_HOUR_IN_SECONDS } from '@chatbotkit-dev/time'
 
-import { siteHostname } from '@/config/site'
+import { siteHost } from '@/config/site'
+import { getExternalFrontendHostURL } from '@/lib/host'
 import { exampleWidgetUserId } from '@/config/widget'
 
 import { getConversationDetails } from '@/lib/bot.conversation'
@@ -35,7 +36,7 @@ export async function getServerSideProps(context) {
     setupRequestContext(context.req)
 
     const frontendHost =
-      getContextFrontendHost() || getContextRequestHost() || siteHostname
+      getContextFrontendHost() || getContextRequestHost() || siteHost
 
     const example = getExampleBySlug(context.params.slug)
 
@@ -174,7 +175,7 @@ export async function getServerSideProps(context) {
 
     context.res.setHeader(
       'Content-Security-Policy',
-      `frame-ancestors 'self' https://${frontendHost}`
+      `frame-ancestors 'self' ${new URL(getExternalFrontendHostURL('/', frontendHost)).origin}`
     )
 
     return {

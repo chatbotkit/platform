@@ -1,13 +1,13 @@
 import { getExternalAPIHostURL } from '@/lib/host'
 
-import { useAPIHostname } from '@/hooks/useHostname'
+import { useAPIHost } from '@/hooks/useHost'
 
 import useExternalAPIURL from './useExternalAPIURL'
 
 import { renderHook } from '@testing-library/react'
 
-jest.mock('@/hooks/useHostname', () => ({
-  useAPIHostname: jest.fn(),
+jest.mock('@/hooks/useHost', () => ({
+  useAPIHost: jest.fn(),
 }))
 jest.mock('@/lib/host', () => ({
   getExternalAPIHostURL: jest.fn(),
@@ -19,7 +19,7 @@ describe('useExternalAPIURL', () => {
   })
 
   it('should build external API URL using resolved hostname', () => {
-    useAPIHostname.mockReturnValue('api.example.com')
+    useAPIHost.mockReturnValue('api.example.com')
     getExternalAPIHostURL.mockReturnValue('https://api.example.com/v1/ping')
 
     const { result } = renderHook(() => useExternalAPIURL())
@@ -34,7 +34,7 @@ describe('useExternalAPIURL', () => {
   })
 
   it('should update callback behavior when hostname changes', () => {
-    useAPIHostname.mockReturnValue('api-first.example.com')
+    useAPIHost.mockReturnValue('api-first.example.com')
     getExternalAPIHostURL.mockReturnValueOnce(
       'https://api-first.example.com/one'
     )
@@ -43,7 +43,7 @@ describe('useExternalAPIURL', () => {
 
     expect(result.current('/one')).toBe('https://api-first.example.com/one')
 
-    useAPIHostname.mockReturnValue('api-second.example.com')
+    useAPIHost.mockReturnValue('api-second.example.com')
     getExternalAPIHostURL.mockReturnValueOnce(
       'https://api-second.example.com/two'
     )

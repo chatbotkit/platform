@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useSyncExternalStore } from 'react'
 
-import { getExternalAPIHost } from '@/lib/host'
+import { resolvePlatformApiUrl } from '@/lib/api.tool.url'
 import { prompt } from 'react-prompt-kit/src'
 
 import { isEmpty as isObjectEmpty } from '@/lib/object'
@@ -589,17 +589,7 @@ export default function Widget({
               required: ['url'],
             },
             handler: async ({ method, url, data }) => {
-              const u = new URL(url, window.location.origin)
-
-              if (u.hostname === getExternalAPIHost()) {
-                const localOrigin = new URL(window.location.origin)
-
-                u.protocol = localOrigin.protocol
-                u.host = localOrigin.host
-                u.pathname = u.pathname.startsWith('/api/')
-                  ? u.pathname
-                  : `/api${u.pathname}`
-              }
+              const u = resolvePlatformApiUrl(url)
 
               if (u.origin !== window.location.origin) {
                 return {

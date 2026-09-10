@@ -3,7 +3,7 @@ import { z } from 'zod'
 
 // @note the server asserts its runtime environment strictly. The browser
 // bundle carries no environment, so the document origin is the seed and the
-// useHostname hooks overlay the request values from the data-* attributes.
+// useHost hooks overlay the request values from the data-* attributes.
 
 // @note the deployment URLs are origins - a provided value that carries a
 // path, query, or hash still validates as a URL but is normalised to its
@@ -41,16 +41,27 @@ const env =
           WIDGET_URL: process.env.WIDGET_URL,
           API_URL: process.env.API_URL,
         })
-    : {
-        SITE_URL: process.env.SITE_URL || window.location.origin,
-        STATIC_URL: process.env.STATIC_URL,
-        WIDGET_URL: process.env.WIDGET_URL,
-        API_URL: process.env.API_URL,
+    : // @note the server stamps its configured origins on <html> so the
+      // browser seeds every host hook with the value the server rendered;
+      // seeding from window.location would already equal the runtime value
+      // and leave server-rendered hrefs unpatched after hydration
+      {
+        SITE_URL:
+          process.env.SITE_URL ||
+          document.documentElement.dataset.siteUrl ||
+          window.location.origin,
+        STATIC_URL:
+          process.env.STATIC_URL || document.documentElement.dataset.staticUrl,
+        WIDGET_URL:
+          process.env.WIDGET_URL || document.documentElement.dataset.widgetUrl,
+        API_URL: process.env.API_URL || document.documentElement.dataset.apiUrl,
       }
 
 export const siteUrl = env.SITE_URL
 
 export const siteHostname = new URL(siteUrl).hostname
+
+export const siteHost = new URL(siteUrl).host
 
 // @note the origin embed snippets and widget frames are served from. The
 // hosted deployment fronts these through a dedicated static host
@@ -61,11 +72,15 @@ export const staticUrl = env.STATIC_URL || siteUrl
 
 export const staticHostname = new URL(staticUrl).hostname
 
+export const staticHost = new URL(staticUrl).host
+
 // @note the origin private MCP widget bundles are served from
 
 export const widgetUrl = env.WIDGET_URL || siteUrl
 
 export const widgetHostname = new URL(widgetUrl).hostname
+
+export const widgetHost = new URL(widgetUrl).host
 
 // @note the origin the external API is advertised on. The site URL is the
 // fallback - the API is then served under /api on the site host; a dedicated
@@ -74,3 +89,5 @@ export const widgetHostname = new URL(widgetUrl).hostname
 export const apiUrl = env.API_URL || siteUrl
 
 export const apiHostname = new URL(apiUrl).hostname
+
+export const apiHost = new URL(apiUrl).host

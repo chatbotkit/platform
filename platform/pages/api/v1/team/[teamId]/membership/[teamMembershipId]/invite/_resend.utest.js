@@ -266,3 +266,38 @@ describe('POST /api/v1/team/[teamId]/membership/[teamMembershipId]/invite/resend
     })
   })
 })
+
+describe('partner branding on a frontend host that carries a port', () => {
+  it('looks the partner up by hostname', async () => {
+    const { getContextFrontendHost } = require('@/lib/context.store')
+    const { getPartnerByHostname } = require('@/lib/partner.helpers')
+
+    mockReset(prisma)
+    jest.clearAllMocks()
+
+    getContextFrontendHost.mockReturnValue('partner.example.com:3000')
+    getPartnerByHostname.mockResolvedValue(null)
+
+    prisma.team.findUniqueByIdentifier.mockResolvedValue({
+      id: 'team_abc',
+      userId: 'user_123',
+      name: 'My Team',
+      description: 'A test team',
+    })
+    prisma.teamMembership.findFirst.mockResolvedValue({
+      id: 'membership_xyz',
+      teamId: 'team_abc',
+      email: 'invited@example.com',
+    })
+    notifyTeamInvitation.mockResolvedValue(undefined)
+
+    await handler(
+      { query: { teamId: 'team_abc', teamMembershipId: 'membership_xyz' } },
+      { user: { id: 'user_123' } }
+    )
+
+    // @note partner identity is a hostname; passed with the port nothing
+    // would match and the invitation would lose its branding
+    expect(getPartnerByHostname).toHaveBeenCalledWith('partner.example.com')
+  })
+})

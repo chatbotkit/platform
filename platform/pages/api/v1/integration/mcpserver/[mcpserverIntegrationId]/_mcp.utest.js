@@ -124,6 +124,10 @@ jest.mock('@/lib/mcp.widget', () => ({
     () => new Set(['unpkg.com', 'cdn.jsdelivr.net'])
   ),
   parseWidgetUiValue: jest.fn(() => null),
+  normalizeWidgetUiValue: jest.fn(),
+  resolveWidgetManifestUrl: jest.fn(),
+  fetchWidgetManifest: jest.fn(),
+  getCdnBundleUrl: jest.fn(),
 }))
 
 jest.mock('@/lib/oauth.jwt', () => ({
@@ -157,6 +161,8 @@ jest.mock('@modelcontextprotocol/sdk/server/streamableHttp.js', () => ({
 jest.mock('@modelcontextprotocol/sdk/types.js', () => ({
   ListToolsRequestSchema: 'ListToolsRequestSchema',
   CallToolRequestSchema: 'CallToolRequestSchema',
+  ListResourcesRequestSchema: 'ListResourcesRequestSchema',
+  ReadResourceRequestSchema: 'ReadResourceRequestSchema',
 }))
 
 describe('MCP server integration endpoint', () => {
@@ -1434,5 +1440,126 @@ describe('MCP server integration endpoint', () => {
       expect(elapsed).toBeLessThan(1000)
       expect(res._getStatusCode()).toBe(405)
     })
+  })
+})
+
+describe('widget CSP on a deployment whose widget host carries a port', () => {
+  let mockIntegration
+
+  beforeEach(() => {
+    jest.clearAllMocks()
+
+    const { verifyOAuthToken, isTokenRevoked, hasScope } =
+      require('@/lib/oauth.jwt')
+
+    verifyOAuthToken.mockResolvedValue(null)
+    isTokenRevoked.mockResolvedValue(false)
+    hasScope.mockImplementation(() => true)
+
+    mockServerSetRequestHandler.mockClear()
+    mockServerConnect.mockClear().mockResolvedValue(undefined)
+    mockTransportHandleRequest.mockClear().mockResolvedValue(undefined)
+
+    const {
+      getAbilityFunctionName,
+      getAbilityFunctionDescription,
+      getAbilityFunctionParameters,
+    } = require('@/lib/ability.function')
+
+    getAbilityFunctionName.mockImplementation((ability) => ability.name)
+    getAbilityFunctionDescription.mockImplementation(() => 'Test description')
+    getAbilityFunctionParameters.mockImplementation(() => ({
+      type: 'object',
+      properties: {},
+    }))
+
+    const {
+      getContextFrontendHost,
+      getContextWidgetHost,
+    } = require('@/lib/context.store')
+
+    getContextFrontendHost.mockReturnValue('cbk.localhost:3000')
+    getContextWidgetHost.mockReturnValue('cbk-widgets.localhost:3000')
+
+    const {
+      parseWidgetUiValue,
+      normalizeWidgetUiValue,
+      resolveWidgetManifestUrl,
+      fetchWidgetManifest,
+      getCdnBundleUrl,
+    } = require('@/lib/mcp.widget')
+
+    parseWidgetUiValue.mockReturnValue('card')
+    normalizeWidgetUiValue.mockReturnValue({ widget: 'card' })
+    resolveWidgetManifestUrl.mockReturnValue(
+      'http://cbk-widgets.localhost:3000/card/manifest.json'
+    )
+    fetchWidgetManifest.mockResolvedValue({ tagName: 'x-card' })
+    getCdnBundleUrl.mockReturnValue(
+      'http://cbk-widgets.localhost:3000/card/bundle.js'
+    )
+
+    mockIntegration = {
+      id: 'integration-123',
+      name: 'Test MCP Server',
+      userId: 'user-123',
+      user: { id: 'user-123', email: 'user@example.com' },
+      accessToken: 'valid-token-123',
+      skillset: {
+        id: 'skillset-123',
+        abilities: [
+          {
+            id: 'ability-1',
+            name: 'test_ability',
+            description: 'Test ability description',
+            instruction: 'Test instruction',
+            meta: { mcp: { ui: 'card' } },
+          },
+        ],
+      },
+    }
+  })
+
+  async function readResource(uri) {
+    prisma.mcpserverIntegration.findUnique.mockResolvedValue(mockIntegration)
+
+    const { req, res } = createMocks({
+      method: 'POST',
+      query: { mcpserverIntegrationId: 'integration-123', client: 'chatgpt' },
+      headers: { authorization: 'Bearer valid-token-123' },
+      body: {},
+    })
+
+    await handler(req, res)
+
+    const readResourceHandler = mockServerSetRequestHandler.mock.calls.find(
+      (call) => call[0] === 'ReadResourceRequestSchema'
+    )?.[1]
+
+    expect(readResourceHandler).toBeDefined()
+
+    return readResourceHandler({ params: { uri } })
+  }
+
+  it('allows the mapped widget origin as served for the universal widget', async () => {
+    const { contents } = await readResource('ui://widget/frame')
+
+    // @note the allowlist holds hostnames and is minted as https; the
+    // deployment's own widget origin has to come in with its scheme and port
+    expect(contents[0]._meta['openai/widgetCSP'].resource_domains).toContain(
+      'http://cbk-widgets.localhost:3000'
+    )
+  })
+
+  it('allows the origin a tool widget bundle loads from', async () => {
+    const { contents } = await readResource('ui://widget/test_ability')
+
+    expect(contents[0]._meta['openai/widgetCSP'].resource_domains).toEqual(
+      expect.arrayContaining([
+        'https://unpkg.com',
+        'https://cdn.jsdelivr.net',
+        'http://cbk-widgets.localhost:3000',
+      ])
+    )
   })
 })

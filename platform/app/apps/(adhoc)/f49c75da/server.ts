@@ -1,6 +1,7 @@
 'use server'
 
-import { siteHostname } from '@/config/site'
+import { siteHost } from '@/config/site'
+import { getExternalFrontendHostURL } from '@/lib/host'
 
 import type { UnwrapPromise } from '@chatbotkit-dev/typescript-utils/promise'
 
@@ -53,7 +54,7 @@ export const listIntegrations = appActionHandler(
         icon: '@clearbit/slack.com',
         manifestUrl: buildSlackManifestInstallUrl(
           i,
-          `https://${context.host || siteHostname}`
+          new URL(getExternalFrontendHostURL('/', context.host || siteHost)).origin
         ),
         signingSecret: i.signingSecret,
         botToken: i.botToken,

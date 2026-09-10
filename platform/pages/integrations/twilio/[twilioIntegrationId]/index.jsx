@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 
-import { getExternalAPIHost } from '@/lib/host'
+import { getExternalAPIHostURL } from '@/lib/host'
+
+import useExternalAPIURL from '@/hooks/useExternalAPIURL'
 
 import { ONE_DAY_IN_MILLISECONDS } from '@chatbotkit-dev/time'
 
@@ -45,7 +47,11 @@ export const VISIBLE_EVENT_TYPES = [
   // @note whitelist only specific events if applicable
 ]
 
-export function getInstallDetails({ integration }) {
+export function getInstallDetails({
+  integration,
+  // @note pages pass the runtime builder; the default serves requestless callers
+  getAPIURL = getExternalAPIHostURL,
+}) {
   return {
     sections: {
       Messaging: {
@@ -55,7 +61,8 @@ export function getInstallDetails({ integration }) {
             label: 'Messaging Webhook',
             url: getTwilioIntegrationWebhook(
               integration.id,
-              getExternalAPIHost()
+              undefined,
+              getAPIURL
             ),
             description:
               'Use this URL as the webhook for incoming messages in the Messaging configuration of your Twilio phone number.',
@@ -79,7 +86,8 @@ export function getInstallDetails({ integration }) {
             label: 'Call Webhook',
             url: getTwilioIntegrationWebhook(
               integration.id,
-              getExternalAPIHost()
+              undefined,
+              getAPIURL
             ),
             description:
               'Use this URL as the webhook for incoming calls in the Voice configuration of your Twilio phone number.',
@@ -738,8 +746,9 @@ export function Initiate({ integration }) {
 }
 
 export default function Index({ integration }) {
-  const installDetails = getInstallDetails({ integration })
-  const installPopupDetails = getInstallPopupDetails({ integration })
+  const getAPIURL = useExternalAPIURL()
+
+  const installDetails = getInstallDetails({ integration, getAPIURL })
 
   return (
     <>
@@ -766,7 +775,7 @@ export default function Index({ integration }) {
           <div className="main-page">
             <Form
               integration={integration}
-              installDetails={installPopupDetails}
+              installDetails={installDetails}
             />
           </div>
         </section>

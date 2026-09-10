@@ -2,17 +2,21 @@ import {
   APP_TYPES,
   BUILTIN_TYPE,
   CUSTOM_TYPE,
-  appSlugToHostnameMap,
+  appSlugToHostMap,
   appSlugToUrlMap,
   apps,
 } from '@/config/apps'
 import { siteUrl } from '@/config/site'
 
+import { hostToHostname } from '@/lib/host.parse'
 import { tryHostname, tryPathname, tryUrl } from '@/lib/url'
+
+// @note the tables hold hosts; lookups take a hostname and reduce the table
+// entries to hostnames, so a port never takes part in the comparison
 
 export function isAppHostname(
   hostname: string | { hostname: string },
-  hostnameMap: Readonly<Record<string, string>> = appSlugToHostnameMap
+  hostMap: Readonly<Record<string, string>> = appSlugToHostMap
 ): boolean {
   const _hostname =
     typeof hostname === 'object' && hostname !== null
@@ -23,8 +27,15 @@ export function isAppHostname(
     return false
   }
 
-  return Object.values(hostnameMap).some((appHostname) => {
-    return appHostname === _hostname || _hostname.endsWith(`.${appHostname}`)
+  const normalizedHostname = _hostname.toLowerCase()
+
+  return Object.values(hostMap).some((host) => {
+    const appHostname = hostToHostname(host)
+
+    return (
+      appHostname === normalizedHostname ||
+      normalizedHostname.endsWith(`.${appHostname}`)
+    )
   })
 }
 
@@ -76,7 +87,7 @@ export function isAppUrl(url: string | URL): boolean {
 
 export function getAppSlugByHostname(
   hostname: string | { hostname: string },
-  hostnameMap: Readonly<Record<string, string>> = appSlugToHostnameMap
+  hostMap: Readonly<Record<string, string>> = appSlugToHostMap
 ): string | null {
   const _hostname =
     typeof hostname === 'object' && hostname !== null
@@ -87,9 +98,16 @@ export function getAppSlugByHostname(
     return null
   }
 
+  const normalizedHostname = _hostname.toLowerCase()
+
   return (
-    Object.entries(hostnameMap).find(([, appHostname]) => {
-      return appHostname === _hostname || _hostname.endsWith(`.${appHostname}`)
+    Object.entries(hostMap).find(([, host]) => {
+      const appHostname = hostToHostname(host)
+
+      return (
+        appHostname === normalizedHostname ||
+        normalizedHostname.endsWith(`.${appHostname}`)
+      )
     })?.[0] || null
   )
 }
@@ -122,7 +140,22 @@ export function getAppTypeByHostname(
 export function getAppManifestByHostname(
   hostname: string | { hostname: string }
 ): (typeof apps)[number] | null {
-  return apps.find((app) => app.host === hostname) || null
+  const _hostname =
+    typeof hostname === 'object' && hostname !== null
+      ? hostname.hostname
+      : hostname
+
+  if (!_hostname || typeof _hostname !== 'string') {
+    return null
+  }
+
+  const normalizedHostname = _hostname.toLowerCase()
+
+  return (
+    apps.find(
+      (app) => !!app.host && hostToHostname(app.host) === normalizedHostname
+    ) || null
+  )
 }
 
 export function getAppConfigByHostname(

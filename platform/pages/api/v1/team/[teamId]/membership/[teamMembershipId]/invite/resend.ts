@@ -8,6 +8,7 @@ import { captureException } from '@/lib/error'
 import schema, { withSchema } from '@/lib/joi.handler'
 import { withPost } from '@/lib/method'
 import { notifyTeamInvitation } from '@/lib/notify'
+import { hostToHostname } from '@/lib/host.parse'
 import {
   getPartnerByHostname,
   partnerToEmailBranding,
@@ -53,7 +54,7 @@ export default withPost(
           getContextFrontendHost() || getContextRequestHost() || undefined
 
         const partner = host
-          ? ((await getPartnerByHostname(host)) ?? undefined)
+          ? ((await getPartnerByHostname(hostToHostname(host))) ?? undefined)
           : undefined
 
         // @note a partner carries the transport that sends as its own

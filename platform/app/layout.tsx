@@ -6,7 +6,13 @@ import observability from '@chatbotkit-dev/observability'
 
 import { appApex, partnersApex, portalApex, spaceApex } from '@/config/apexes'
 import { appLabsHost, appMainHost } from '@/config/origins'
-import { siteHostname } from '@/config/site'
+import {
+  apiUrl,
+  siteHost,
+  siteUrl,
+  staticUrl,
+  widgetUrl,
+} from '@/config/site'
 
 import { setupHeadersContext } from '@/lib/context.setup'
 import {
@@ -19,6 +25,7 @@ import {
   getExternalFrontendHost,
   getExternalStaticHost,
   getExternalWidgetHost,
+  servesCleanAPIRoutes,
 } from '@/lib/host'
 
 import ChunkErrorListener from '@/components/ChunkErrorListener'
@@ -42,15 +49,22 @@ export default async function RootLayout({ children }) {
     setupHeadersContext(thisHeaders)
 
     const host =
-      getContextFrontendHost() || getContextRequestHost() || siteHostname
+      getContextFrontendHost() || getContextRequestHost() || siteHost
 
     return (
       <html
         data-audience={host}
+        data-site-url={siteUrl}
+        data-static-url={staticUrl}
+        data-widget-url={widgetUrl}
+        data-api-url={apiUrl}
         data-site-host={getExternalFrontendHost()}
         data-static-host={getExternalStaticHost()}
         data-widget-host={getExternalWidgetHost()}
         data-api-host={getExternalAPIHost()}
+        data-api-clean-routes={
+          servesCleanAPIRoutes(getExternalAPIHost()) ? '1' : '0'
+        }
         data-app-apex={appApex}
         data-portal-apex={portalApex}
         data-space-apex={spaceApex}

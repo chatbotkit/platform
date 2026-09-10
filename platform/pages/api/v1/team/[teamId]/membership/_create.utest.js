@@ -63,6 +63,7 @@ jest.mock('@/lib/notify', () => ({
 
 jest.mock('@/lib/error', () => ({
   captureException: jest.fn(),
+  setTag: jest.fn(),
 }))
 
 jest.mock('@/lib/partner.helpers', () => ({
@@ -157,5 +158,43 @@ describe('/api/v1/team/[teamId]/membership/create', () => {
     await expect(
       bodySchema.validateAsync({ ...body, email: 'not-an-email' })
     ).rejects.toThrow('"email" must be a valid email')
+  })
+})
+
+describe('partner branding on a frontend host that carries a port', () => {
+  it('looks the partner up by hostname', async () => {
+    const {
+      executeInContext,
+      setContextFrontendHost,
+    } = require('@/lib/context.store')
+    const { getPartnerByHostname } = require('@/lib/partner.helpers')
+
+    jest.clearAllMocks()
+
+    getPartnerByHostname.mockResolvedValue(null)
+    prisma.team.findUniqueByIdentifier.mockResolvedValue({
+      id: 'team_1',
+      userId: 'user_1',
+      name: 'My Team',
+      description: 'desc',
+    })
+    prisma.teamMembership.upsert.mockResolvedValue({ id: 'tm_1' })
+
+    await executeInContext(async () => {
+      setContextFrontendHost('partner.example.com:3000')
+
+      await handler(
+        { query: { teamId: 'team_1' }, headers: {} },
+        { user: { id: 'user_1' } },
+        {
+          name: 'Member Name',
+          email: 'member@example.com',
+        }
+      )
+    })
+
+    // @note partner identity is a hostname; passed with the port nothing
+    // would match and the invitation would lose its branding
+    expect(getPartnerByHostname).toHaveBeenCalledWith('partner.example.com')
   })
 })

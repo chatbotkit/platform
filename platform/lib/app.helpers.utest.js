@@ -1,5 +1,7 @@
 import { siteUrl } from '@/config/site'
 
+import { hostToHostname } from '@/lib/host.parse'
+
 import {
   getAppConfigByHostname,
   getAppConfigBySlug,
@@ -23,6 +25,9 @@ describe('isAppHostname', () => {
     ['apps.chatbotkit.com', true],
     ['test123.chatbotkit.app', true],
     ['test123.chatbotkit.agency', true],
+    // @note a host is not a hostname - callers reduce with hostToHostname
+    ['labs.chatbotkit.com:3000', false],
+    ['APPS.chatbotkit.com', true],
     [siteUrl, false],
   ])('validates domain %s correctly', (domain, expected) => {
     expect(isAppHostname(domain)).toBe(expected)
@@ -120,11 +125,54 @@ describe('isAppUrl', () => {
   })
 })
 
+describe('getAppManifestByHostname', () => {
+  it('finds a shell whose origin carries a port by its hostname', () => {
+    const previous = process.env.APP_LABS_ORIGIN
+
+    process.env.APP_LABS_ORIGIN = 'http://cbk-labs.localhost:3000'
+
+    try {
+      jest.isolateModules(() => {
+        const helpers = jest.requireActual('@/lib/app.helpers')
+
+        expect(helpers.getAppManifestByHostname('cbk-labs.localhost')?.slug).toBe(
+          ':labs'
+        )
+        expect(helpers.getAppManifestByHostname('CBK-Labs.localhost')?.slug).toBe(
+          ':labs'
+        )
+        // @note a host is not a hostname
+        expect(helpers.getAppManifestByHostname('cbk-labs.localhost:3000')).toBe(
+          null
+        )
+        expect(helpers.getAppConfigByHostname('cbk-labs.localhost')).toBeTruthy()
+      })
+    } finally {
+      process.env.APP_LABS_ORIGIN = previous
+    }
+  })
+})
+
 describe('getAppSlugByHostname', () => {
   it('should return correct slug for known hostnames', () => {
     expect(getAppSlugByHostname('chat.chatbotkit.app')).toBe('chat')
     expect(getAppSlugByHostname('apps.chatbotkit.com')).toBe(':main')
     expect(getAppSlugByHostname('task.chatbotkit.app')).toBe('task')
+  })
+
+  it('matches a hostname against a table that carries ports', () => {
+    const table = { ':labs': 'cbk-labs.localhost:3000' }
+
+    expect(isAppHostname('cbk-labs.localhost', table)).toBe(true)
+    expect(getAppSlugByHostname('cbk-labs.localhost', table)).toBe(':labs')
+    expect(isAppHostname('cbk-labs.localhost.attacker', table)).toBe(false)
+
+    // @note a host has to be reduced first; passed as-is it never matches
+    expect(isAppHostname('cbk-labs.localhost:3000', table)).toBe(false)
+    expect(getAppSlugByHostname('labs.chatbotkit.com:3000')).toBe(null)
+    expect(
+      getAppSlugByHostname(hostToHostname('labs.chatbotkit.com:3000'))
+    ).toBe(':labs')
   })
 
   it('should return null for unknown hostnames', () => {

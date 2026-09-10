@@ -1,4 +1,19 @@
 import { getTwilioIntegrationWebhook } from '@/lib/twilio.webhook'
+import { getExternalAPIHostURL } from '@/lib/host'
+
+jest.mock('@/config/site', () => ({
+  siteUrl: 'https://chatbotkit.com',
+  siteHost: 'chatbotkit.com',
+  siteHostname: 'chatbotkit.com',
+  apiUrl: 'https://api.chatbotkit.com',
+  apiHost: 'api.chatbotkit.com',
+}))
+jest.mock('@/config/hosts', () => ({
+  hosts: {
+    site: [],
+    api: ['api.test.chatbotkit.com', 'api.example.com'],
+  },
+}))
 
 describe('twilio.webhook', () => {
   describe('getTwilioIntegrationWebhook', () => {
@@ -131,20 +146,19 @@ describe('twilio.webhook', () => {
         const result = getTwilioIntegrationWebhook('test-id', 'localhost:3000')
 
         expect(result).toBe(
-          'https://localhost:3000/api/v1/integration/twilio/test-id/webhook#tt=15000&rp=5xx'
+          'http://localhost:3000/api/v1/integration/twilio/test-id/webhook#tt=15000&rp=5xx'
         )
       })
     })
 
     describe('edge cases', () => {
-      it('should handle undefined host by using default URL behavior', () => {
+      it('should use the deployment API when the host is omitted', () => {
         const twilioIntegrationId = 'test-id'
 
         const result = getTwilioIntegrationWebhook(twilioIntegrationId)
 
-        // URL constructor uses 'undefined' as string when undefined is passed
-        expect(result).toContain('https://undefined/')
-        expect(result).toContain('/api/v1/integration/twilio/test-id/webhook')
+        expect(new URL(result).origin).toBe(new URL(getExternalAPIHostURL()).origin)
+        expect(result).toContain('/v1/integration/twilio/test-id/webhook')
       })
 
       it('should handle empty string as integration ID', () => {
@@ -175,13 +189,17 @@ describe('twilio.webhook', () => {
         expect(() => new URL(result)).not.toThrow()
       })
 
-      it('should always use https protocol', () => {
-        const hosts = ['chatbotkit.com', 'api.test.com', 'localhost']
+      it('should use HTTPS remotely and HTTP on localhost', () => {
+        const hosts = [
+          ['chatbotkit.com', 'https:'],
+          ['api.test.com', 'https:'],
+          ['localhost', 'http:'],
+        ]
 
-        hosts.forEach((host) => {
+        hosts.forEach(([host, protocol]) => {
           const result = getTwilioIntegrationWebhook('test-id', host)
 
-          expect(result).toMatch(/^https:\/\//)
+          expect(new URL(result).protocol).toBe(protocol)
         })
       })
 

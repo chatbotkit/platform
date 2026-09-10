@@ -133,7 +133,7 @@ module.exports = {
     ],
     messages: {
       noDirectProcessEnv:
-        "Client-bundle code must not read process.env.{{name}} directly - the value freezes at build. Use the config seams ('@/config/site', '@/config/apexes') or the hooks in '@/hooks/useHostname'. A read that genuinely must stay opens the file with `/* eslint-disable custom-eslint-rules/no-direct-process-env -- <reason> */`.",
+        "Client-bundle code must not read process.env.{{name}} directly - the value freezes at build. Use the config seams ('@/config/site', '@/config/apexes') or the hooks in '@/hooks/useHost'. A read that genuinely must stay opens the file with `/* eslint-disable custom-eslint-rules/no-direct-process-env -- <reason> */`.",
       noBareProcessEnv:
         'Client-bundle code must not pass, spread, alias or enumerate process.env - it is empty in the browser and bypasses the per-name checks. Read the specific names through the config seams or hooks instead.',
     },

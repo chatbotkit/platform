@@ -1,6 +1,6 @@
 import { resolveBuilderExperience } from '@/lib/experience'
 
-import useHostname from '@/hooks/useHostname'
+import { useHostname } from '@/hooks/useHost'
 import usePartner from '@/hooks/usePartner'
 import useSearchParam from '@/hooks/useSearchParam'
 
@@ -32,7 +32,7 @@ export const EXPERIENCE_SEARCH_PARAM = '_experience'
  *
  * @note neither the force nor the partner option reaches code that resolves the
  * experience outside React (the onboarding template steps via
- * getDocumentHostname) - a known, accepted limitation.
+ * getDocumentHost) - a known, accepted limitation.
  */
 export default function useBuilderExperience() {
   const hostname = useHostname()

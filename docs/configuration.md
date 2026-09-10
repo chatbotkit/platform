@@ -280,15 +280,23 @@ answers on several domain families.
 
 | Field     | Purpose                                                   |
 | --------- | --------------------------------------------------------- |
-| `match`   | Exact incoming hostnames that select this mapping         |
+| `match`   | Exact incoming hosts that select this mapping             |
 | `site`    | Site or application host for request-affine frontend URLs |
 | `api`     | API host for request-affine API URLs and clean API routes |
 | `static`  | Static host for public assets and static-host routing     |
 | `widgets` | Host for private MCP widget bundles                       |
 
-Values are exact hostnames without a protocol, wildcard, path, query, or hash.
-Every target that can receive a request should also appear in `match`, so a
-request arriving on an API or static host selects the same mapping.
+Values are exact hosts - a hostname plus the port when the deployment is
+reached on one - without a protocol, wildcard, path, query, or hash. A
+mapping whose `match` names the exact request host is selected first, so
+mappings may differ by port; otherwise selection is by hostname, so `match`
+entries may be listed without the port. When several mappings share a
+hostname and none names the request host exactly, the first in configuration
+order is used. The `site`, `api`, `static` and
+`widgets` targets are used verbatim and should carry the port when the
+deployment does. Every target
+that can receive a request should also appear in `match`, so a request
+arriving on an API or static host selects the same mapping.
 
 Every `api` and `static` target is enabled at server startup. Targets that are
 also site hosts are excluded from host-specific routing, so a shared host
@@ -297,8 +305,10 @@ continues serving the application and its API at `/api/v1`. Changing targets,
 the routing table. At runtime, context injection selects the mapping once when
 the authenticated frontend host or normalized request host appears in `match`.
 Server URL helpers read the resolved targets from that context. The HTML
-document exposes only the resolved site, API, static, and widget hosts for
-client hooks. An unknown host keeps the existing custom-domain behavior.
+document exposes the resolved site, API, static, and widget hosts, the
+configured origins and the API route decision for client hooks (see
+Reverse-proxy headers below). An unknown host keeps the existing custom-domain
+behavior.
 
 The proxy also uses this API host classification for browser security headers.
 A dedicated API host is exempt regardless of its name; an ordinary site named
@@ -322,8 +332,8 @@ derivation: advertised API URLs follow `API_URL`, and unset it they stay on
 the site host. App shells and apex-based routing are controlled independently
 by the scalar variables above.
 
-The configuration fails validation on malformed hostnames, missing fields,
-unknown fields, or a hostname matched by more than one mapping.
+The configuration fails validation on malformed hosts, missing fields,
+unknown fields, or a host matched by more than one mapping.
 
 ## `ZONE_CONFIG`
 
@@ -426,6 +436,21 @@ into request context and downstream code reads only that context; when trust
 is disabled, the forwarded values are ignored and the application uses the
 ordinary `Host` header, the request URL protocol where available, and the
 directly connected socket address for rate limiting and audit records.
+
+The same trusted host is what the platform hands the browser: the
+`chatbotkit.host` cookie, written on every response with the forwarded host
+when it is trusted and the `Host` header otherwise (port included, `Secure`
+only when `SITE_URL` is https), and the `data-audience` and `data-*-host`
+attributes on `<html>`, which carry the request-affine site, static, widget
+and API hosts, next to the `data-*-url` attributes carrying the configured
+origins and `data-api-clean-routes`, the server's decision whether the API
+host serves `/v1` at its root or under `/api`. A page rendered for a request
+carries them all; a page prerendered at build time carries everything but the
+request host itself, for which the browser falls back to the cookie and then
+the configured site host. Note that a portal gateway's signed frontend
+host assertion is not consulted for the cookie; on such pages the attributes
+carry the public host and the cookie the gateway's upstream host. Client
+code takes hosts from those sources and only the scheme from the page.
 
 Behind a reverse proxy this flag also decides whether the sign-in abuse
 controls work at all: without it every client shares the proxy's socket

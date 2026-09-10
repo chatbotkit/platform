@@ -5,7 +5,7 @@ import { useMemo } from 'react'
 import ResourceList from '@/components/ResourceList'
 
 import useGraphQLConnectionListRoute from '@/hooks/useGraphQLConnectionListRoute'
-import { useApexHostURL, usePortalApex } from '@/hooks/useHostname'
+import { useApexHostURL, usePortalApex } from '@/hooks/useHost'
 import useProjectScope, { scopeListRoute } from '@/hooks/useProjectScope'
 
 const DEFAULT_LIST_ROUTE = '/api/v1/portal/list'

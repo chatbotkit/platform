@@ -1,3 +1,4 @@
+/* eslint-disable custom-eslint-rules/require-custom-use-router -- this suite mocks the Next router wrapped by useRouter */
 import useRouter from './useRouter'
 
 import { renderHook } from '@testing-library/react'
@@ -12,7 +13,7 @@ jest.mock('next/navigation', () => ({
 jest.mock('@/config/apps', () => ({
   APP_TYPES: [':main', ':labs', ':builtin', ':portal', ':custom'],
   appSlugs: ['chat', 'connect'],
-  appSlugToHostnameMap: Object.freeze({}),
+  appSlugToHostMap: Object.freeze({}),
 }))
 
 jest.mock('@/config/site', () => ({
@@ -21,14 +22,16 @@ jest.mock('@/config/site', () => ({
 }))
 
 jest.mock('@/lib/host', () => ({
-  getExternalFrontendHostURL: jest.fn((path) => `https://front.example${path}`),
+  getExternalFrontendHostURL: jest.fn(
+    (path, host) => `https://${host || 'front.example'}${path}`
+  ),
 }))
 
-jest.mock('@/hooks/useHostname', () => ({
-  useAppSlugToHostnameMap: jest.fn(),
-  useAudienceHostname: jest.fn(),
-  useCookieHostname: jest.fn(),
-  useSiteHostname: jest.fn(),
+jest.mock('@/hooks/useHost', () => ({
+  useAppSlugToHostMap: jest.fn(),
+  useAudienceHost: jest.fn(),
+  useCookieHost: jest.fn(),
+  useSiteHost: jest.fn(),
 }))
 
 jest.mock('@/i18n.config', () => ({
@@ -41,19 +44,19 @@ jest.mock('@/next.config.d/base.config', () => ({
   default: { basePath: '' },
 }))
 
-const {
-  useRouter: useNextRouter,
-  useSearchParams: useNextSearchParams,
-  useParams: useNextParams,
-  usePathname: useNextPathname,
-} = require('next/navigation')
+import {
+  useRouter as useNextRouter,
+  useSearchParams as useNextSearchParams,
+  useParams as useNextParams,
+  usePathname as useNextPathname,
+} from 'next/navigation'
 
-const {
-  useAppSlugToHostnameMap,
-  useAudienceHostname,
-  useCookieHostname,
-  useSiteHostname,
-} = require('@/hooks/useHostname')
+import {
+  useAppSlugToHostMap,
+  useAudienceHost,
+  useCookieHost,
+  useSiteHost,
+} from '@/hooks/useHost'
 
 const push = jest.fn()
 
@@ -62,16 +65,17 @@ function setup({
   audienceHostname = '',
   hostnameMap = {},
   pathname = '/',
+  searchParams = new URLSearchParams(),
 } = {}) {
   useNextRouter.mockReturnValue({ push, replace: jest.fn() })
-  useNextSearchParams.mockReturnValue(new URLSearchParams())
+  useNextSearchParams.mockReturnValue(searchParams)
   useNextParams.mockReturnValue({})
   useNextPathname.mockReturnValue(pathname)
 
-  useCookieHostname.mockReturnValue(cookieHostname)
-  useAudienceHostname.mockReturnValue(audienceHostname)
-  useSiteHostname.mockReturnValue('site.example.com')
-  useAppSlugToHostnameMap.mockReturnValue(Object.freeze(hostnameMap))
+  useCookieHost.mockReturnValue(cookieHostname)
+  useAudienceHost.mockReturnValue(audienceHostname)
+  useSiteHost.mockReturnValue('site.example.com')
+  useAppSlugToHostMap.mockReturnValue(Object.freeze(hostnameMap))
 
   return renderHook(() => useRouter()).result.current
 }
@@ -91,6 +95,8 @@ describe('useRouter href resolution by host', () => {
     it('strips the site url from absolute hrefs', () => {
       const router = setup({ cookieHostname: 'site.example.com' })
 
+      // @note the runtime host is the page's own origin; nothing else is
+      expect(router.resolveHref('https://site.example.com')).toBe('/')
       expect(router.resolveHref('https://site.example.com/pricing')).toBe(
         '/pricing'
       )
@@ -177,6 +183,48 @@ describe('useRouter href resolution by host', () => {
     })
   })
 
+  describe('own origin on a foreign host', () => {
+    it('keeps a configured-site link absolute on a portal domain', () => {
+      const router = setup({ cookieHostname: 'acme.example' })
+
+      // @note siteUrl in this suite is https://site.example.com
+      expect(router.resolveHref('https://site.example.com/overview')).toBe(
+        'https://site.example.com/overview'
+      )
+      expect(router.resolveHref('https://acme.example/overview')).toBe(
+        '/overview'
+      )
+    })
+
+    it('never cuts a look-alike host or another port down to a path', () => {
+      const router = setup({ cookieHostname: 'acme.example' })
+
+      expect(router.resolveHref('https://acme.example.evil/x')).toBe(
+        'https://acme.example.evil/x'
+      )
+      expect(router.resolveHref('https://acme.example:8443/x')).toBe(
+        'https://acme.example:8443/x'
+      )
+      expect(router.resolveHref('https://acme.example/x?a=1#b')).toBe(
+        '/x?a=1#b'
+      )
+    })
+
+    it('transfers session options only onto the page origin', () => {
+      const router = setup({
+        cookieHostname: 'acme.example',
+        searchParams: new URLSearchParams({ _experience: 'builder' }),
+      })
+
+      expect(router.normalizeHref('https://acme.example/x')).toBe(
+        'https://acme.example/x?_experience=builder'
+      )
+      expect(router.normalizeHref('https://site.example.com/x')).toBe(
+        'https://site.example.com/x'
+      )
+    })
+  })
+
   describe('normalizeHref', () => {
     it('never strips the /apps prefix', () => {
       const router = setup({
@@ -198,5 +246,59 @@ describe('useRouter href resolution by host', () => {
       expect(router.isKnownHref('https://acme.portal.example/x')).toBe(true)
       expect(router.isKnownHref('https://unrelated.example/x')).toBe(false)
     })
+
+    it('knows a localhost deployment host by hostname, port and all', () => {
+      // @note the registrable domain of cbk.localhost is `localhost`, which
+      // would match nothing; the comparison is on hostnames
+      const router = setup({
+        hostnameMap: { ':main': 'cbk.localhost:3000' },
+      })
+
+      expect(router.isKnownHref('http://cbk.localhost:3000/x')).toBe(true)
+      expect(router.isKnownHref('http://apps.cbk.localhost:3000/x')).toBe(true)
+      expect(router.isKnownHref('http://other.localhost:3000/x')).toBe(false)
+    })
+  })
+})
+
+describe('useRouter on hosts that carry a port', () => {
+  beforeEach(() => {
+    jest.clearAllMocks()
+  })
+
+  const portal = {
+    cookieHostname: 'acme-portal.portal.example:3000',
+    hostnameMap: { ':portal': 'portal.example:3000' },
+  }
+
+  it('recognises the portal by hostname and reports host and hostname apart', () => {
+    const router = setup(portal)
+
+    // @note the app tables are looked up by hostname; passing the host as-is
+    // matches nothing, so the /apps prefix would survive
+    expect(router.resolveHref('/apps/chat/abc')).toBe('/chat/abc')
+    expect(router.isAppHostname).toBe(true)
+
+    expect(router.host).toBe('acme-portal.portal.example:3000')
+    expect(router.hostname).toBe('acme-portal.portal.example')
+    expect(router.isSite).toBe(false)
+  })
+
+  it('resolves through a ported audience host without a cookie', () => {
+    const router = setup({
+      audienceHostname: 'acme-portal.portal.example:3000',
+      hostnameMap: { ':portal': 'portal.example:3000' },
+    })
+
+    expect(router.resolveHref('/apps/chat/abc')).toBe('/chat/abc')
+    expect(router.host).toBe('acme-portal.portal.example:3000')
+  })
+
+  it('builds absolute hrefs on the ported host', () => {
+    const router = setup(portal)
+
+    expect(router.absoluteHref('/x')).toBe(
+      'https://acme-portal.portal.example:3000/x'
+    )
   })
 })

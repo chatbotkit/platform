@@ -96,51 +96,51 @@ export function isAllowedEgressUrl(rawUrl: string): boolean {
   }
 
   // strip IPv6 brackets (`new URL('http://[::1]/').hostname` === '[::1]')
-  const host = url.hostname.toLowerCase().replace(/^\[/, '').replace(/\]$/, '')
+  const hostname = url.hostname.toLowerCase().replace(/^\[/, '').replace(/\]$/, '')
 
   // IPv6: hosts are hex:colon, so prefix checks cannot collide with DNS names
-  if (host.includes(':')) {
+  if (hostname.includes(':')) {
     // IPv4-mapped / -compatible IPv6 embeds a v4 address (e.g.
     // `::ffff:169.254.169.254`, `::ffff:7f00:1`) and routes to it - block it so
     // it cannot smuggle an internal v4 destination past the checks below
-    if (host.includes('.') || host.startsWith('::ffff:')) {
+    if (hostname.includes('.') || hostname.startsWith('::ffff:')) {
       return false
     }
 
     return !(
-      host === '::1' || // loopback
-      host === '::' || // unspecified
-      host.startsWith('fe80:') || // link-local
-      host.startsWith('fc') || // unique-local fc00::/7
-      host.startsWith('fd')
+      hostname === '::1' || // loopback
+      hostname === '::' || // unspecified
+      hostname.startsWith('fe80:') || // link-local
+      hostname.startsWith('fc') || // unique-local fc00::/7
+      hostname.startsWith('fd')
     )
   }
 
   // reject non-canonical IPv4 literals the platform resolver still expands to an
   // internal address but which slip past the textual prefix checks below: hex
   // (`0x7f000001`), bare-decimal (`2130706433`), octal/leading-zero
-  // (`0177.0.0.1`) and short forms (`127.1`). Any all-numeric / dotted host must
+  // (`0177.0.0.1`) and short forms (`127.1`). Any all-numeric / dotted hostname must
   // be a canonical dotted-quad to proceed.
-  if (/^0x[0-9a-f]+$/i.test(host)) {
+  if (/^0x[0-9a-f]+$/i.test(hostname)) {
     return false
   }
 
-  if (/^[0-9.]+$/.test(host) && !isCanonicalDottedIPv4(host)) {
+  if (/^[0-9.]+$/.test(hostname) && !isCanonicalDottedIPv4(hostname)) {
     return false
   }
 
   // IPv4 / DNS
   if (
-    host === 'localhost' ||
-    host.endsWith('.localhost') ||
-    host.endsWith('.internal') ||
-    host.endsWith('.local') ||
-    host === '0.0.0.0' ||
-    host.startsWith('127.') ||
-    host.startsWith('10.') ||
-    host.startsWith('192.168.') ||
-    host.startsWith('169.254.') ||
-    /^172\.(1[6-9]|2\d|3[01])\./.test(host)
+    hostname === 'localhost' ||
+    hostname.endsWith('.localhost') ||
+    hostname.endsWith('.internal') ||
+    hostname.endsWith('.local') ||
+    hostname === '0.0.0.0' ||
+    hostname.startsWith('127.') ||
+    hostname.startsWith('10.') ||
+    hostname.startsWith('192.168.') ||
+    hostname.startsWith('169.254.') ||
+    /^172\.(1[6-9]|2\d|3[01])\./.test(hostname)
   ) {
     return false
   }

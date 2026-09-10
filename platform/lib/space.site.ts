@@ -52,18 +52,18 @@ const SLUG_PATTERN = /^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/
  * under the space-site apex. A multi-level host such as `a.b.<apex>` is
  * rejected because a site slug always occupies exactly one DNS label.
  */
-export function getSpaceSiteSlug(host: string): string | null {
+export function getSpaceSiteSlug(hostname: string): string | null {
   if (!SPACE_SITE_APEX) {
     return null
   }
 
   const suffix = `.${SPACE_SITE_APEX}`
 
-  if (!host.endsWith(suffix)) {
+  if (!hostname.endsWith(suffix)) {
     return null
   }
 
-  const slug = host.slice(0, -suffix.length)
+  const slug = hostname.slice(0, -suffix.length)
 
   return slug && !slug.includes('.') ? slug : null
 }

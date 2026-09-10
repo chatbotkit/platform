@@ -7,6 +7,7 @@ import {
   getAppConfigBySlug,
   getAppGlobalBySlug,
   getAppSlugByHostname,
+  isAppHostname,
 } from '@/lib/app.helpers'
 import { encode } from '@/lib/b64'
 import { setupRequestContext } from '@/lib/context.setup'
@@ -17,6 +18,7 @@ import {
 } from '@/lib/context.store'
 import { captureException } from '@/lib/error'
 import fetch from '@/lib/fetch'
+import { hostToHostname } from '@/lib/host.parse'
 import { merge } from '@/lib/object'
 import { getPortalGlobalConfig } from '@/lib/portal.config'
 import { getPortalSlugFromHostname } from '@/lib/portal.hostname'
@@ -40,6 +42,18 @@ import type { z } from 'zod'
  * `/apps/[...path]` catch-all route).
  */
 export const SPACE_SITE_APP_NAME = STATIC_APP_NAME
+
+function getContextAppHostname(): string {
+  const hostnames = [getContextFrontendHost(), getContextRequestHost()]
+    .map(hostToHostname)
+    .filter(Boolean)
+
+  // @note a custom frontend names the public origin while the request host
+  // can retain the app or portal identity, as in app configuration lookup
+  return (
+    hostnames.find((hostname) => isAppHostname(hostname)) || hostnames[0] || ''
+  )
+}
 
 const DEFAULT_INDEX = 'index.html'
 const DEFAULT_NOT_FOUND = '404.html'
@@ -296,8 +310,8 @@ export function getSiteResponseHeaders({
 export async function resolveSpaceSiteConfig(): Promise<
   Record<string, unknown>
 > {
-  const host = getContextFrontendHost() || getContextRequestHost()
-  const portalSlug = host ? getPortalSlugFromHostname(host) : null
+  const hostname = getContextAppHostname()
+  const portalSlug = hostname ? getPortalSlugFromHostname(hostname) : null
 
   if (!portalSlug) {
     return merge(
@@ -384,11 +398,11 @@ export function getAppMountBaseHref(
   req: Request,
   context: SpaceSiteRouteContext
 ): string {
-  const host = getContextFrontendHost() || getContextRequestHost()
+  const hostname = getContextAppHostname()
   const url = new URL(req.url)
   const sitePath = context.params.path?.join('/') || ''
 
-  if (host && getAppSlugByHostname(host) === SPACE_SITE_APP_NAME) {
+  if (hostname && getAppSlugByHostname(hostname) === SPACE_SITE_APP_NAME) {
     return withTrailingSlash(sitePath ? `/${sitePath}` : '/')
   }
 
@@ -626,7 +640,7 @@ export function createSpaceSiteHandler({
       try {
         const url = new URL(req.url)
         const sitePath = context.params.path?.join('/') || ''
-        const host = getContextFrontendHost() || getContextRequestHost()
+        const hostname = getContextAppHostname()
 
         return await serveSpaceSite({
           config,
@@ -634,8 +648,7 @@ export function createSpaceSiteHandler({
           trailingSlash: url.pathname.endsWith('/'),
           baseHref: getBaseHref(req, context),
           isDocument: isDocumentRequest(req),
-          isOwnAppHost:
-            getAppSlugByHostname(host || '') === SPACE_SITE_APP_NAME,
+          isOwnAppHost: getAppSlugByHostname(hostname) === SPACE_SITE_APP_NAME,
           head,
         })
       } catch (e) {

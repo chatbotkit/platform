@@ -35,25 +35,26 @@ import debug from '@/lib/debug'
 import { merge, omit } from '@/lib/object'
 import { getPortalGlobalConfig } from '@/lib/portal.config'
 import { getPortalSlugFromHostname } from '@/lib/portal.hostname'
+import { hostToHostname } from '@/lib/host.parse'
 import type { ZodObject, ZodRawShape } from '@/lib/zod.schema'
 import z, { partialObjectParseAsync, tryParseAsync } from '@/lib/zod.schema'
 
 /**
- * The exact hosts the app shells answer on, derived from their configured
+ * The exact hostnames the app shells answer on, derived from their configured
  * origins - empty when no shell has an origin.
  */
-const shellHostnames = [appMainHost, appLabsHost].filter(
-  (hostname): hostname is string => !!hostname
-)
+const shellHostnames = [appMainHost, appLabsHost]
+  .filter((host): host is string => !!host)
+  .map(hostToHostname)
 
 function getContextAppHostname(): string | null {
-  const hosts = [getContextFrontendHost(), getContextRequestHost()].filter(
-    (host): host is string => !!host
-  )
+  const hostnames = [getContextFrontendHost(), getContextRequestHost()]
+    .filter((host): host is string => !!host)
+    .map(hostToHostname)
 
   // @note a custom frontend domain is public identity while the request host
   // retains the platform app or portal hostname used for internal routing
-  return hosts.find((host) => isAppHostname(host)) || null
+  return hostnames.find((hostname) => isAppHostname(hostname)) || null
 }
 
 async function getPortalBySlug(slug: string): Promise<Portal | null> {
@@ -91,16 +92,16 @@ export async function getPublicAppConfig(): Promise<ReturnType<
 
   // app hostname
   {
-    const host = getContextAppHostname()
+    const hostname = getContextAppHostname()
 
-    if (host && isAppHostname(host)) {
-      debug(`getting public app config for app hostname`, { host }).log(
+    if (hostname && isAppHostname(hostname)) {
+      debug(`getting public app config for app hostname`, { hostname }).log(
         'app.router.app.config.getPublicAppConfig'
       )
 
       // portals
       {
-        const portalSlug = getPortalSlugFromHostname(host)
+        const portalSlug = getPortalSlugFromHostname(hostname)
 
         if (portalSlug) {
           debug(`getting public app config for portal with slug`, {
@@ -156,12 +157,12 @@ export async function getPublicAppConfig(): Promise<ReturnType<
 
       // the app shell hosts (from the deployment's hostname table)
       {
-        if (shellHostnames.includes(host)) {
-          debug(`getting public app config for an app shell host`, {
-            host,
+        if (shellHostnames.includes(hostname)) {
+          debug(`getting public app config for an app shell hostname`, {
+            hostname,
           }).log('app.router.app.config.getPublicAppConfig')
 
-          const appManifest = getAppManifestByHostname(host)
+          const appManifest = getAppManifestByHostname(hostname)
 
           if (appManifest) {
             const config = getPublicConfig(appManifest)
@@ -173,7 +174,7 @@ export async function getPublicAppConfig(): Promise<ReturnType<
 
       // hosted apps under the standalone app apex
       {
-        const appSlug = getAppSlugByHostname(host)
+        const appSlug = getAppSlugByHostname(hostname)
 
         if (appSlug) {
           debug(`getting public app config for app with slug`, { appSlug }).log(
@@ -248,21 +249,21 @@ export async function getUserAppConfig<T extends ZodRawShape>(
 
   // app hostname
   {
-    const host = getContextAppHostname()
+    const hostname = getContextAppHostname()
 
-    if (host) {
-      debug(`resolved request host`, { host }).log(
+    if (hostname) {
+      debug(`resolved request hostname`, { hostname }).log(
         'app.router.app.config.getUserAppConfig'
       )
 
-      if (isAppHostname(host)) {
+      if (isAppHostname(hostname)) {
         debug(`getting user app config for app hostname`, { app }).log(
           'app.router.app.config.getUserAppConfig'
         )
 
         // portals
         {
-          const portalSlug = getPortalSlugFromHostname(host)
+          const portalSlug = getPortalSlugFromHostname(hostname)
 
           if (portalSlug) {
             debug(`getting user app config for portal with slug`, {
@@ -424,15 +425,15 @@ export async function getUserAppConfig<T extends ZodRawShape>(
 
         // the app shell hosts (from the deployment's hostname table)
         {
-          if (shellHostnames.includes(host)) {
-            debug(`getting user app config for an app shell host`, {
-              host,
+          if (shellHostnames.includes(hostname)) {
+            debug(`getting user app config for an app shell hostname`, {
+              hostname,
               app,
             }).log('app.router.app.config.getUserAppConfig')
 
-            const appManifest = getAppManifestByHostname(host)
-            const appGlobal = getAppGlobalByHostname(host)
-            const appConfig = getAppConfigByHostname(host)
+            const appManifest = getAppManifestByHostname(hostname)
+            const appGlobal = getAppGlobalByHostname(hostname)
+            const appConfig = getAppConfigByHostname(hostname)
 
             if (appManifest) {
               const totalConfig = merge(
@@ -482,7 +483,7 @@ export async function getUserAppConfig<T extends ZodRawShape>(
 
         // hosted apps under the standalone app apex
         {
-          const appSlug = getAppSlugByHostname(host)
+          const appSlug = getAppSlugByHostname(hostname)
 
           if (appSlug) {
             debug(`getting user app config for app with slug`, {
@@ -563,7 +564,7 @@ export async function getUserAppConfig<T extends ZodRawShape>(
 
       // @note surface the requested app's own manifest config (e.g. chat's
       // `models`/`sources`/`save`) so its server actions see the same config on
-      // the dashboard host that they already get on the app's own hostname,
+      // the dashboard hostname that they already get on the app's own hostname,
       // where `getPublicConfig` below would otherwise expose only public display
       // fields. Kept below the dashboard defaults so `apps`/`layout` still win.
 
@@ -584,7 +585,7 @@ export async function getUserAppConfig<T extends ZodRawShape>(
         },
 
         // @note give the dashboard a sidebar so apps render the app navigation
-        // chrome - matching the apps.chatbotkit.com host config. Without this
+        // chrome - matching the apps.chatbotkit.com hostname config. Without this
         // only apps that pass explicit sidebarItems (e.g. inbox) show a sidebar.
         // The App layout still hides it automatically when embedded.
         layout: {

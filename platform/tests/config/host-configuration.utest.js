@@ -55,6 +55,28 @@ describe('HOSTS_CONFIG host mappings', () => {
     ).toThrow()
   })
 
+  it('accepts hosts that carry a port', () => {
+    const ported = {
+      match: ['console.example:8443', 'api.example:8443'],
+      site: 'console.example:8443',
+      api: 'api.example:8443',
+      static: 'static.example:8443',
+      widgets: 'widgets.example:8443',
+    }
+
+    expect(hostsSchema.parse({ ported })).toEqual({ ported })
+  })
+
+  it('allows mappings that differ only by port', () => {
+    // @note selection prefers an exact host, so per-port mappings are legal
+    expect(() =>
+      hostsSchema.parse({
+        family: mapping,
+        ported: { ...mapping, match: ['example.com:8443'] },
+      })
+    ).not.toThrow()
+  })
+
   it('rejects duplicate matches across mappings', () => {
     expect(() =>
       hostsSchema.parse({

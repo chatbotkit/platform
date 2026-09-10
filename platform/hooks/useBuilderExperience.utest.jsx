@@ -1,4 +1,4 @@
-jest.mock('@/hooks/useHostname', () => jest.fn())
+jest.mock('@/hooks/useHost', () => ({ useHostname: jest.fn() }))
 jest.mock('@/hooks/usePartner', () => jest.fn())
 jest.mock('@/hooks/useSearchParam', () => jest.fn())
 
@@ -7,7 +7,7 @@ jest.mock('@/config/site', () => ({
   siteUrl: 'https://chatbotkit.com',
 }))
 
-import useHostname from '@/hooks/useHostname'
+import { useHostname } from '@/hooks/useHost'
 import usePartner from '@/hooks/usePartner'
 import useSearchParam from '@/hooks/useSearchParam'
 import useBuilderExperience, {

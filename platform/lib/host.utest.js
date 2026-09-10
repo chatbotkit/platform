@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
-import { siteHostname, siteUrl } from '@/config/site'
+import { siteUrl } from '@/config/site'
 
 const externalAPIHostCases = [
   {
@@ -134,6 +134,7 @@ const externalAPIHostURLCases = [
 ]
 
 const ENV_KEYS = [
+  'HOSTS_CONFIG',
   'NODE_ENV',
   'TARGET_ENV',
   'VERCEL_ENV',
@@ -176,6 +177,7 @@ function loadHostScenario({
   testStaticUrl,
   testWidgetUrl,
   integrationTestBaseUrl,
+  hostsConfig,
 } = {}) {
   const previousEnv = Object.fromEntries(
     ENV_KEYS.map((key) => [key, process.env[key]])
@@ -197,6 +199,7 @@ function loadHostScenario({
     setEnv('STATIC_URL', testStaticUrl)
     setEnv('WIDGET_URL', testWidgetUrl)
     setEnv('_ITEST_CHATBOTKIT_BASE_URL', integrationTestBaseUrl)
+    setEnv('HOSTS_CONFIG', hostsConfig ? JSON.stringify(hostsConfig) : undefined)
 
     jest.resetModules()
 
@@ -222,6 +225,42 @@ function loadHostScenario({
 }
 
 describe('host selection', () => {
+  it.each(['api.brand.example:8080', 'other.brand.example'])(
+    'does not infer HTTP from a different request host %s',
+    (requestHost) => {
+      const host = loadHostScenario({
+        testSiteUrl: 'http://console.example',
+        requestHost,
+        requestProtocol: 'http',
+        frontendHost: 'api.brand.example:80',
+      })
+
+      expect(host.getExternalFrontendHostURL('/hub/demo')).toBe(
+        'https://api.brand.example:80/hub/demo'
+      )
+    }
+  )
+
+  it.each(['api.brand.example', 'api.brand.example:80'])(
+    'normalizes the default HTTP port against request host %s',
+    (requestHost) => {
+      const host = loadHostScenario({
+        testSiteUrl: 'http://console.example',
+        requestHost,
+        requestProtocol: 'http',
+        frontendHost: 'api.brand.example:80',
+        contextAPIHost: 'api.brand.example:80',
+      })
+
+      expect(host.getExternalFrontendHostURL('/hub/demo')).toBe(
+        'http://api.brand.example/hub/demo'
+      )
+      expect(host.getExternalAPIHostURL('/v1/models')).toBe(
+        'http://api.brand.example/api/v1/models'
+      )
+    }
+  )
+
   it.each([
     'platform.example.com',
     'api.platform.example.com',
@@ -233,7 +272,7 @@ describe('host selection', () => {
     })
 
     expect(host.getExternalAPIHost(explicitHost)).toBe(
-      'api.platform.example.com'
+      'api.platform.example.com:9443'
     )
     expect(
       host.getExternalAPIHostURL(
@@ -511,6 +550,80 @@ describe('external static host', () => {
   })
 })
 
+describe('a site host spelled with its default port', () => {
+  it('resolves to the site scheme with the port dropped', () => {
+    const host = loadHostScenario({ testSiteUrl: 'http://console.example' })
+
+    expect(host.getExternalFrontendHostURL('/x', 'console.example:80')).toBe(
+      'http://console.example/x'
+    )
+  })
+})
+
+describe('configured static and widget origins keep their scheme', () => {
+  it.each([
+    ['http://platform.example:3000', 'https://platform.example:9443'],
+    ['https://platform.example:8443', 'http://platform.example:3000'],
+    ['http://platform.example:3000', 'https://localhost:9443'],
+    ['http://platform.example:3000', 'https://[::1]:9443'],
+    ['http://platform.example:3000', 'https://api.platform.example:9443'],
+    ['http://platform.example:3000', 'https://platform.example'],
+    ['https://platform.example:8443', 'http://platform.example'],
+    ['http://platform.example:3000', 'https://127.0.0.1:9443'],
+    ['http://platform.example:3000', 'https://api.localhost:9443'],
+  ])('honors API_URL %s -> %s just like asset origins', (testSiteUrl, origin) => {
+    const host = loadHostScenario({
+      testSiteUrl,
+      apiUrl: origin,
+      testStaticUrl: origin,
+      testWidgetUrl: origin,
+    })
+    const api = new URL(origin)
+    const apiPath = api.hostname.startsWith('api.')
+      ? '/v1/models'
+      : '/api/v1/models'
+
+    expect(host.getExternalStaticHostURL('/asset.js')).toBe(
+      `${origin}/asset.js`
+    )
+    expect(host.getExternalWidgetHostURL('/bundle.js')).toBe(
+      `${origin}/bundle.js`
+    )
+    expect(host.getExternalAPIHostURL('/v1/models', api.host)).toBe(
+      `${origin}${apiPath}`
+    )
+  })
+
+  it('does not infer the site scheme onto an explicit STATIC_URL', () => {
+    const host = loadHostScenario({
+      testSiteUrl: 'http://platform.example:3000',
+      testStaticUrl: 'https://platform.example:9443',
+    })
+
+    expect(host.getExternalStaticHostURL('/asset.js')).toBe(
+      'https://platform.example:9443/asset.js'
+    )
+  })
+})
+
+describe('external static and widget URLs on plain http', () => {
+  it('keeps a mapped localhost target on http, port included', () => {
+    const host = loadHostScenario({
+      testSiteUrl: 'http://cbk.localhost:3000',
+      testStaticUrl: '',
+      contextStaticHost: 'cbk-static.localhost:3000',
+      contextWidgetHost: 'cbk-widgets.localhost:3000',
+    })
+
+    expect(host.getExternalStaticHostURL('/asset.js')).toBe(
+      'http://cbk-static.localhost:3000/asset.js'
+    )
+    expect(host.getExternalWidgetHostURL('/bundle.js')).toBe(
+      'http://cbk-widgets.localhost:3000/bundle.js'
+    )
+  })
+})
+
 describe('injected host context', () => {
   const primaryHosts = {
     site: 'console.example.com',
@@ -627,7 +740,8 @@ describe('getExternalAPIHost', () => {
   it('serves the API on the site host by default', () => {
     const host = loadHostScenario()
 
-    expect(host.getExternalAPIHost()).toBe(siteHostname)
+    // @note a host - the site port comes along with it
+    expect(host.getExternalAPIHost()).toBe(new URL(siteUrl).host)
   })
 
   it('resolves chatbotkit.com to api.chatbotkit.com in production', () => {
@@ -692,6 +806,109 @@ describe('getExternalAPIHost', () => {
     )
     expect(host.getExternalAPIHost('next.platform.example.com')).toBe(
       'platform.example.com'
+    )
+  })
+
+  it('keeps the /api prefix on a mapped api.* origin shared with the site', () => {
+    const host = loadHostScenario({
+      nodeEnv: 'production',
+      targetEnv: 'production',
+      testSiteUrl: 'https://platform.example.com',
+      apiUrl: 'https://platform.example.com',
+      frontendHost: 'api.brand.example',
+      contextAPIHost: 'api.brand.example',
+    })
+
+    expect(host.getExternalAPIHostURL('/v1/models')).toBe(
+      'https://api.brand.example/api/v1/models'
+    )
+  })
+
+  it('keeps the /api prefix when mapped site and api targets share a hostname on different ports', () => {
+    const mapping = {
+      brand: {
+        match: ['api.example:3000', 'api.example:8443'],
+        site: 'api.example:3000',
+        api: 'api.example:8443',
+        static: 'static.example',
+        widgets: 'widgets.example',
+      },
+    }
+
+    // @note with a request: the mapping resolved both hosts
+    const withRequest = loadHostScenario({
+      nodeEnv: 'production',
+      targetEnv: 'production',
+      testSiteUrl: 'https://console.example',
+      apiUrl: 'https://api.example:8443',
+      frontendHost: 'api.example:3000',
+      contextAPIHost: 'api.example:8443',
+      hostsConfig: mapping,
+    })
+
+    expect(withRequest.getExternalAPIHostURL('/v1/models')).toBe(
+      'https://api.example:8443/api/v1/models'
+    )
+
+    // @note without one: the configured API host is still a mapped site
+    // hostname, which the proxy never classifies as an API host
+    const background = loadHostScenario({
+      nodeEnv: 'production',
+      targetEnv: 'production',
+      testSiteUrl: 'https://console.example',
+      apiUrl: 'https://api.example:8443',
+      hostsConfig: mapping,
+    })
+
+    expect(background.getExternalAPIHostURL('/v1/models')).toBe(
+      'https://api.example:8443/api/v1/models'
+    )
+  })
+
+  it('keeps the /api prefix when a mapping shares the configured API host with its site', () => {
+    const host = loadHostScenario({
+      nodeEnv: 'production',
+      targetEnv: 'production',
+      testSiteUrl: 'https://console.example',
+      apiUrl: 'https://api.example',
+      frontendHost: 'api.example',
+      contextAPIHost: 'api.example',
+    })
+
+    expect(host.getExternalAPIHostURL('/v1/models')).toBe(
+      'https://api.example/api/v1/models'
+    )
+  })
+
+  it('keeps the /api prefix on a shared site that is named api.*', () => {
+    const host = loadHostScenario({
+      nodeEnv: 'production',
+      targetEnv: 'production',
+      testSiteUrl: 'https://api.example.com:8443',
+      apiUrl: '',
+    })
+
+    expect(host.getExternalAPIHostURL('/v1/models')).toBe(
+      'https://api.example.com:8443/api/v1/models'
+    )
+  })
+
+  it('recognises the site family on any port', () => {
+    const host = loadHostScenario({
+      nodeEnv: 'production',
+      targetEnv: 'production',
+      testSiteUrl: 'http://cbk.localhost:3000',
+      apiUrl: 'http://cbk.localhost:3000',
+    })
+
+    expect(host.getExternalAPIHost('cbk.localhost:8080')).toBe(
+      'cbk.localhost:3000'
+    )
+    expect(host.getExternalAPIHost('api.cbk.localhost')).toBe(
+      'cbk.localhost:3000'
+    )
+    expect(host.getExternalAPIHost('other.localhost:3000')).toBe(
+      'other.localhost:3000'
     )
   })
 

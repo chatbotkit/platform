@@ -23,7 +23,7 @@ import PortalConfigInput from '@/components/PortalConfigInput'
 import ThisSolution from '@/components/ThisSolution'
 
 import useFetch from '@/hooks/useFetch'
-import { usePortalApex } from '@/hooks/useHostname'
+import { usePortalApex } from '@/hooks/useHost'
 import useRouter from '@/hooks/useRouter'
 import useScopedCreateData from '@/hooks/useScopedCreateData'
 

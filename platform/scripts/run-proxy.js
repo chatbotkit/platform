@@ -5,6 +5,7 @@ import { log, runScript } from '@/lib/script'
 
 import http from 'http'
 import httpProxy from 'http-proxy'
+import { isIP } from 'node:net'
 
 /**
  * Run a local reverse proxy with a configured host.
@@ -25,7 +26,7 @@ runScript({
       type: 'string',
       short: 'h',
       description:
-        'Host header and bind host (default: PROXY_HOST or localhost)',
+        'Host the app records for requests (default: PROXY_HOST or localhost)',
       required: false,
     },
     port: {
@@ -56,20 +57,38 @@ runScript({
 
     const resolvedPort = Number(port || process.env.PROXY_PORT || 9090)
 
+    // @note the browser reaches the proxy on its port, so that is the host
+    // the app must record - a bare hostname would have it build links to
+    // the default port; the default ports themselves stay implicit
+    const withProxyPort = (host) => {
+      const normalizedHost = isIP(host) === 6 ? `[${host}]` : host
+
+      return /:\d+$/.test(normalizedHost) || [80, 443].includes(resolvedPort)
+        ? normalizedHost
+        : `${normalizedHost}:${resolvedPort}`
+    }
+
+    const forwardedHost = withProxyPort(resolvedHost)
+
+    // @note the asserted frontend host is reached on the same proxy port, so
+    // it carries the port too unless it already names one
+    const forwardedFrontendHost =
+      resolvedFrontendHost && withProxyPort(resolvedFrontendHost)
+
     const resolvedTarget =
       target || process.env.PROXY_TARGET || 'http://localhost:8080'
 
-    log(`using host ${resolvedHost}`)
+    log(`using host ${forwardedHost}`)
     log(`running proxy on port ${resolvedPort}`)
 
     log(`proxying to target ${resolvedTarget}`)
 
-    if (resolvedFrontendHost) {
-      log(`asserting frontend host ${resolvedFrontendHost}`)
+    if (forwardedFrontendHost) {
+      log(`asserting frontend host ${forwardedFrontendHost}`)
     }
 
     const assertionHeaders = getInternalAssertionHeaders({
-      frontendHost: resolvedFrontendHost,
+      frontendHost: forwardedFrontendHost,
     })
 
     const proxy = httpProxy.createProxyServer({
@@ -82,8 +101,8 @@ runScript({
     // proxy headers, so the proxy claims the header rather than passing it on
 
     const setProxyHeaders = (proxyReq) => {
-      proxyReq.setHeader('Host', resolvedHost)
-      proxyReq.setHeader('x-forwarded-host', resolvedHost)
+      proxyReq.setHeader('Host', forwardedHost)
+      proxyReq.setHeader('x-forwarded-host', forwardedHost)
 
       for (const [name, value] of Object.entries(assertionHeaders)) {
         proxyReq.setHeader(name, value)
@@ -96,6 +115,61 @@ runScript({
 
     proxy.on('proxyReqWs', (proxyReq, _req, _socket, _options, _head) => {
       setProxyHeaders(proxyReq)
+    })
+
+    // @note host selects the simulated partner or app upstream; relative
+    // redirects back to that authority retain the browser's origin even when
+    // a tunnel rewrites the incoming host, scheme or port
+    proxy.on('proxyRes', (proxyRes) => {
+      const rewriteRedirect = (location) => {
+        if (!/^(https?:)?\/\//i.test(location)) {
+          return location
+        }
+
+        try {
+          const url = new URL(location, `http://${forwardedHost}`)
+
+          if (
+            !['http:', 'https:'].includes(url.protocol) ||
+            url.username ||
+            url.password ||
+            url.host !== new URL(`${url.protocol}//${forwardedHost}`).host
+          ) {
+            return location
+          }
+
+          // @note a leading double slash would become another authority when
+          // resolved by the browser; a dot segment keeps it in the URL path
+          const pathname = url.pathname.startsWith('//')
+            ? `/.${url.pathname}`
+            : url.pathname
+
+          return `${pathname}${url.search}${url.hash}`
+        } catch {
+          return location
+        }
+      }
+
+      for (const name of ['location', 'x-nextjs-redirect']) {
+        if (proxyRes.headers[name]) {
+          proxyRes.headers[name] = rewriteRedirect(proxyRes.headers[name])
+        }
+      }
+
+      if (proxyRes.headers['x-action-redirect']) {
+        proxyRes.headers['x-action-redirect'] = proxyRes.headers[
+          'x-action-redirect'
+        ].replace(/^(.*);(push|replace)$/, (_, location, mode) => {
+          return `${rewriteRedirect(location)};${mode}`
+        })
+      }
+
+      if (proxyRes.headers.refresh) {
+        proxyRes.headers.refresh = proxyRes.headers.refresh.replace(
+          /^(\s*\d+\s*;\s*url=)(.*)$/i,
+          (_, prefix, location) => prefix + rewriteRedirect(location)
+        )
+      }
     })
 
     proxy.on('error', (err, _req, res) => {
