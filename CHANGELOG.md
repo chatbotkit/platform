@@ -5,6 +5,12 @@ here. The release version is defined in the workspace root `package.json`.
 
 ## [Unreleased]
 
+### Fixed
+
+- Bill DeepSeek V4.1 Flash through Vercel AI Gateway at the gateway's peak
+  rate and full 1,048,576-token context, matching the gateway catalogue rather
+  than DeepSeek's off-peak list price.
+
 ## [0.3.3] - 2026-09-10
 
 ### Fixed
