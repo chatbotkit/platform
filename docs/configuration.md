@@ -251,7 +251,8 @@ APP_LABS_ORIGIN=https://labs.example.com
 Shell host routing reads these origins at server startup. Recreate the container
 after changing them; no image rebuild is needed. The Community and Studio stacks
 default to `APP_MAIN_ORIGIN=http://cbk-apps.localhost:3000` and
-`APP_LABS_ORIGIN=http://cbk-labs.localhost:3000`. Existing app paths, sign-in,
+`APP_LABS_ORIGIN=http://cbk-labs.localhost:3000`, with the port following
+`PLATFORM_PORT`. Existing app paths, sign-in,
 callbacks and manifests remain available on the new hosts. Cookies do not cross
 hosts, so sign in on the shell host itself.
 

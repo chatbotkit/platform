@@ -5,6 +5,27 @@ here. The release version is defined in the workspace root `package.json`.
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-09-10
+
+### Added
+
+- Declare where the Community and Studio Compose stacks answer in an `x-cbk`
+  endpoint manifest inside each published artifact, resolved with
+  `docker compose config --format json`, so a launcher reads the stack's
+  addresses instead of assuming port 3000.
+
+### Changed
+
+- Move the published application port with `PLATFORM_PORT` and the site
+  hostname with `PLATFORM_HOST` in the Community and Studio stacks. The site,
+  sign-in, app shell, space and portal addresses follow the port, and
+  `RELAY_URL` now follows `RELAY_PORT`, so a second instance on one host needs
+  the port variables rather than an override file.
+- Publish the Studio stack on `31000`, `31001` and `31900` instead of
+  Community's `3000`, `3001` and `3900`, so it runs beside a developer's
+  existing services on `3000` and beside a Community stack on the same host.
+  Container ports are unchanged.
+
 ## [0.2.2] - 2026-09-10
 
 ### Fixed
