@@ -1,3 +1,4 @@
+import { ensureContact } from '@/lib/app.contact'
 import { getContextAppConfig, getContextAppSession } from '@/lib/app.context'
 import { APP_AUDIENCE } from '@/lib/audience.consts'
 import {
@@ -8,9 +9,13 @@ import { captureException } from '@/lib/error'
 import { parseRequestSchema } from '@/lib/request'
 import { throwNotAuthenticated, throwNotAuthorized } from '@/lib/response'
 
-import { appRouteHandler } from './app.route'
+import { appContactRouteHandler, appRouteHandler } from './app.route'
 
 import { z } from 'zod'
+
+jest.mock('@/lib/app.contact', () => ({
+  ensureContact: jest.fn(),
+}))
 
 jest.mock('@/lib/app.context', () => ({
   getContextAppConfig: jest.fn(),
@@ -260,5 +265,108 @@ describe('appRouteHandler', () => {
     await handler(mockReq, mockStream)
 
     expect(mockStream.result).not.toHaveBeenCalled()
+  })
+})
+
+describe('appContactRouteHandler', () => {
+  beforeEach(() => {
+    jest.clearAllMocks()
+    getContextFrontendHost.mockReturnValue(undefined)
+    getContextRequestHost.mockReturnValue(undefined)
+  })
+
+  it('should ensure the contact and pass parsed config, contact and input', async () => {
+    const configSchema = z.object({ flag: z.boolean().default(false) })
+    const inputSchema = z.object({ name: z.string() })
+    const fn = jest.fn().mockResolvedValue({ ok: true })
+
+    const mockSession = { payload: { aud: 'other' } }
+    const mockContact = { id: 'contact-1' }
+
+    getContextAppConfig.mockResolvedValue({})
+    getContextAppSession.mockResolvedValue(mockSession)
+    parseRequestSchema.mockResolvedValue({ name: 'test' })
+    ensureContact.mockResolvedValue(mockContact)
+
+    const handler = appContactRouteHandler(
+      'test-app',
+      'test-namespace',
+      configSchema,
+      inputSchema,
+      fn
+    )
+    const mockReq = new Request('http://localhost/test')
+    const mockStream = { push: jest.fn(), result: jest.fn(), error: jest.fn() }
+
+    await handler(mockReq, mockStream)
+
+    expect(ensureContact).toHaveBeenCalledWith({
+      namespace: 'test-namespace',
+      session: mockSession,
+      app: 'test-app',
+    })
+    expect(fn).toHaveBeenCalledWith(
+      { flag: false },
+      mockSession,
+      mockContact,
+      { name: 'test' },
+      expect.any(Object)
+    )
+    expect(mockStream.result).toHaveBeenCalledWith({ ok: true })
+  })
+
+  it('should stream generator events from the contact handler', async () => {
+    const fn = jest.fn().mockImplementation(async function* () {
+      yield { type: 'item', data: { n: 1 } }
+    })
+
+    getContextAppConfig.mockResolvedValue({})
+    getContextAppSession.mockResolvedValue({ payload: { aud: 'other' } })
+    parseRequestSchema.mockResolvedValue({})
+    ensureContact.mockResolvedValue({ id: 'contact-1' })
+
+    const handler = appContactRouteHandler(
+      'test-app',
+      'test-namespace',
+      z.object({}),
+      z.object({}),
+      fn
+    )
+    const mockReq = new Request('http://localhost/test')
+    const mockStream = { push: jest.fn(), result: jest.fn(), error: jest.fn() }
+
+    await handler(mockReq, mockStream)
+
+    expect(mockStream.push).toHaveBeenCalledWith({
+      type: 'item',
+      data: { n: 1 },
+    })
+    expect(mockStream.result).not.toHaveBeenCalled()
+  })
+
+  it('should report a contact failure through the stream error', async () => {
+    const fn = jest.fn()
+    const contactError = new Error('Contact not found')
+
+    getContextAppConfig.mockResolvedValue({})
+    getContextAppSession.mockResolvedValue({ payload: { aud: 'other' } })
+    parseRequestSchema.mockResolvedValue({})
+    ensureContact.mockRejectedValue(contactError)
+
+    const handler = appContactRouteHandler(
+      'test-app',
+      'test-namespace',
+      z.object({}),
+      z.object({}),
+      fn
+    )
+    const mockReq = new Request('http://localhost/test')
+    const mockStream = { push: jest.fn(), result: jest.fn(), error: jest.fn() }
+
+    await handler(mockReq, mockStream)
+
+    expect(fn).not.toHaveBeenCalled()
+    expect(captureException).toHaveBeenCalledWith(contactError)
+    expect(mockStream.error).toHaveBeenCalledWith(contactError)
   })
 })

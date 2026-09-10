@@ -27,10 +27,21 @@ export const adapter: Required<Adapter> = ((adapter) => {
             // the WHERE clause and the SET clause, causing Prisma to emit an
             // inefficient `id IN (<subquery>) AND (? = ?)` pattern on MariaDB
 
-            return prisma.session.update({
-              where: { sessionToken },
-              data: rest,
-            })
+            // @note this only bumps the session expiry. NextAuth treats a
+            // throw here as a lost session and bounces the user to sign-in, so
+            // a failed bump is reported and ignored: the session was already
+            // read with a valid expiry and the next request bumps it again.
+
+            try {
+              return await prisma.session.update({
+                where: { sessionToken },
+                data: rest,
+              })
+            } catch (e) {
+              await captureException(e)
+
+              return null
+            }
           }
         }
 

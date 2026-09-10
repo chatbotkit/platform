@@ -23,7 +23,7 @@
 # (and with it the app shells, spaces and portals), RELAY_PORT the realtime
 # relay and STORAGE_PORT the object store, and every address a browser or a
 # host process dials is declared once in the `x-cbk` manifest below. A
-# launcher such as ChatBotKit Studio reads the resolved manifest back with
+# launcher such as CBK Studio reads the resolved manifest back with
 # `docker compose config --format json` rather than assuming port 3000.
 #
 # One folder per package flavor lives under docker/distro/. Each publishes as

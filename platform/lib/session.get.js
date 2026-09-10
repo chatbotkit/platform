@@ -741,10 +741,21 @@ export async function getSession(req, res) {
         res || getContextNextApiResponse()
       )
 
-      session =
-        req instanceof ServerActionRequest
-          ? await getServerSession(authOptions)
-          : await getServerSession(incomingReq, incomingRes, authOptions)
+      // @note App Router route handlers pass a Web Request and register no
+      // NextApiRequest in context. next-auth reads `cookies` and a plain
+      // `headers` object off the request it is given, and a Web Request has
+      // neither, so it would never find the session cookie. Those requests
+      // resolve through the next/headers form, the same way server actions do.
+
+      const useHeadersStore =
+        req instanceof ServerActionRequest ||
+        (!getContextNextApiRequest() &&
+          typeof Request !== 'undefined' &&
+          req instanceof Request)
+
+      session = useHeadersStore
+        ? await getServerSession(authOptions)
+        : await getServerSession(incomingReq, incomingRes, authOptions)
     }
 
     // We check if the session is valid and if it is not we throw an error.

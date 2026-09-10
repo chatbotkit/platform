@@ -4150,11 +4150,11 @@ export const vercelLanguageModels: Record<
         maxOutputTokens: Math.floor(262_144 * MAX_OUTPUT_TOKENS_RATIO),
 
         pricing: {
-          tokenRatio: 0.0222,
-          inputTokenRatio: 0.01,
-          outputTokenRatio: 0.0222,
-          inputPrice: 0.14,
-          outputPrice: 0.4,
+          tokenRatio: 0.0828,
+          inputTokenRatio: 0.0707,
+          outputTokenRatio: 0.0828,
+          inputPrice: 0.99,
+          outputPrice: 1.49,
         },
 
         interactionMaxMessages: DEFAULT_INTERACTION_MAX_MESSAGES,
@@ -4334,11 +4334,11 @@ export const vercelLanguageModels: Record<
         maxOutputTokens: Math.ceil(1_000_000 * MAX_OUTPUT_TOKENS_RATIO),
 
         pricing: {
-          tokenRatio: 0.11,
-          inputTokenRatio: 0.0471,
-          outputTokenRatio: 0.11,
-          inputPrice: 0.66,
-          outputPrice: 1.98,
+          tokenRatio: 0.2444,
+          inputTokenRatio: 0.15,
+          outputTokenRatio: 0.2444,
+          inputPrice: 2.1,
+          outputPrice: 4.4,
         },
 
         interactionMaxMessages: DEFAULT_INTERACTION_MAX_MESSAGES,
@@ -4387,9 +4387,9 @@ export const vercelLanguageModels: Record<
         // @note the gateway bills the peak rate, not DeepSeek's off-peak list price
         pricing: {
           tokenRatio: 0.0667,
-          inputTokenRatio: 0.0214,
+          inputTokenRatio: 0.0643,
           outputTokenRatio: 0.0667,
-          inputPrice: 0.3,
+          inputPrice: 0.9,
           outputPrice: 1.2,
         },
 
@@ -4437,11 +4437,11 @@ export const vercelLanguageModels: Record<
         maxOutputTokens: Math.ceil(1_000_000 * MAX_OUTPUT_TOKENS_RATIO),
 
         pricing: {
-          tokenRatio: 0.0144,
-          inputTokenRatio: 0.0093,
-          outputTokenRatio: 0.0144,
-          inputPrice: 0.13,
-          outputPrice: 0.26,
+          tokenRatio: 0.0733,
+          inputTokenRatio: 0.0314,
+          outputTokenRatio: 0.0733,
+          inputPrice: 0.44,
+          outputPrice: 1.32,
         },
 
         interactionMaxMessages: DEFAULT_INTERACTION_MAX_MESSAGES,
@@ -4736,11 +4736,11 @@ export const vercelLanguageModels: Record<
         maxOutputTokens: 131_000,
 
         pricing: {
-          tokenRatio: 0.0278,
-          inputTokenRatio: 0.0107,
-          outputTokenRatio: 0.0278,
-          inputPrice: 0.15,
-          outputPrice: 0.5,
+          tokenRatio: 0.0833,
+          inputTokenRatio: 0.0321,
+          outputTokenRatio: 0.0833,
+          inputPrice: 0.45,
+          outputPrice: 1.5,
         },
 
         interactionMaxMessages: DEFAULT_INTERACTION_MAX_MESSAGES,
@@ -4833,11 +4833,11 @@ export const vercelLanguageModels: Record<
         maxOutputTokens: 128_000,
 
         pricing: {
-          tokenRatio: 0.1417,
-          inputTokenRatio: 0.0571,
-          outputTokenRatio: 0.1417,
-          inputPrice: 0.8,
-          outputPrice: 2.55,
+          tokenRatio: 0.2444,
+          inputTokenRatio: 0.1,
+          outputTokenRatio: 0.2444,
+          inputPrice: 1.4,
+          outputPrice: 4.4,
         },
 
         interactionMaxMessages: DEFAULT_INTERACTION_MAX_MESSAGES,
@@ -5185,11 +5185,11 @@ export const vercelLanguageModels: Record<
         maxOutputTokens: 128_000,
 
         pricing: {
-          tokenRatio: 0.0667,
-          inputTokenRatio: 0.0214,
-          outputTokenRatio: 0.0667,
-          inputPrice: 0.3,
-          outputPrice: 1.2,
+          tokenRatio: 0.1333,
+          inputTokenRatio: 0.0429,
+          outputTokenRatio: 0.1333,
+          inputPrice: 0.6,
+          outputPrice: 2.4,
         },
 
         interactionMaxMessages: DEFAULT_INTERACTION_MAX_MESSAGES,
@@ -5563,11 +5563,11 @@ export const vercelLanguageModels: Record<
         maxOutputTokens: 131_000,
 
         pricing: {
-          tokenRatio: 0.0483,
-          inputTokenRatio: 0.0311,
-          outputTokenRatio: 0.0483,
-          inputPrice: 0.435,
-          outputPrice: 0.87,
+          tokenRatio: 0.1667,
+          inputTokenRatio: 0.0714,
+          outputTokenRatio: 0.1667,
+          inputPrice: 1,
+          outputPrice: 3,
         },
 
         interactionMaxMessages: DEFAULT_INTERACTION_MAX_MESSAGES,
@@ -5606,11 +5606,11 @@ export const vercelLanguageModels: Record<
         maxOutputTokens: 131_000,
 
         pricing: {
-          tokenRatio: 0.0156,
-          inputTokenRatio: 0.01,
-          outputTokenRatio: 0.0156,
-          inputPrice: 0.14,
-          outputPrice: 0.28,
+          tokenRatio: 0.1111,
+          inputTokenRatio: 0.0286,
+          outputTokenRatio: 0.1111,
+          inputPrice: 0.4,
+          outputPrice: 2,
         },
 
         interactionMaxMessages: DEFAULT_INTERACTION_MAX_MESSAGES,

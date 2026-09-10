@@ -59,9 +59,12 @@ export default forwardRef(function Link(
     return target
   }, [target])
 
+  // @note the App Router build of next/link rejects the locale prop, and the
+  // single configured locale needs no fallback - forward it only when a caller
+  // sets it explicitly
   const resolvedLocale = useMemo(() => {
-    return locale || router.locale || router.defaultLocale
-  }, [locale, router.locale, router.defaultLocale])
+    return locale || undefined
+  }, [locale])
 
   const extraProps = useMemo(() => {
     switch (true) {
@@ -185,7 +188,7 @@ export default forwardRef(function Link(
 
       target: resolvedTarget,
 
-      locale: resolvedLocale,
+      ...(resolvedLocale ? { locale: resolvedLocale } : {}),
 
       ...props,
       ...extraProps,
