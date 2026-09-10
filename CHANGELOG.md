@@ -5,6 +5,14 @@ here. The release version is defined in the workspace root `package.json`.
 
 ## [Unreleased]
 
+## [0.3.1] - 2026-09-10
+
+### Added
+
+- Support DeepSeek V4.1 Flash through Vercel AI Gateway, DeepSeek, and
+  OpenRouter, with image input, reasoning, tool calls, provider-specific model
+  identifiers, token limits, and usage pricing.
+
 ## [0.3.0] - 2026-09-10
 
 ### Added

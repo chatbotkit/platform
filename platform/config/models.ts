@@ -2096,6 +2096,52 @@ export const openrouterLanguageModels: Record<
 
       // deepseek
 
+      'deepseek-v4.1-flash': {
+        description: `DeepSeek V4.1 Flash combines fast reasoning, coding, tool use, and native image understanding with a million-token context window.`,
+
+        provider: 'openrouter',
+
+        providerModel: 'deepseek/deepseek-v4.1-flash',
+
+        family: 'deepseek',
+
+        features: ['chat', 'functions', 'image', 'reasoning'],
+
+        region: 'us',
+        availableRegions: ['us'],
+
+        featured: true,
+
+        maxTokens: 1_048_576,
+        maxInputTokens: 1_048_576 - 384_000,
+        maxOutputTokens: 384_000,
+
+        // @note published off-peak pricing; provider peak-hour rates may be higher
+        pricing: {
+          tokenRatio: 0.0333,
+          inputTokenRatio: 0.0107,
+          outputTokenRatio: 0.0333,
+          inputPrice: 0.15,
+          outputPrice: 0.6,
+        },
+
+        interactionMaxMessages: DEFAULT_INTERACTION_MAX_MESSAGES,
+
+        thresholdStrategy: 'truncate',
+
+        visible: true,
+        deprecated: false,
+
+        temperature: DEFAULT_TEMPERATURE,
+
+        frequencyPenalty: 0,
+        presencePenalty: 0,
+
+        tags: [],
+
+        addedDate: '2026-09-10',
+      },
+
       'deepseek-v4-pro': {
         description: `Top-tier DeepSeek reasoning and coding for the most demanding production workloads. Built for high-context tasks that benefit from deeper deliberation.`,
 
@@ -4310,6 +4356,58 @@ export const vercelLanguageModels: Record<
         tags: [],
 
         addedDate: '2026-04-24',
+      },
+
+      'deepseek-v4.1-flash': {
+        description: `DeepSeek V4.1 Flash combines fast reasoning, coding, tool use, and native image understanding with a million-token context window.`,
+
+        provider: 'vercel',
+
+        providerModel: 'deepseek/deepseek-v4.1-flash',
+
+        providerOptions: {
+          gateway: {
+            zeroDataRetention: false,
+          },
+        },
+
+        family: 'deepseek',
+
+        features: ['chat', 'functions', 'image', 'reasoning'],
+
+        region: 'us',
+        availableRegions: ['us'],
+
+        featured: true,
+
+        maxTokens: 1_000_000,
+        maxInputTokens: 1_000_000 - 384_000,
+        maxOutputTokens: 384_000,
+
+        // @note published off-peak pricing; provider peak-hour rates may be higher
+        pricing: {
+          tokenRatio: 0.0333,
+          inputTokenRatio: 0.0107,
+          outputTokenRatio: 0.0333,
+          inputPrice: 0.15,
+          outputPrice: 0.6,
+        },
+
+        interactionMaxMessages: DEFAULT_INTERACTION_MAX_MESSAGES,
+
+        thresholdStrategy: 'truncate',
+
+        visible: true,
+        deprecated: false,
+
+        temperature: DEFAULT_TEMPERATURE,
+
+        frequencyPenalty: 0,
+        presencePenalty: 0,
+
+        tags: [],
+
+        addedDate: '2026-09-10',
       },
 
       'deepseek-v4-flash': {
@@ -6684,6 +6782,54 @@ export const deepseekLanguageModels: Record<
         tags: [],
 
         addedDate: '2026-04-24',
+      },
+
+      'deepseek-v4.1-flash': {
+        description: `DeepSeek V4.1 Flash combines fast reasoning, coding, tool use, and native image understanding with a million-token context window.`,
+
+        provider: 'deepseek',
+
+        // @note the direct API serves v4.1 flash under the deepseek-flash identifier
+        // https://api-docs.deepseek.com/quick_start/pricing/
+        providerModel: 'deepseek-flash',
+
+        family: 'deepseek',
+
+        features: ['chat', 'functions', 'image', 'reasoning'],
+
+        region: 'us',
+        availableRegions: ['us'],
+
+        featured: true,
+
+        maxTokens: 1_000_000,
+        maxInputTokens: 1_000_000 - 384_000,
+        maxOutputTokens: 384_000,
+
+        // @note published off-peak pricing; provider peak-hour rates may be higher
+        pricing: {
+          tokenRatio: 0.0333,
+          inputTokenRatio: 0.0107,
+          outputTokenRatio: 0.0333,
+          inputPrice: 0.15,
+          outputPrice: 0.6,
+        },
+
+        interactionMaxMessages: DEFAULT_INTERACTION_MAX_MESSAGES,
+
+        thresholdStrategy: 'truncate',
+
+        visible: true,
+        deprecated: false,
+
+        temperature: DEFAULT_TEMPERATURE,
+
+        frequencyPenalty: 0,
+        presencePenalty: 0,
+
+        tags: [],
+
+        addedDate: '2026-09-10',
       },
 
       'deepseek-v4-flash': {
