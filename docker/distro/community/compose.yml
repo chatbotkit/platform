@@ -120,14 +120,17 @@ services:
   platform:
     image: ${PLATFORM_IMAGE:-ghcr.io/chatbotkit/platform-community-app:next}
     ports:
-      # @note PLATFORM_PORT moves the published side, the container keeps 3000
-      - '${PLATFORM_PORT:-3000}:3000'
+      # @note the same port inside and out, like the store: the application
+      # reaches itself through the address a request arrived on, so a
+      # published port the container does not listen on refuses its own
+      # calls. PLATFORM_PORT and RELAY_PORT therefore move both sides
+      - '${PLATFORM_PORT:-3000}:${PLATFORM_PORT:-3000}'
       # @note the built-in realtime relay - see RELAY_URL below
-      - '${RELAY_PORT:-3001}:3001'
+      - '${RELAY_PORT:-3001}:${RELAY_PORT:-3001}'
     environment:
       <<: *storage-env
       NODE_ENV: production
-      PORT: 3000
+      PORT: ${PLATFORM_PORT:-3000}
       SITE_URL: *site-url
       STATIC_URL: ${STATIC_URL:-}
       API_URL: ${API_URL:-}
@@ -138,7 +141,7 @@ services:
       # process hosts itself on RELAY_PORT. Both that process and a host
       # browser dial RELAY_URL, so loopback serves both; a browser elsewhere
       # needs an address it can reach instead (and TLS if the site has it)
-      RELAY_PORT: 3001
+      RELAY_PORT: ${RELAY_PORT:-3001}
       RELAY_URL: *relay-url
       # @note host routing reads its settings at server startup; recreate the
       # container to change domains without rebuilding the image. See x-cbk
@@ -197,7 +200,7 @@ services:
           'CMD',
           'node',
           '-e',
-          "fetch('http://localhost:3000/').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))",
+          "fetch('http://localhost:' + process.env.PORT + '/').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))",
         ]
       interval: 30s
       timeout: 10s
