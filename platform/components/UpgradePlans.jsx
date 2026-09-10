@@ -98,15 +98,26 @@ function PlanBadge({ children }) {
 // nothing of it rides in the client bundle. `subscriptions.pricing` carries
 // null for a plan that is not self-serve: Infinity does not survive
 // serialization, so it is restored here.
+//
+// Whether the cards may check out is decided there too: a child account
+// never bills (`billable`), and an account already holding a subscription
+// (`openSubscription`) changes it through the billing portal - a fresh
+// checkout is refused against it, and a lapsed one (`lapsed`) needs its
+// payment fixed there first.
 export default function UpgradePlans({
   currentPlan,
   limits,
   subscriptions,
   trialPlans,
+  billable = true,
+  openSubscription = false,
+  lapsed = false,
 }) {
   const router = useRouter()
 
-  const { fetch } = useFetch()
+  // @note the checkout API refuses with a message the user has to see -
+  // without the failure toast a refused click reads as a dead button
+  const { fetch } = useFetch({ loadingMessage: true, failureMessage: true })
 
   // @note the matrix opens on what differs - that is the comparison - and
   // expands to the full catalogue on demand
@@ -165,6 +176,16 @@ export default function UpgradePlans({
     }
   }
 
+  async function goToPortal() {
+    const { data, error } = await fetch('/api/billing/session', {
+      data: { returnTo: router.asPath },
+    })
+
+    if (!error) {
+      router.push(data.redirectUrl)
+    }
+  }
+
   if (!rungs.some(({ current }) => !current)) {
     // @note a deployment with nothing left to sell this user - already on the
     // top plan, or selling nothing self-serve
@@ -191,9 +212,37 @@ export default function UpgradePlans({
 
   return (
     <div className="space-y-16">
+      {!billable ? (
+        <div className="rounded-lg border border-gray-200 p-4 text-sm dark:border-gray-800">
+          Billing for this account is managed by the owner of the account.
+          Ask them to change the plan.
+        </div>
+      ) : lapsed ? (
+        <div className="flex flex-wrap items-center justify-between gap-4 rounded-lg border border-gray-200 p-4 text-sm dark:border-gray-800">
+          <div>
+            Your subscription is not active. This usually means the latest
+            payment did not go through. Update your payment details in the
+            billing portal to restore your plan.
+          </div>
+
+          <button
+            type="button"
+            onClick={goToPortal}
+            className="rounded-lg bg-gray-900 px-4 py-2 text-sm font-bold text-white dark:bg-white dark:text-black"
+          >
+            Manage billing
+          </button>
+        </div>
+      ) : null}
+
       <div className="grid gap-6 pt-3 sm:grid-cols-2 lg:grid-cols-3">
         {rungs.map(({ plan, label, price, current, selfServe }) => {
-          const trial = selfServe && !current && trialPlans?.includes(plan)
+          // @note no trial on top of a subscription the account already holds
+          const trial =
+            selfServe &&
+            !current &&
+            !openSubscription &&
+            trialPlans?.includes(plan)
           const featured = !current && plan === featuredPlan
 
           const entitlements = headlineEntitlements(limits?.[plan])
@@ -245,10 +294,16 @@ export default function UpgradePlans({
                 <div className="mt-8 w-full rounded-lg border border-gray-200 px-4 py-2 text-center text-sm font-bold text-gray-400 dark:border-gray-800 dark:text-gray-600">
                   Your plan
                 </div>
+              ) : !billable ? (
+                <div className="mt-8 w-full rounded-lg border border-gray-200 px-4 py-2 text-center text-sm font-bold text-gray-400 dark:border-gray-800 dark:text-gray-600">
+                  Managed by the owner
+                </div>
               ) : selfServe ? (
                 <button
                   type="button"
-                  onClick={() => goToCheckout(plan, trial)}
+                  onClick={() =>
+                    openSubscription ? goToPortal() : goToCheckout(plan, trial)
+                  }
                   className="mt-8 w-full rounded-lg bg-gray-900 px-4 py-2 text-sm font-bold text-white dark:bg-white dark:text-black"
                 >
                   {trial

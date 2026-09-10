@@ -32,6 +32,10 @@ export function createSubscriptionModel(
       return grantedPlan(user.email) !== undefined
     },
 
+    hasOpenSubscription() {
+      return false
+    },
+
     hasTrialed() {
       return false
     },

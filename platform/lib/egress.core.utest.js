@@ -9,11 +9,25 @@ import {
   EgressError,
   createEgressDispatcher,
   getEgressDispatcher,
+  getSelfDeployment,
   guardedLookup,
+  isSelfDestination,
 } from '@/lib/egress.core'
 
 jest.mock('node:dns', () => ({
   lookup: jest.fn(),
+}))
+
+jest.mock('@/config/site', () => ({
+  siteUrl: 'https://cbk.example',
+  staticUrl: 'https://static.cbk.example',
+  widgetUrl: 'https://cbk.example',
+  apiUrl: 'https://api.cbk.example',
+}))
+
+jest.mock('@/config/origins', () => ({
+  appMainOrigin: 'https://apps.cbk.example',
+  appLabsOrigin: undefined,
 }))
 
 jest.mock('@/lib/env', () => ({
@@ -226,6 +240,200 @@ describe('createEgressDispatcher', () => {
     )
 
     await guardedDispatcher.close()
+  })
+})
+
+describe('getSelfDeployment', () => {
+  const site = jest.requireMock('@/config/site')
+
+  afterEach(() => {
+    site.siteUrl = 'https://cbk.example'
+  })
+
+  it('lists every configured origin as host:port', () => {
+    const self = getSelfDeployment()
+
+    expect([...self.hosts].sort()).toEqual([
+      'api.cbk.example:443',
+      'apps.cbk.example:443',
+      'cbk.example:443',
+      'static.cbk.example:443',
+    ])
+    expect(self.loopback).toBe(false)
+  })
+
+  it('marks a site on a *.localhost name as living on loopback', () => {
+    site.siteUrl = 'http://cbk.localhost:31000'
+
+    const self = getSelfDeployment()
+
+    expect(self.hosts).toContain('cbk.localhost:31000')
+    expect(self.loopback).toBe(true)
+  })
+})
+
+describe('isSelfDestination', () => {
+  it('matches a configured host on its port only', () => {
+    const self = { hosts: new Set(['10.0.0.5:3000']), loopback: false }
+
+    expect(isSelfDestination('10.0.0.5', 3000, self)).toBe(true)
+    expect(isSelfDestination('10.0.0.5', 80, self)).toBe(false)
+    expect(isSelfDestination('10.0.0.6', 3000, self)).toBe(false)
+  })
+
+  it('matches a bracketed IPv6 host either way', () => {
+    const self = { hosts: new Set(['::1:31000']), loopback: false }
+
+    expect(isSelfDestination('::1', 31000, self)).toBe(true)
+    expect(isSelfDestination('[::1]', 31000, self)).toBe(true)
+  })
+
+  it('treats loopback destinations as self only where the site is loopback', () => {
+    const local = { hosts: new Set(['cbk.localhost:31000']), loopback: true }
+    const hosted = { hosts: new Set(['cbk.example:443']), loopback: false }
+
+    for (const hostname of ['127.0.0.1', '::1', 'localhost', 'cbk-storage.localhost']) {
+      expect({ hostname, self: isSelfDestination(hostname, 31900, local) }).toEqual({ hostname, self: true })
+      expect({ hostname, self: isSelfDestination(hostname, 31900, hosted) }).toEqual({ hostname, self: false })
+    }
+
+    // @note private is not loopback: the rest of the stack's network stays out
+    expect(isSelfDestination('172.18.0.5', 31900, local)).toBe(false)
+    expect(isSelfDestination('169.254.169.254', 80, local)).toBe(false)
+  })
+})
+
+describe('createEgressDispatcher for the deployment itself', () => {
+  const http = jest.requireActual('node:http')
+
+  let server
+  let port
+
+  beforeAll(async () => {
+    server = http.createServer((req, res) => {
+      res.end('self')
+    })
+
+    await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve))
+
+    port = server.address().port
+  })
+
+  afterAll(async () => {
+    await new Promise((resolve) => server.close(resolve))
+  })
+
+  beforeEach(() => {
+    jest.clearAllMocks()
+  })
+
+  it('connects to a configured host even at a loopback address', async () => {
+    const dispatcher = createEgressDispatcher(
+      {},
+      { hosts: new Set([`127.0.0.1:${port}`]), loopback: false }
+    )
+
+    const response = await fetch(`http://127.0.0.1:${port}/`, { dispatcher })
+
+    expect(await response.text()).toBe('self')
+
+    await dispatcher.close()
+  })
+
+  it('refuses the same address where it is not a configured host', async () => {
+    const dispatcher = createEgressDispatcher(
+      {},
+      { hosts: new Set(['cbk.example:443']), loopback: false }
+    )
+
+    const error = await fetch(`http://127.0.0.1:${port}/`, { dispatcher }).then(
+      () => null,
+      (e) => e
+    )
+
+    expect(String(error?.cause?.message)).toMatch(
+      /egress to 127\.0\.0\.1 is not allowed: not a public address/
+    )
+
+    await dispatcher.close()
+  })
+
+  it('connects to any loopback destination where the site lives on loopback', async () => {
+    // @note the Studio case: the site is cbk.localhost, the request arrived
+    // on 127.0.0.1 and the platform fetches the URL it built from that
+    const dispatcher = createEgressDispatcher(
+      {},
+      { hosts: new Set(['cbk.localhost:31000']), loopback: true }
+    )
+
+    const response = await fetch(`http://127.0.0.1:${port}/`, { dispatcher })
+
+    expect(await response.text()).toBe('self')
+
+    await dispatcher.close()
+  })
+
+  it('resolves a *.localhost name through the plain resolver where the site lives on loopback', async () => {
+    // @note the store's name inside a Compose network answers with a private
+    // address the guarded resolver would refuse
+    lookup.mockImplementation((hostname, options, callback) => {
+      if (options.all) {
+        callback(null, [{ address: '127.0.0.1', family: 4 }])
+      } else {
+        callback(null, '127.0.0.1', 4)
+      }
+    })
+
+    const dispatcher = createEgressDispatcher(
+      {},
+      { hosts: new Set(['cbk.localhost:31000']), loopback: true }
+    )
+
+    const response = await fetch(`http://cbk-storage.localhost:${port}/`, {
+      dispatcher,
+    })
+
+    expect(await response.text()).toBe('self')
+    expect(lookup).toHaveBeenCalledWith(
+      'cbk-storage.localhost',
+      expect.anything(),
+      expect.any(Function)
+    )
+
+    await dispatcher.close()
+  })
+
+  it('still refuses private destinations where the site lives on loopback', async () => {
+    lookup.mockImplementation((hostname, options, callback) => {
+      callback(null, [{ address: '172.18.0.5', family: 4 }])
+    })
+
+    const dispatcher = createEgressDispatcher(
+      {},
+      { hosts: new Set(['cbk.localhost:31000']), loopback: true }
+    )
+
+    const literal = await fetch('http://169.254.169.254/latest/meta-data/', {
+      dispatcher,
+    }).then(
+      () => null,
+      (e) => e
+    )
+    const named = await fetch('http://intranet.attacker.example/', {
+      dispatcher,
+    }).then(
+      () => null,
+      (e) => e
+    )
+
+    expect(String(literal?.cause?.message)).toMatch(
+      /egress to 169\.254\.169\.254 is not allowed: not a public address/
+    )
+    expect(String(named?.cause?.message)).toMatch(
+      /resolves to 172\.18\.0\.5, which is not a public address/
+    )
+
+    await dispatcher.close()
   })
 })
 

@@ -18,18 +18,25 @@
 // platform's ordinary fetch path.
 //
 // There is no allowlist and no switch: a request to an internal address is not
-// something the application ever makes on a user's or model's behalf.
-// Development is the one exemption, because that is where the application
-// itself lives on localhost.
+// something the application ever makes on a user's or model's behalf. The one
+// exemption is the deployment itself. The platform fetches its own URLs like
+// any other - proxied images, attachments, presigned objects - so the origins
+// the operator configured (site, static, widget, API, app shells) connect
+// unchecked, and where the site itself lives on loopback (development, the
+// Community and Studio stacks) so does every loopback and `*.localhost`
+// destination, which is where such a stack's store and relay answer. Being
+// derived from configuration, that is not a switch: a hosted deployment's
+// origins are public and gain nothing.
+import { appLabsOrigin, appMainOrigin } from '@/config/origins'
+import { apiUrl, siteUrl, staticUrl, widgetUrl } from '@/config/site'
+
+import { isDevelopment } from '@/lib/env'
+import { isForbiddenAddress, isIpAddress, isLoopbackAddress } from '@/lib/ip'
 
 import { lookup as dnsLookup } from 'node:dns'
 import type { LookupAddress, LookupOptions } from 'node:dns'
-
 import type * as Undici from 'undici'
 import type { Agent, Dispatcher } from 'undici'
-
-import { isDevelopment } from '@/lib/env'
-import { isForbiddenAddress, isIpAddress } from '@/lib/ip'
 
 export class EgressError extends Error {
   readonly egress = true as const
@@ -107,36 +114,140 @@ export function guardedLookup(
 }
 
 /**
+ * Whether a hostname names the machine itself: `localhost`, a `*.localhost`
+ * name (resolved to loopback by browsers and the Compose stacks alike) or a
+ * loopback address.
+ */
+export function isLoopbackHostname(hostname: string): boolean {
+  const name = hostname.toLowerCase()
+
+  return (
+    name === 'localhost' ||
+    name.endsWith('.localhost') ||
+    isLoopbackAddress(name)
+  )
+}
+
+export interface SelfDeployment {
+  /** `hostname:port` of every origin the deployment answers on */
+  hosts: Set<string>
+  /** whether the site itself lives on loopback */
+  loopback: boolean
+}
+
+function defaultPort(protocol: string): number {
+  return protocol === 'https:' || protocol === 'wss:' ? 443 : 80
+}
+
+function toHostKey(hostname: string, port: number): string {
+  return `${hostname.replace(/^\[|\]$/g, '').toLowerCase()}:${port}`
+}
+
+/**
+ * The deployment as its configuration describes it. Read when a dispatcher
+ * is created, so it reflects the origins the process started with.
+ */
+export function getSelfDeployment(): SelfDeployment {
+  const hosts = new Set<string>()
+
+  for (const origin of [
+    siteUrl,
+    staticUrl,
+    widgetUrl,
+    apiUrl,
+    appMainOrigin,
+    appLabsOrigin,
+  ]) {
+    if (!origin) {
+      continue
+    }
+
+    try {
+      const url = new URL(origin)
+
+      hosts.add(
+        toHostKey(url.hostname, Number(url.port) || defaultPort(url.protocol))
+      )
+    } catch {
+      // not a url - not a host
+    }
+  }
+
+  let loopback = false
+
+  try {
+    loopback = isLoopbackHostname(new URL(siteUrl).hostname)
+  } catch {
+    // not a url - not loopback
+  }
+
+  return { hosts, loopback }
+}
+
+/**
+ * Whether a connection is to the deployment itself and so exempt from the
+ * boundary: one of its configured hosts, or any loopback destination where
+ * the site itself lives on loopback.
+ */
+export function isSelfDestination(
+  hostname: string,
+  port: number,
+  self: SelfDeployment
+): boolean {
+  if (self.hosts.has(toHostKey(hostname, port))) {
+    return true
+  }
+
+  return self.loopback && isLoopbackHostname(hostname.replace(/^\[|\]$/g, ''))
+}
+
+/**
  * Creates the dispatcher every guarded request goes through. Literal
  * addresses are checked in the connector - `net.connect` does not consult
  * `lookup` for them - and names are checked by `guardedLookup` at resolution.
  * Because undici follows redirects through the same dispatcher, each hop is
- * checked the same way.
+ * checked the same way. Connections to the deployment itself skip both
+ * checks and resolve through the plain resolver, since on the Compose stacks
+ * its own names answer from the private network.
  */
 export function createEgressDispatcher(
-  options: Agent.Options = {}
+  options: Agent.Options = {},
+  self: SelfDeployment = getSelfDeployment()
 ): Dispatcher {
   // @note loaded here rather than at the top: undici is server-only and
   // this module is imported by code whose tests run under jsdom
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { Agent, buildConnector } = require('undici') as typeof Undici
 
+  const connectOptions =
+    typeof options.connect === 'object' ? options.connect : {}
+
   const connect = buildConnector({
-    ...(typeof options.connect === 'object' ? options.connect : {}),
+    ...connectOptions,
     lookup: guardedLookup,
+  })
+
+  const connectSelf = buildConnector({
+    ...connectOptions,
+    lookup: dnsLookup as typeof guardedLookup,
   })
 
   return new Agent({
     ...options,
 
     connect(connectOptions, callback) {
-      const { hostname } = connectOptions
+      const { hostname, port, protocol } = connectOptions
+
+      if (
+        isSelfDestination(hostname, Number(port) || defaultPort(protocol), self)
+      ) {
+        connectSelf(connectOptions, callback)
+
+        return
+      }
 
       if (isIpAddress(hostname) && isForbiddenAddress(hostname)) {
-        callback(
-          new EgressError(hostname, 'not a public address'),
-          null
-        )
+        callback(new EgressError(hostname, 'not a public address'), null)
 
         return
       }

@@ -564,6 +564,50 @@ function toRunResult(
   return { exitCode: result.exitCode, stdout, stderr }
 }
 
+/**
+ * How long a VM is given to let go of a killed command before the next one is
+ * reported as unable to start.
+ */
+const CONFLICT_SETTLE_MS = 5_000
+
+const CONFLICT_RETRY_INTERVAL_MS = 50
+
+/**
+ * @note the sidecar tears a timed-out process down after it has already
+ * answered `timed_out`, and until that finishes a new command on the VM is
+ * refused at start with an execution conflict - reported as a result, not a
+ * rejection. The queue rules out overlap of this module's own making, so a
+ * conflict can only be that teardown, and the command has not run, so running
+ * it again is safe. Under load the window is long enough that a conversation
+ * would otherwise see `command not found`-shaped failures right after a
+ * timeout.
+ */
+function isExecutionConflict(result: ExecutionResult): boolean {
+  return (
+    result.outcome !== 'succeeded' &&
+    result.exitCode === undefined &&
+    /ERR_AGENTOS_VM_EXECUTION_CONFLICT/.test(result.error?.message ?? '')
+  )
+}
+
+async function runSettled(
+  run: () => Promise<ExecutionResult>
+): Promise<ExecutionResult> {
+  const deadline = Date.now() + CONFLICT_SETTLE_MS
+
+  for (;;) {
+    const result = await run()
+
+    if (!isExecutionConflict(result) || Date.now() >= deadline) {
+      return result
+    }
+
+    await new Promise((resolve) =>
+      setTimeout(resolve, CONFLICT_RETRY_INTERVAL_MS)
+    )
+  }
+}
+
 // --- interpreters ---
 
 let pythonAvailable: Promise<boolean> | undefined
@@ -684,9 +728,11 @@ async function interpret(
   }
 
   const execute = () =>
-    language === 'python'
-      ? vm.python.execute(code, executionOptions)
-      : vm.javascript.execute(code, executionOptions)
+    runSettled(() =>
+      language === 'python'
+        ? vm.python.execute(code, executionOptions)
+        : vm.javascript.execute(code, executionOptions)
+    )
 
   let result: ExecutionResult
 
@@ -763,12 +809,14 @@ async function exec(options: SandboxExecOptions): Promise<SandboxExecResult> {
       // while providing none, and worse, a lingering shell is exactly the
       // process the sidecar hangs on - see the module header.
 
-      const result = await vm.process.exec(cmd, {
-        cwd: WORKSPACE,
-        output: { capture: 'all' },
-        ...(env ? { env } : {}),
-        ...(timeout ? { timeoutMs: timeout } : {}),
-      })
+      const result = await runSettled(() =>
+        vm.process.exec(cmd, {
+          cwd: WORKSPACE,
+          output: { capture: 'all' },
+          ...(env ? { env } : {}),
+          ...(timeout ? { timeoutMs: timeout } : {}),
+        })
+      )
 
       return { ...toRunResult(result, timeout), mountedPaths: entry.mountedPaths }
     }

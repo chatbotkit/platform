@@ -5,6 +5,31 @@ here. The release version is defined in the workspace root `package.json`.
 
 ## [Unreleased]
 
+## [0.3.3] - 2026-09-10
+
+### Fixed
+
+- Let the platform fetch its own URLs on the Community and Studio stacks.
+  The egress boundary refused every loopback and private destination outside
+  development, and those stacks run the production build on loopback, so
+  proxied images, attachments and presigned objects failed with `egress to
+  127.0.0.1 is not allowed`. The boundary now recognises the deployment
+  itself: the configured site, static, widget, API and app shell origins
+  connect unchecked, and where the site lives on loopback so does every
+  loopback and `*.localhost` destination. Other private addresses stay
+  refused, and a hosted deployment's public origins gain nothing.
+- Stop the upgrade page from offering a checkout the billing API refuses.
+  An account that already holds a subscription - live, or lapsed after a
+  failed payment - is sent to the billing portal to change it, a lapsed one
+  is told its payment needs fixing, and a child account is told billing
+  belongs to the owner. A refused checkout now surfaces its message instead
+  of the button silently doing nothing. Billing modules gain
+  `hasOpenSubscription` on the subscription model.
+- Retry a sandbox command that the AgentOS runtime refused to start because it
+  was still tearing down the previous command after a timeout. The refusal
+  surfaced as exit 127 with empty output on the first command after any
+  timed-out one, most often under load.
+
 ## [0.3.2] - 2026-09-10
 
 ### Fixed

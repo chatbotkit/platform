@@ -1,6 +1,9 @@
 import limits from '@/config/limits'
 
 import {
+  canDoBilling,
+  hasOpenSubscription,
+  hasSubscription,
   isBillingConfigured,
   isSellable,
   subscriptionsConfig,
@@ -15,7 +18,15 @@ import Dashboard from '@/layouts/Dashboard'
 import Link from '@/components/Link'
 import UpgradePlans from '@/components/UpgradePlans'
 
-export default function Index({ plan, limits, subscriptions, trialPlans }) {
+export default function Index({
+  plan,
+  limits,
+  subscriptions,
+  trialPlans,
+  billable,
+  openSubscription,
+  lapsed,
+}) {
   return (
     <>
       <div className="main-page main-page-6xl">
@@ -35,6 +46,9 @@ export default function Index({ plan, limits, subscriptions, trialPlans }) {
           limits={limits}
           subscriptions={subscriptions}
           trialPlans={trialPlans}
+          billable={billable}
+          openSubscription={openSubscription}
+          lapsed={lapsed}
         />
       </div>
     </>
@@ -78,7 +92,17 @@ export async function getServerSideProps(context) {
     }
   }
 
-  const { plan } = await revealUserPlan(session.user)
+  const { plan, effectiveUser } = await revealUserPlan(session.user)
+
+  // @note whether the cards may check out at all is decided here, against
+  // the account row that holds the subscription: a child account inherits
+  // its parent's, and an account already holding one - live or lapsed - is
+  // refused a fresh checkout and changes it through the portal instead
+  const billable = canDoBilling(session.user)
+
+  const openSubscription = hasOpenSubscription(effectiveUser)
+
+  const lapsed = openSubscription && !hasSubscription(effectiveUser)
 
   return {
     props: makeJsonSafe({
@@ -107,6 +131,10 @@ export async function getServerSideProps(context) {
       },
 
       trialPlans: [...trialPlans],
+
+      billable,
+      openSubscription,
+      lapsed,
     }),
   }
 }

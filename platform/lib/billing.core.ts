@@ -35,6 +35,7 @@ export const {
   recordedPlanName, // @todo must be only available on chatbotkit-internal/billing as it is an internal thing
 
   hasSubscription,
+  hasOpenSubscription,
   hasTrialed,
 
   userToPlan,
