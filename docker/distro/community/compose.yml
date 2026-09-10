@@ -19,10 +19,72 @@
 # The developer stack with profiles, source builds and hot reload lives in
 # docker-compose.yml at the repository root; this file never builds anything.
 #
+# Where the stack answers is not fixed: PLATFORM_PORT moves the application
+# (and with it the app shells, spaces and portals), RELAY_PORT the realtime
+# relay and STORAGE_PORT the object store, and every address a browser or a
+# host process dials is declared once in the `x-cbk` manifest below. A
+# launcher such as ChatBotKit Studio reads the resolved manifest back with
+# `docker compose config --format json` rather than assuming port 3000.
+#
 # One folder per package flavor lives under docker/distro/. Each publishes as
 # ghcr.io/chatbotkit/platform-<flavor>, pinned by CI to the matching
 # application and initializer image digests of the same flavor.
 # =============================================================================
+
+# @note the endpoint manifest. Each entry is one address that something
+# outside the Compose network dials - a browser, a desktop launcher, the
+# application itself when it fetches a presigned URL - with the service that
+# answers, the host port it is published on and the variable that overrides
+# it. The `url` values are the same expressions the services receive (the
+# anchors below feed `environment`), so `docker compose config --format json`
+# resolves them against the caller's environment and `.["x-cbk"]` is the exact
+# addressing this stack runs with; no port is assumed on either side. Plain
+# Compose ignores `x-` keys. Bump `version` when an entry changes shape.
+#
+# Hostnames stay under `*.localhost`, which browsers resolve to loopback with
+# no DNS setup. A launcher that forwards the published ports must route every
+# host named here, including the wildcard apexes, to the same ports.
+x-cbk:
+  version: 1
+  endpoints:
+    site:
+      service: platform
+      published: ${PLATFORM_PORT:-3000}
+      variable: SITE_URL
+      url: &site-url ${SITE_URL:-http://${PLATFORM_HOST:-cbk.localhost}:${PLATFORM_PORT:-3000}}
+    apps:
+      service: platform
+      published: ${PLATFORM_PORT:-3000}
+      variable: APP_MAIN_ORIGIN
+      url: &apps-url ${APP_MAIN_ORIGIN:-http://cbk-apps.localhost:${PLATFORM_PORT:-3000}}
+    labs:
+      service: platform
+      published: ${PLATFORM_PORT:-3000}
+      variable: APP_LABS_ORIGIN
+      url: &labs-url ${APP_LABS_ORIGIN:-http://cbk-labs.localhost:${PLATFORM_PORT:-3000}}
+    relay:
+      service: platform
+      published: ${RELAY_PORT:-3001}
+      variable: RELAY_URL
+      url: &relay-url ${RELAY_URL:-http://cbk-relay.localhost:${RELAY_PORT:-3001}}
+    storage:
+      service: garage
+      published: ${STORAGE_PORT:-3900}
+      variable: STORAGE_URL
+      url: &storage-url ${STORAGE_URL:-http://cbk-storage.localhost:${STORAGE_PORT:-3900}}
+  # @note wildcard host families served on the site endpoint's port: a space
+  # published as `acme` answers at `http://acme.<space apex>:<published>`
+  apexes:
+    space:
+      service: platform
+      published: ${PLATFORM_PORT:-3000}
+      variable: SPACE_APEX
+      apex: &space-apex ${SPACE_APEX:-cbk-space.localhost}
+    portal:
+      service: platform
+      published: ${PLATFORM_PORT:-3000}
+      variable: PORTAL_APEX
+      apex: &portal-apex ${PORTAL_APEX:-cbk-portal.localhost}
 
 # @note the storage environment every application service shares. The store
 # is Garage, spoken to over the plain S3 protocol. Left empty, the access key
@@ -38,7 +100,7 @@
 # so the two must agree. Set STORAGE_URL to an address both can reach (and
 # TLS if the site has it) when browsers do not reach the machine itself.
 x-storage-env: &storage-env
-  STORAGE_ENDPOINT: ${STORAGE_URL:-http://cbk-storage.localhost:${STORAGE_PORT:-3900}}
+  STORAGE_ENDPOINT: *storage-url
   STORAGE_REGION: garage
   STORAGE_ACCESS_KEY_ID: ${STORAGE_ACCESS_KEY_ID:-}
   STORAGE_SECRET_ACCESS_KEY: ${STORAGE_SECRET_ACCESS_KEY:-}
@@ -58,33 +120,35 @@ services:
   platform:
     image: ${PLATFORM_IMAGE:-ghcr.io/chatbotkit/platform-community-app:next}
     ports:
-      - '3000:3000'
+      # @note PLATFORM_PORT moves the published side, the container keeps 3000
+      - '${PLATFORM_PORT:-3000}:3000'
       # @note the built-in realtime relay - see RELAY_URL below
       - '${RELAY_PORT:-3001}:3001'
     environment:
       <<: *storage-env
       NODE_ENV: production
       PORT: 3000
-      SITE_URL: ${SITE_URL:-http://cbk.localhost:3000}
+      SITE_URL: *site-url
       STATIC_URL: ${STATIC_URL:-}
       API_URL: ${API_URL:-}
       HOSTS_CONFIG: ${HOSTS_CONFIG:-}
-      NEXTAUTH_URL: ${NEXTAUTH_URL:-http://cbk.localhost:3000}
+      # @note sign-in callbacks land on the site itself unless moved
+      NEXTAUTH_URL: ${NEXTAUTH_URL:-${SITE_URL:-http://${PLATFORM_HOST:-cbk.localhost}:${PLATFORM_PORT:-3000}}}
       # @note realtime channels (voice, avatars) meet at a relay the platform
       # process hosts itself on RELAY_PORT. Both that process and a host
       # browser dial RELAY_URL, so loopback serves both; a browser elsewhere
       # needs an address it can reach instead (and TLS if the site has it)
       RELAY_PORT: 3001
-      RELAY_URL: ${RELAY_URL:-http://cbk-relay.localhost:3001}
-      # @note host routing reads its settings at server startup;
-      # recreate the container to change domains without rebuilding the image
-      SPACE_APEX: ${SPACE_APEX:-cbk-space.localhost}
-      PORTAL_APEX: ${PORTAL_APEX:-cbk-portal.localhost}
+      RELAY_URL: *relay-url
+      # @note host routing reads its settings at server startup; recreate the
+      # container to change domains without rebuilding the image. See x-cbk
+      SPACE_APEX: *space-apex
+      PORTAL_APEX: *portal-apex
       APP_APEX: ${APP_APEX:-}
       PARTNERS_APEX: ${PARTNERS_APEX:-}
       # @note cookies do not cross hosts, so sign in on the shell host itself
-      APP_MAIN_ORIGIN: ${APP_MAIN_ORIGIN:-http://cbk-apps.localhost:3000}
-      APP_LABS_ORIGIN: ${APP_LABS_ORIGIN:-http://cbk-labs.localhost:3000}
+      APP_MAIN_ORIGIN: *apps-url
+      APP_LABS_ORIGIN: *labs-url
       # @note left empty, the image generates these secrets on first boot and
       # persists them in the platform-data volume; set explicitly to override
       NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:-}

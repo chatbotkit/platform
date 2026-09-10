@@ -131,32 +131,74 @@ database it protects.
 The stack declares no project name, so Compose derives one. Two instances
 started from the same artifact would share that project - and with it the
 `platform-data` volume - and both would try to publish port 3000. Give each
-instance its own project with `-p` and move its published ports with an
-override file; the override applies after the artifact, so pass both, in that
-order, on every command for that instance:
-
-```yaml
-# staging.yml
-services:
-  platform:
-    ports: !override
-      - '3001:3000'
-```
+instance its own project with `-p` and move its published ports through the
+port variables: `PLATFORM_PORT` for the application (the app shells, spaces
+and portals follow it), `RELAY_PORT` for the realtime relay and
+`STORAGE_PORT` for the object store. Every derived address - `SITE_URL`,
+`NEXTAUTH_URL`, the app shell origins, `RELAY_URL`, `STORAGE_URL` - picks up
+the new port, so nothing else needs setting. Pass the variables in the shell
+or through `--env-file` on every command for that instance, since a single
+`.env` in the working directory cannot describe both:
 
 ```bash
-docker compose -p cbk-staging \
-  -f oci://ghcr.io/chatbotkit/platform-community:latest -f staging.yml up -d
-docker compose -p cbk-staging \
-  -f oci://ghcr.io/chatbotkit/platform-community:latest -f staging.yml logs platform
+PLATFORM_PORT=3100 RELAY_PORT=3101 STORAGE_PORT=3901 docker compose -p cbk-staging \
+  -f oci://ghcr.io/chatbotkit/platform-community:latest up -d
+PLATFORM_PORT=3100 RELAY_PORT=3101 STORAGE_PORT=3901 docker compose -p cbk-staging \
+  -f oci://ghcr.io/chatbotkit/platform-community:latest logs platform
 ```
 
-Set `SITE_URL` and `NEXTAUTH_URL` to the instance's published address
-(`http://localhost:3001` here) and `STORAGE_PORT` to a free store port
-(`3901`) - in the shell or through `--env-file`, since a
-single `.env` in the working directory cannot describe both instances. Volumes,
-networks and container names are all prefixed with the project name, so each
-instance keeps its own database, generated secrets, object store and vector
-index, and `-p` is also how `logs`, `ps` and `down` find the right one.
+Volumes, networks and container names are all prefixed with the project name,
+so each instance keeps its own database, generated secrets, object store and
+vector index, and `-p` is also how `logs`, `ps` and `down` find the right one.
+
+### Endpoint manifest
+
+Where a stack answers is not fixed, so it says so itself. Both Compose files
+carry an `x-cbk` block that lists every address something outside the Compose
+network dials - the site, the Apps and Labs shells, the realtime relay, the
+object store, and the space and portal wildcard apexes - with the service that
+answers, the host port it is published on and the variable that overrides it.
+The `url` values are the same expressions the services receive, so resolving
+the file resolves the manifest against the same environment:
+
+```bash
+PLATFORM_HOST=studio.localhost \
+  docker compose -f oci://ghcr.io/chatbotkit/platform-studio:latest \
+  config --format json | jq '."x-cbk"'
+```
+
+```json
+{
+  "version": 1,
+  "endpoints": {
+    "site": {
+      "service": "platform",
+      "published": "31000",
+      "variable": "SITE_URL",
+      "url": "http://studio.localhost:31000"
+    },
+    "apps": { "url": "http://cbk-apps.localhost:31000", "...": "..." },
+    "labs": { "url": "http://cbk-labs.localhost:31000", "...": "..." },
+    "relay": { "url": "http://cbk-relay.localhost:31001", "...": "..." },
+    "storage": { "url": "http://cbk-storage.localhost:31900", "...": "..." }
+  },
+  "apexes": {
+    "space": { "apex": "cbk-space.localhost", "published": "31000", "...": "..." },
+    "portal": { "apex": "cbk-portal.localhost", "published": "31000", "...": "..." }
+  }
+}
+```
+
+A launcher such as ChatBotKit Studio therefore never assumes a port: it
+keeps the flavor's defaults or sets `PLATFORM_PORT`, `RELAY_PORT` and
+`STORAGE_PORT` to free ones (and `PLATFORM_HOST` or any endpoint's variable to
+rename a host), reads the resolved manifest back and forwards, opens and trusts exactly the addresses
+it lists - including the wildcard apexes, which answer on the site's port. A
+bundle can move or rename its endpoints without a launcher release, since the
+manifest travels inside the published artifact. Plain Compose ignores `x-`
+keys, and the `version` field changes when an entry changes shape. The
+manifest is data from the bundle: a launcher validates it - loopback hosts
+only for a desktop install - before dialing anything it names.
 
 The artifact is published from
 [docker/distro/community/compose.yml](../docker/distro/community/compose.yml),
@@ -166,8 +208,8 @@ under `docker/distro/`; a future PostgreSQL flavor publishes as
 matching image flavor.
 
 Browser-facing file upload and download flows presign URLs against the
-in-stack store, published on port 3900 (`STORAGE_PORT`) under one name,
-`http://cbk-storage.localhost:3900`: a `*.localhost` name browsers resolve to
+in-stack store, published on port 3900 (`STORAGE_PORT`; 31900 in Studio) under
+one name, `http://cbk-storage.localhost:3900`: a `*.localhost` name browsers resolve to
 loopback like the relay and app shells, and an alias of the `garage` service
 inside the Compose network, since the application fetches the same URLs. Set
 `STORAGE_URL` to an address both browsers and the containers can reach (with
@@ -203,6 +245,13 @@ as Community. Once published from `main`, run it with:
 docker compose -f oci://ghcr.io/chatbotkit/platform-studio:latest up
 ```
 
+Studio publishes on its own port family - `31000` for the application,
+`31001` for the relay and `31900` for the object store - so it runs beside
+whatever a developer already has on Community's `3000`, `3001` and `3900`, and
+the two stacks can share a host. Only the published side differs; the
+containers keep their ports. The Studio app learns where the stack answers
+from its [endpoint manifest](#endpoint-manifest) rather than a fixed port.
+
 A PostgreSQL flavor would swap the database column only; the other services
 travel unchanged.
 
@@ -214,8 +263,8 @@ without a purpose. `NEXTAUTH_TRUSTED_SIGNIN=true` replaces it: the sign-in
 page asks for an email address and signs straight into that account, creating
 it on first use. Sessions, audit records and the allowed-email checks are the
 same as after a verified code. Studio enables this mode by default and binds
-its application, relay and storage ports to `127.0.0.1`. Community keeps
-ordinary email sign-in.
+its application, relay and storage ports (`31000`, `31001`, `31900`) to
+`127.0.0.1`. Community keeps ordinary email sign-in.
 
 It is exactly as unsafe as it sounds. Anyone who can reach the port can sign in
 as anyone, including whoever holds the administrator addresses. So the process
@@ -289,7 +338,8 @@ topology: `SITE_URL=http://cbk.localhost:3000`, with no external zones.
 The Community and Studio stacks configure the two app shells at
 `http://cbk-apps.localhost:3000` and
 `http://cbk-labs.localhost:3000` through `APP_MAIN_ORIGIN` and
-`APP_LABS_ORIGIN`.
+`APP_LABS_ORIGIN`; the port in all three follows `PLATFORM_PORT` and the
+site's hostname `PLATFORM_HOST` (see [Endpoint manifest](#endpoint-manifest)).
 Browsers resolve any `*.localhost` name to loopback, so a space site published
 as `acme` answers at `http://acme.cbk-space.localhost:3000` with no DNS or
 hosts-file setup (`curl` needs `--resolve`). The Community and Studio Compose
