@@ -5,6 +5,22 @@ here. The release version is defined in the workspace root `package.json`.
 
 ## [Unreleased]
 
+## [0.3.2] - 2026-09-10
+
+### Fixed
+
+- Listen on the published application and relay ports inside the Community
+  and Studio containers. The application reaches itself through the address a
+  request arrived on, so publishing `31000` in front of a container listening
+  on `3000` refused every server-side API call in Studio with
+  `ECONNREFUSED 127.0.0.1:31000`, and the same happened to any Community
+  instance moved with `PLATFORM_PORT`.
+
+### Changed
+
+- Bill GLM-5.3 through Vercel AI Gateway at the standard rate again, matching
+  the gateway catalogue after the launch discount ended.
+
 ## [0.3.1] - 2026-09-10
 
 ### Added

@@ -248,8 +248,10 @@ docker compose -f oci://ghcr.io/chatbotkit/platform-studio:latest up
 Studio publishes on its own port family - `31000` for the application,
 `31001` for the relay and `31900` for the object store - so it runs beside
 whatever a developer already has on Community's `3000`, `3001` and `3900`, and
-the two stacks can share a host. Only the published side differs; the
-containers keep their ports. The Studio app learns where the stack answers
+the two stacks can share a host. The containers listen on the ports they
+publish: the application reaches itself and its relay through the addresses
+in the manifest, so a port that differs inside and out would refuse the
+application's own calls. The Studio app learns where the stack answers
 from its [endpoint manifest](#endpoint-manifest) rather than a fixed port.
 
 A PostgreSQL flavor would swap the database column only; the other services

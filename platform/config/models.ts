@@ -4790,11 +4790,11 @@ export const vercelLanguageModels: Record<
         maxOutputTokens: 128_000,
 
         pricing: {
-          tokenRatio: 0.1222,
-          inputTokenRatio: 0.05,
-          outputTokenRatio: 0.1222,
-          inputPrice: 0.7,
-          outputPrice: 2.2,
+          tokenRatio: 0.2444,
+          inputTokenRatio: 0.1,
+          outputTokenRatio: 0.2444,
+          inputPrice: 1.4,
+          outputPrice: 4.4,
         },
 
         interactionMaxMessages: DEFAULT_INTERACTION_MAX_MESSAGES,

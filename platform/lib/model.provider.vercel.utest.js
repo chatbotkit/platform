@@ -743,12 +743,12 @@ describeIfConfigured('listModels', () => {
       {
         // MiniMax documents up to 1M context, but the gateway lists 512k.
         prefix: 'minimax-m3: maxTokens',
-        expires: '2026-09-11',
+        expires: '2026-10-11',
       },
       {
         // 1M context minus the documented 128k maximum output leaves 872k input.
         prefix: 'minimax-m3: maxInputTokens',
-        expires: '2026-09-11',
+        expires: '2026-10-11',
       },
     ]
 
