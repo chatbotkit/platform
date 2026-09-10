@@ -5,6 +5,8 @@ here. The release version is defined in the workspace root `package.json`.
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-09-10
+
 ### Fixed
 
 - Use the runtime API URL in both Twilio webhook instructions and the install
