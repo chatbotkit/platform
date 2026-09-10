@@ -4,8 +4,6 @@
 // 64KB `pread` slices, a truncating `writeFile` before the real one - is what
 // the caches exist for.
 
-import { jest } from '@jest/globals'
-
 import { AgentOs } from '@rivet-dev/agentos-core'
 
 import { createStorageDriver } from './mount.ts'
@@ -21,15 +19,6 @@ const PERMISSIONS = {
   binding: 'allow',
   network: 'allow',
 }
-
-// @note generous because the runtime, not the driver, sets the pace: at this
-// version a stalled pipe holds a command for its ten-second blocking-read
-// limit and a process started meanwhile wedges the VM, so one slow step on a
-// CI runner cascades into the tests after it. @todo once
-// rivet-dev/agentos#1959 is fixed in a pinned release, bring this back to the
-// default and put the `| sort` back into the nested-directories test.
-
-jest.setTimeout(120_000)
 
 let store
 let vm
@@ -96,14 +85,11 @@ describe('reading', () => {
   })
 
   it('walks nested directories', async () => {
-    // @note no `| sort`: a pipe between two guest commands stalls for the
-    // runtime's blocking-read limit at this version (rivet-dev/agentos#1959),
-    // and a second process started while it stalls wedges the VM. See the
-    // timeout note at the top for when to restore it.
+    const { code, out, err } = await sh('find /space -type f | sort')
 
-    const { out } = await sh('find /space -type f')
-
-    expect(out.trim().split('\n').sort()).toEqual([
+    expect(code).toBe(0)
+    expect(err).toBe('')
+    expect(out.trim().split('\n')).toEqual([
       '/space/hello.txt',
       '/space/sub/a.txt',
       '/space/sub/deeper/b.txt',

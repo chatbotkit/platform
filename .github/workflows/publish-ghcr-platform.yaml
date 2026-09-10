@@ -542,8 +542,12 @@ jobs:
           docker buildx imagetools create "${application_tags[@]}" "${application_sources[@]}"
           docker buildx imagetools create "${initializer_tags[@]}" "${initializer_sources[@]}"
 
-          application_digest=$(docker buildx imagetools inspect "${application_sources[0]}" --format '{{.Manifest.Digest}}')
-          initializer_digest=$(docker buildx imagetools inspect "${initializer_sources[0]}" --format '{{.Manifest.Digest}}')
+          # @note the Compose artifact must pin the merged manifest list just
+          # created, never a source: after a fresh build the sources are
+          # single-architecture digests, so pinning one would leave the stack
+          # unable to start on the other architecture
+          application_digest=$(docker buildx imagetools inspect "${application_tags[1]}" --format '{{.Manifest.Digest}}')
+          initializer_digest=$(docker buildx imagetools inspect "${initializer_tags[1]}" --format '{{.Manifest.Digest}}')
           echo "application_digest=${application_digest}" >> "$GITHUB_OUTPUT"
           echo "initializer_digest=${initializer_digest}" >> "$GITHUB_OUTPUT"
 
