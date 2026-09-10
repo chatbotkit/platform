@@ -1,3 +1,5 @@
+import { jest } from '@jest/globals'
+
 import { AgentOs } from '@rivet-dev/agentos-core'
 
 let vm
@@ -14,11 +16,16 @@ afterAll(async () => {
   await vm?.dispose()
 })
 
+// @note the first exec pays the VM warm-up, and CI runs the sandbox suites in
+// parallel, each booting its own VM. The stall this suite guards against
+// surfaces as EAGAIN through the short watchdog, not as a timeout
+jest.setTimeout(30_000)
+
 const sh = (cmd) =>
   vm.process.exec(cmd, {
     cwd: '/workspace',
     output: { capture: 'all' },
-    timeoutMs: 5_000,
+    timeoutMs: 30_000,
   })
 
 it('sorts and filters environment output without a blocking-read failure', async () => {
