@@ -219,3 +219,42 @@ export function isForbiddenAddress(address: string): boolean {
 
   return true
 }
+
+/**
+ * Whether a literal address is loopback: 127/8, `::1`, or their IPv4-mapped
+ * and IPv4-translated IPv6 forms. Brackets and a zone index are stripped
+ * like `isForbiddenAddress` does. Text that is not an address is not
+ * loopback.
+ */
+export function isLoopbackAddress(address: string): boolean {
+  const text = address.replace(/^\[|\]$/g, '').replace(/%.*$/, '')
+
+  const octets = parseIpv4Address(text)
+
+  if (octets) {
+    return octets[0] === 127
+  }
+
+  const groups = parseIpv6Address(text)
+
+  if (!groups) {
+    return false
+  }
+
+  const [g0, g1, g2, g3, g4, g5, g6, g7] = groups
+
+  if (g0 !== 0 || g1 !== 0 || g2 !== 0 || g3 !== 0) {
+    return false
+  }
+
+  if (g4 === 0 && g5 === 0) {
+    return g6 === 0 && g7 === 1
+  }
+
+  // ::ffff:127.x and ::ffff:0:127.x
+  if ((g4 === 0 && g5 === 0xffff) || (g4 === 0xffff && g5 === 0)) {
+    return g6 >> 8 === 127
+  }
+
+  return false
+}

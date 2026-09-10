@@ -1,4 +1,4 @@
-import { isForbiddenAddress, isIpAddress } from '@/lib/ip'
+import { isForbiddenAddress, isIpAddress, isLoopbackAddress } from '@/lib/ip'
 
 describe('isIpAddress', () => {
   it.each([
@@ -109,5 +109,33 @@ describe('isForbiddenAddress', () => {
     '[2606:4700:4700::1111]',
   ])('allows public %s', (address) => {
     expect(isForbiddenAddress(address)).toBe(false)
+  })
+})
+
+describe('isLoopbackAddress', () => {
+  it.each([
+    '127.0.0.1',
+    '127.255.255.254',
+    '::1',
+    '[::1]',
+    '::ffff:127.0.0.1',
+    '::ffff:0:127.0.0.1',
+  ])('recognises %s', (address) => {
+    expect(isLoopbackAddress(address)).toBe(true)
+  })
+
+  it.each([
+    '0.0.0.0',
+    '10.0.0.1',
+    '169.254.169.254',
+    '8.8.8.8',
+    '::',
+    '::ffff:10.0.0.1',
+    'fe80::1%eth0',
+    'localhost',
+    'cbk.localhost',
+    '',
+  ])('does not mistake %s for loopback', (address) => {
+    expect(isLoopbackAddress(address)).toBe(false)
   })
 })

@@ -82,6 +82,13 @@ jest.mock('@/lib/env', () => ({
   isDevelopment: false,
 }))
 
+// @note asserted as a hosted deployment: a site on loopback would make
+// 127.0.0.1 the deployment itself
+jest.mock('@/config/site', () => ({
+  ...jest.requireActual('@/config/site'),
+  siteUrl: 'https://cbk.example',
+}))
+
 jest.mock('@/lib/dataurl.parse', () => ({
   parseDataURL: jest.fn(() => ({
     data: Buffer.from('file-content').toString('base64'),

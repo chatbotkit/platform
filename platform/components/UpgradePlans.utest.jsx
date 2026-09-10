@@ -139,6 +139,81 @@ describe('UpgradePlans', () => {
     })
   })
 
+  describe('refused checkout', () => {
+    // @note the checkout API refuses with a message a user has to see - an
+    // account that already holds a subscription, one whose card was declined -
+    // and the hook only surfaces it when asked to. Without this the button
+    // reads as doing nothing.
+    it('surfaces the failure message of a refused checkout', () => {
+      render(<UpgradePlans subscriptions={subscriptions} trialPlans={trialPlans} currentPlan="free" limits={limits} />)
+
+      expect(useFetch).toHaveBeenCalledWith(
+        expect.objectContaining({ failureMessage: true })
+      )
+    })
+  })
+
+  describe('open subscription', () => {
+    // @note an account that already holds a subscription changes it through
+    // the billing portal - a fresh checkout is refused against it - so every
+    // card sends there, and no trial is offered on top of a subscription
+    it('sends every switch to the billing portal instead of checkout', async () => {
+      const fetch = jest.fn().mockResolvedValue({
+        data: { redirectUrl: 'https://portal.example.com/session' },
+      })
+
+      const push = jest.fn()
+
+      useFetch.mockReturnValue({ fetch })
+      useRouter.mockReturnValue({ push, asPath: '/billing/upgrade' })
+
+      render(<UpgradePlans subscriptions={subscriptions} trialPlans={trialPlans} currentPlan="basic" limits={limits} openSubscription />)
+
+      expect(screen.queryByText('Start 7-day trial')).not.toBeInTheDocument()
+
+      fireEvent.click(screen.getByText('Switch to Pro'))
+
+      await waitFor(() => {
+        expect(fetch).toHaveBeenCalledWith('/api/billing/session', {
+          data: { returnTo: '/billing/upgrade' },
+        })
+      })
+
+      expect(fetch).not.toHaveBeenCalledWith('/api/billing/checkout', expect.anything())
+
+      await waitFor(() => {
+        expect(push).toHaveBeenCalledWith('https://portal.example.com/session')
+      })
+    })
+
+    it('explains a lapsed subscription and offers the portal', () => {
+      render(<UpgradePlans subscriptions={subscriptions} trialPlans={trialPlans} currentPlan="free" limits={limits} openSubscription lapsed />)
+
+      expect(screen.getByText(/subscription is not active/i)).toBeInTheDocument()
+      expect(screen.getByText('Manage billing')).toBeInTheDocument()
+    })
+
+    it('does not mention a lapse on a live subscription', () => {
+      render(<UpgradePlans subscriptions={subscriptions} trialPlans={trialPlans} currentPlan="basic" limits={limits} openSubscription />)
+
+      expect(screen.queryByText(/subscription is not active/i)).not.toBeInTheDocument()
+    })
+  })
+
+  describe('account managed by its owner', () => {
+    // @note a child account never bills - the checkout API refuses it - so
+    // the cards carry no call to action and the page says who does
+    it('renders no checkout and says billing belongs to the owner', () => {
+      render(<UpgradePlans subscriptions={subscriptions} trialPlans={trialPlans} currentPlan="basic" limits={limits} billable={false} />)
+
+      expect(screen.queryByRole('button', { name: /switch to|trial/i })).not.toBeInTheDocument()
+      expect(screen.getByText(/billing for this account is managed by the owner/i)).toBeInTheDocument()
+
+      // the comparison still renders - the plans are still worth reading
+      expect(screen.getByText('Compare plans')).toBeInTheDocument()
+    })
+  })
+
   describe('nothing to sell', () => {
     // @note a truly planless deployment never reaches the component - the
     // page 404s from getServerSideProps - so this covers the sellable

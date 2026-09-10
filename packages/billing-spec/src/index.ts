@@ -75,6 +75,14 @@ export interface SubscriptionModel {
   hasSubscription(user: SubscriptionHolder): boolean
 
   /**
+   * Whether the account holds a subscription the provider still keeps open,
+   * live or not - a lapsed payment leaves one open. An open subscription is
+   * changed through the billing portal; a fresh checkout is refused against
+   * it.
+   */
+  hasOpenSubscription(user: SubscriptionHolder): boolean
+
+  /**
    * Whether the account has ever consumed its trial - one per account,
    * regardless of the plan it ran on or how the trial ended.
    */

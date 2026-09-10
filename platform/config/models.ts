@@ -4380,17 +4380,17 @@ export const vercelLanguageModels: Record<
 
         featured: true,
 
-        maxTokens: 1_000_000,
-        maxInputTokens: 1_000_000 - 384_000,
+        maxTokens: 1_048_576,
+        maxInputTokens: 1_048_576 - 384_000,
         maxOutputTokens: 384_000,
 
-        // @note published off-peak pricing; provider peak-hour rates may be higher
+        // @note the gateway bills the peak rate, not DeepSeek's off-peak list price
         pricing: {
-          tokenRatio: 0.0333,
-          inputTokenRatio: 0.0107,
-          outputTokenRatio: 0.0333,
-          inputPrice: 0.15,
-          outputPrice: 0.6,
+          tokenRatio: 0.0667,
+          inputTokenRatio: 0.0214,
+          outputTokenRatio: 0.0667,
+          inputPrice: 0.3,
+          outputPrice: 1.2,
         },
 
         interactionMaxMessages: DEFAULT_INTERACTION_MAX_MESSAGES,
