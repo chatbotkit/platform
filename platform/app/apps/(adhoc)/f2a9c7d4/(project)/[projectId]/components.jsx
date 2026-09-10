@@ -23,8 +23,6 @@ import {
   LuX,
 } from 'react-icons/lu'
 
-import { errorToErrorResponse } from '@/lib/error'
-import { throwUnprocessableEntity } from '@/lib/response'
 import { saveUrl } from '@/lib/save'
 import toast from '@/lib/toast'
 
@@ -33,6 +31,7 @@ import { AppNavExtra } from '@/layouts/App'
 import { useConfirmYesNo } from '@/components/Confirm'
 import ImageModelSelect from '@/components/ImageModelSelect'
 
+import useFetch from '@/hooks/useFetch'
 import useHistory from '@/hooks/useHistory'
 import usePreventLeave from '@/hooks/usePreventLeave'
 import useRouter from '@/hooks/useRouter'
@@ -40,13 +39,6 @@ import useTheme from '@/hooks/useTheme'
 
 import { APP_NAME } from '../../const'
 import { DEFAULT_MODEL, DEFAULT_SIZE, SIZES } from '../../lib'
-import {
-  createAssetUpload,
-  editImageNode,
-  generateImage,
-  getAssetUrls,
-  saveProject,
-} from './server'
 
 import {
   Background,
@@ -89,12 +81,52 @@ function NavIconButton({
   )
 }
 
+const API_BASE = `/apps/${APP_NAME}/api`
+
+/**
+ * Returns a caller for the editor route handlers (see `../../api`). Each call
+ * is an independent request, so several nodes can generate at the same time -
+ * server actions would have been queued one after another by the client.
+ */
+function useApi() {
+  const { fetch } = useFetch({ trackLoading: false, trackStreaming: false })
+
+  return useCallback(
+    async (op, body, options = {}) => {
+      const { data, error } = await fetch(`${API_BASE}/${op}`, {
+        data: body,
+        headers: { Accept: 'application/json' },
+        // @note useFetch dismisses its toast id when done and an undefined id
+        // would dismiss every toast, including other nodes' progress
+        toastId: `${API_BASE}/${op}`,
+        ...options,
+      })
+
+      if (error) {
+        throw new Error(error)
+      }
+
+      // @note a long-running call is answered as a 200 stream whose body may
+      // carry the error envelope instead of the result
+      if (
+        data &&
+        typeof data.code === 'string' &&
+        typeof data.message === 'string'
+      ) {
+        throw new Error(data.message)
+      }
+
+      return data
+    },
+    [fetch]
+  )
+}
+
 /**
  * Context that exposes node-level callbacks and editor metadata to the custom
  * ReactFlow node, which only otherwise receives its own `data`.
  */
 const EditorContext = createContext({
-  busy: false,
   dragging: false,
   endDrag: () => {},
   zoomImage: () => {},
@@ -167,7 +199,6 @@ function makeImageNode(position) {
 /** A single image node: prompt, model/size controls and the generated image. */
 function ImageNode({ id, data }) {
   const {
-    busy,
     dragging,
     endDrag,
     zoomImage,
@@ -269,7 +300,6 @@ function ImageNode({ id, data }) {
         {/* preview */}
         <div className="relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-t-[10px] bg-gray-100 dark:bg-gray-800">
           {data.assetUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
             <img
               src={data.assetUrl}
               alt={data.prompt || 'Generated image'}
@@ -369,7 +399,7 @@ function ImageNode({ id, data }) {
             <button
               type="button"
               className="primary-button small nodrag min-w-0 flex-1"
-              disabled={pending || busy || !data.prompt?.trim()}
+              disabled={pending || !data.prompt?.trim()}
               onClick={() => generateNode(id)}
             >
               {sourceCount > 0 ? 'Transform' : 'Generate'}
@@ -398,6 +428,8 @@ function Flow({ project, assetUrls }) {
   const { screenToFlowPosition, fitView } = useReactFlow()
 
   const confirmYesNo = useConfirmYesNo()
+
+  const api = useApi()
 
   const toRfNode = useCallback(
     (node) => ({
@@ -429,7 +461,6 @@ function Flow({ project, assetUrls }) {
     project.edges || []
   )
 
-  const [busy, setBusy] = useState(false)
   const [saving, setSaving] = useState(false)
   const [paneDragActive, setPaneDragActive] = useState(false)
   const [minimap, setMinimap] = useState(true)
@@ -670,13 +701,18 @@ function Flow({ project, assetUrls }) {
 
   const updateNodeData = useCallback(
     (nodeId, patch) => {
-      setNodes((current) =>
+      const apply = (current) =>
         current.map((node) =>
           node.id === nodeId
             ? { ...node, data: { ...node.data, ...patch } }
             : node
         )
-      )
+
+      // @note also patch the live ref so a persist issued right after (before
+      // React re-renders) already sees the change
+      nodesRef.current = apply(nodesRef.current)
+
+      setNodes(apply)
     },
     [setNodes]
   )
@@ -781,27 +817,27 @@ function Flow({ project, assetUrls }) {
     setNodes((current) => [...current, makeImageNode(visibleCenterPosition())])
   }, [setNodes, visibleCenterPosition, pushHistory])
 
+  // @note saves run one after another; concurrent generations each persist on
+  // completion and an earlier, staler payload must not land after a newer one
+  const persistQueueRef = useRef(Promise.resolve())
+
   /** Serializes the current graph (without transient fields) and persists it. */
-  const persist = useCallback(async () => {
-    const payload = buildGraphPayload(nodesRef.current, edgesRef.current)
+  const persist = useCallback(() => {
+    const run = persistQueueRef.current
+      .catch(() => {})
+      .then(async () => {
+        const payload = buildGraphPayload(nodesRef.current, edgesRef.current)
 
-    const result = await saveProject({
-      projectId,
-      nodes: payload.nodes,
-      edges: payload.edges,
-    })
+        await api('save', { projectId, ...payload })
 
-    if (!result) {
-      return throwUnprocessableEntity('Unexpected action result')
-    }
+        // @note remember what we saved so the unsaved-changes indicator clears
+        setSavedSnapshot(JSON.stringify(payload))
+      })
 
-    if ('error' in result) {
-      throw errorToErrorResponse(result.error)
-    }
+    persistQueueRef.current = run
 
-    // @note remember what we saved so the unsaved-changes indicator clears
-    setSavedSnapshot(JSON.stringify(payload))
-  }, [projectId])
+    return run
+  }, [api, projectId])
 
   const onSave = useCallback(async () => {
     setSaving(true)
@@ -845,34 +881,34 @@ function Flow({ project, assetUrls }) {
         pendingLabel: activity,
         error: undefined,
       })
-      setBusy(true)
 
       const toastId = toast.loading(activity, {})
 
       try {
+        // @note never retry a generation - a retried request would bill twice
         const result =
           sourceAssetPaths.length > 0
-            ? await editImageNode({
-                projectId,
-                prompt: node.data.prompt,
-                sourceAssetPaths,
-                model: node.data.model,
-                size: node.data.size,
-              })
-            : await generateImage({
-                projectId,
-                prompt: node.data.prompt,
-                model: node.data.model,
-                size: node.data.size,
-              })
-
-        if (!result) {
-          return throwUnprocessableEntity('Unexpected action result')
-        }
-
-        if ('error' in result) {
-          throw errorToErrorResponse(result.error)
-        }
+            ? await api(
+                'edit',
+                {
+                  projectId,
+                  prompt: node.data.prompt,
+                  sourceAssetPaths,
+                  model: node.data.model,
+                  size: node.data.size,
+                },
+                { retries: 0 }
+              )
+            : await api(
+                'generate',
+                {
+                  projectId,
+                  prompt: node.data.prompt,
+                  model: node.data.model,
+                  size: node.data.size,
+                },
+                { retries: 0 }
+              )
 
         updateNodeData(nodeId, {
           assetPath: result.assetPath,
@@ -890,11 +926,9 @@ function Flow({ project, assetUrls }) {
         updateNodeData(nodeId, { status: 'error', error: e.message })
 
         toast.error(e.message, { id: toastId })
-      } finally {
-        setBusy(false)
       }
     },
-    [projectId, updateNodeData, persist, pushHistory]
+    [api, projectId, updateNodeData, persist, pushHistory]
   )
 
   /**
@@ -903,18 +937,14 @@ function Flow({ project, assetUrls }) {
    */
   const uploadFile = useCallback(
     async (file) => {
-      const meta = await createAssetUpload({
-        projectId,
-        file: { type: file.type, size: file.size },
-      })
-
-      if (!meta) {
-        return throwUnprocessableEntity('Unexpected action result')
-      }
-
-      if ('error' in meta) {
-        throw errorToErrorResponse(meta.error)
-      }
+      const meta = await api(
+        'upload',
+        {
+          projectId,
+          file: { type: file.type, size: file.size },
+        },
+        { retries: 0 }
+      )
 
       if (!meta.uploadRequest) {
         throw new Error('Upload is not available')
@@ -932,14 +962,14 @@ function Flow({ project, assetUrls }) {
         throw new Error('Failed to upload image')
       }
 
-      const urls = await getAssetUrls({ projectId, paths: [meta.path] })
+      const { assetUrls } = await api('assets', {
+        projectId,
+        paths: [meta.path],
+      })
 
-      const assetUrl =
-        urls && !('error' in urls) ? urls.assetUrls[meta.path] : undefined
-
-      return { assetPath: meta.path, assetUrl }
+      return { assetPath: meta.path, assetUrl: assetUrls?.[meta.path] }
     },
-    [projectId]
+    [api, projectId]
   )
 
   /** Creates a new node from a dropped image file at the given flow position. */
@@ -971,8 +1001,6 @@ function Flow({ project, assetUrls }) {
         },
       ])
 
-      setBusy(true)
-
       const toastId = toast.loading('Uploading image…', {})
 
       try {
@@ -992,8 +1020,6 @@ function Flow({ project, assetUrls }) {
         setNodes((current) => current.filter((node) => node.id !== nodeId))
 
         toast.error(e.message, { id: toastId })
-      } finally {
-        setBusy(false)
       }
     },
     [setNodes, uploadFile, updateNodeData, persist, pushHistory]
@@ -1014,7 +1040,6 @@ function Flow({ project, assetUrls }) {
         pendingLabel: 'Uploading…',
         error: undefined,
       })
-      setBusy(true)
 
       const toastId = toast.loading('Uploading image…', {})
 
@@ -1036,8 +1061,6 @@ function Flow({ project, assetUrls }) {
         updateNodeData(nodeId, { status: 'error', error: e.message })
 
         toast.error(e.message, { id: toastId })
-      } finally {
-        setBusy(false)
       }
     },
     [updateNodeData, uploadFile, persist, pushHistory]
@@ -1204,7 +1227,6 @@ function Flow({ project, assetUrls }) {
 
   const contextValue = useMemo(
     () => ({
-      busy,
       dragging: paneDragActive,
       endDrag,
       zoomImage,
@@ -1215,7 +1237,6 @@ function Flow({ project, assetUrls }) {
       setNodeImageFromFile,
     }),
     [
-      busy,
       paneDragActive,
       endDrag,
       zoomImage,
@@ -1351,7 +1372,7 @@ function Flow({ project, assetUrls }) {
           >
             <LuX className="size-5" />
           </button>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
+          {}
           <img
             src={lightboxUrl}
             alt="Full size"

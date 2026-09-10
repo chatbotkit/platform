@@ -9,6 +9,7 @@ import { tryHash } from '@/lib/url'
 import Emoji from '@/components/Emoji'
 import GravatarIcon from '@/components/GravatarIcon'
 
+import useHydrated from '@/hooks/useHydrated'
 import useTheme from '@/hooks/useTheme'
 
 import clsx from 'clsx'
@@ -200,6 +201,13 @@ export default function DynamicIcon({
 }) {
   const { theme } = useTheme()
 
+  // @note the server never knows the theme and renders the light variant; the
+  // client must render the same markup on its first pass or the dark variant's
+  // filter style is reported as a hydration mismatch
+  const hydrated = useHydrated()
+
+  const effectiveTheme = hydrated ? theme : undefined
+
   const [fallbackComponent, setFallbackComponent] = useState(null)
 
   let [icon, hash] = useMemo(() => {
@@ -217,7 +225,7 @@ export default function DynamicIcon({
         dark = dark.split('#')[0].trim()
       }
 
-      if (theme === 'dark') {
+      if (effectiveTheme === 'dark') {
         return [dark, darkHash?.slice(1) || '']
       } else {
         return [light, lightHash?.slice(1) || '']
@@ -225,7 +233,7 @@ export default function DynamicIcon({
     } else {
       return [_icon, '']
     }
-  }, [_icon, theme])
+  }, [_icon, effectiveTheme])
 
   const className = useMemo(() => {
     return clsx('dynamic-icon', _className)

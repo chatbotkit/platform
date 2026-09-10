@@ -1,5 +1,8 @@
 import '@/lib/scope.server'
 
+import type { UnwrapPromise } from '@chatbotkit-dev/typescript-utils/promise'
+
+import { ensureContact } from '@/lib/app.contact'
 import type { StoreConfig, StoreSession } from '@/lib/app.context'
 import {
   getContextAppConfig,
@@ -12,32 +15,35 @@ import {
   getContextRequestHost,
   runInContext,
 } from '@/lib/context.store'
-import type { Stream, StreamEvent } from '@/lib/stream'
-import { withStream } from '@/lib/stream'
 import { captureException } from '@/lib/error'
 import { withAny } from '@/lib/method'
 import { parseRequestSchema } from '@/lib/request'
 import { throwNotAuthenticated, throwNotAuthorized } from '@/lib/response'
+import type { Stream, StreamEvent } from '@/lib/stream'
+import { withStream } from '@/lib/stream'
 
 import type { ZodSchema } from 'zod'
 
-interface Context {
+export interface AppRouteContext {
   host?: string
 }
 
 /**
  * This is a helper function that creates an route handler for an app with
  * session handling and input validation built-in.
+ *
+ * @note a resolved value is sent as the stream result while an (async)
+ * iterable is pushed event by event, so `R` is only constrained for the latter
  */
-export function appRouteHandler<T, R extends StreamEvent = StreamEvent>(
+export function appRouteHandler<T, R = unknown>(
   app: string,
   schema: ZodSchema<T>,
   fn: (
     config: StoreConfig,
     session: StoreSession,
     input: T,
-    context: Context
-  ) => Promise<R> | AsyncGenerator<R>
+    context: AppRouteContext
+  ) => Promise<R> | AsyncGenerator<StreamEvent>
 ): (req: Request) => Promise<Response> {
   return withAny(
     withStream(async (req, stream) => {
@@ -92,7 +98,9 @@ export function appRouteHandler<T, R extends StreamEvent = StreamEvent>(
               it !== null &&
               (Symbol.asyncIterator in it || Symbol.iterator in it)
             ) {
-              for await (const item of it as AsyncIterable<R> | Iterable<R>) {
+              for await (const item of it as
+                | AsyncIterable<StreamEvent>
+                | Iterable<StreamEvent>) {
                 await stream.push(item)
               }
             } else {
@@ -111,4 +119,39 @@ export function appRouteHandler<T, R extends StreamEvent = StreamEvent>(
       await handler(req, stream)
     })
   ) as (req: Request) => Promise<Response>
+}
+
+/**
+ * This is a helper function that creates a route handler for an app with
+ * session handling, contact ensuring, config validation and input validation
+ * built-in. It is the route handler counterpart of `appContactActionHandler`.
+ */
+export function appContactRouteHandler<U, T, R = unknown>(
+  app: string,
+  namespace: string,
+  configSchema: ZodSchema<U>,
+  inputSchema: ZodSchema<T>,
+  fn: (
+    config: U,
+    session: StoreSession,
+    contact: UnwrapPromise<ReturnType<typeof ensureContact>>,
+    input: T,
+    context: AppRouteContext
+  ) => Promise<R> | AsyncGenerator<StreamEvent>
+): (req: Request) => Promise<Response> {
+  // @note the async wrapper resolves to either the result or the generator,
+  // and the route handler tells them apart after awaiting
+
+  return appRouteHandler<T, R | AsyncGenerator<StreamEvent>>(
+    app,
+    inputSchema,
+    async (config, session, input, context) => {
+      const [parsedConfig, contact] = await Promise.all([
+        configSchema.parseAsync(config),
+        ensureContact({ namespace: namespace, session: session, app: app }),
+      ])
+
+      return fn(parsedConfig, session, contact, input, context)
+    }
+  )
 }

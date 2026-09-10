@@ -1667,6 +1667,27 @@ describe('Session resolution (next-auth session)', () => {
     )
   })
 
+  it('resolves an App Router route handler Request through next/headers', async () => {
+    // @note a Web Request without a NextApiRequest in context is what App
+    // Router route handlers pass; next-auth cannot read cookies off it
+    const req = new Request('http://localhost/apps/test/api/op', {
+      method: 'POST',
+      headers: {
+        'x-requested-with': 'XMLHttpRequest',
+        cookie: 'next-auth.session-token=anything',
+      },
+    })
+
+    hasProtection.mockReturnValue(true)
+    getServerSession.mockResolvedValue(mockValidSession)
+
+    const session = await getSession(req)
+
+    expect(session.user.email).toBe('test@test.com')
+    expect(getServerSession).toHaveBeenCalledTimes(1)
+    expect(getServerSession).toHaveBeenCalledWith(authOptions)
+  })
+
   it('never makes an outbound request to resolve a cookie session', async () => {
     const fetchSpy = jest.spyOn(global, 'fetch')
 

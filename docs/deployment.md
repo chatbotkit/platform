@@ -189,7 +189,7 @@ PLATFORM_HOST=studio.localhost \
 }
 ```
 
-A launcher such as ChatBotKit Studio therefore never assumes a port: it
+A launcher such as CBK Studio therefore never assumes a port: it
 keeps the flavor's defaults or sets `PLATFORM_PORT`, `RELAY_PORT` and
 `STORAGE_PORT` to free ones (and `PLATFORM_HOST` or any endpoint's variable to
 rename a host), reads the resolved manifest back and forwards, opens and trusts exactly the addresses
@@ -233,7 +233,7 @@ its workspaces kept under `/data/sandbox` in the same volume.
 
 Studio starts as a copy of Community, with the same Docker build targets,
 module defaults and services. It is the flavor embedded by
-[ChatBotKit Studio](https://github.com/chatbotkit/studio), the native macOS
+[CBK Studio](https://github.com/chatbotkit/studio), the native macOS
 app that runs the platform in an app-private VM without a Docker install, and
 can also be run directly with Compose. Its separate Compose file lives at
 [docker/distro/studio/compose.yml](../docker/distro/studio/compose.yml), and the

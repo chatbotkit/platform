@@ -5,11 +5,48 @@ here. The release version is defined in the workspace root `package.json`.
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-09-10
+
+### Changed
+
+- Media Graph now generates, transforms, uploads and saves through route
+  handlers instead of server actions, so several nodes can generate at the
+  same time. Server actions are queued one at a time by the browser, which
+  made every generation wait for the previous one. The `appContactRouteHandler`
+  helper is the route counterpart of `appContactActionHandler`.
+
 ### Fixed
 
-- Bill DeepSeek V4.1 Flash through Vercel AI Gateway at the gateway's peak
-  rate and full 1,048,576-token context, matching the gateway catalogue rather
-  than DeepSeek's off-peak list price.
+- Resolve cookie sessions in App Router route handlers. `getSession` handed
+  next-auth the Web `Request`, which carries neither the `cookies` map nor
+  the plain `headers` object next-auth reads, so every cookie-authenticated
+  route handler answered 401. Those requests now resolve through
+  `next/headers`, the same way server actions already did.
+- Keep the dev server's Server Components HMR cache off. On a refresh after
+  a code change Next replayed every fetch of the render, keyed by URL and
+  body, and `cache: 'no-store'` does not opt a call out. The PlanetScale
+  driver's `BEGIN` request has the same body every time, so the driver was
+  handed the session of an already committed transaction and the following
+  statement failed with `transaction ... ended (transaction committed)`.
+  Development only; production never had the cache.
+- Stop a failed session expiry bump from signing the user out of a request.
+  With database sessions NextAuth refreshes the expiry once its update window
+  has passed and treated any failure of that update as a lost session, so App
+  Router pages bounced to sign-in and on to the overview. The adapter now
+  reports the failure and keeps the session, which was already read with a
+  valid expiry.
+- Stop the sidebar logo from reporting a hydration mismatch in dark mode.
+  The icon picked its dark variant from the theme on the first client render
+  while the server had rendered the light one, so React flagged the filter
+  style. The theme is now applied only after hydration.
+- Stop the App Router build of `next/link` warning about the `locale` prop.
+  The shared `Link` wrapper forwarded the default locale on every link; it
+  now forwards a locale only when a caller sets one.
+- Price multi-backend Vercel AI Gateway models at the most expensive backend
+  the gateway can route to. The gateway bills each request at the rate of the
+  backend it picks, so DeepSeek V4 Flash, DeepSeek V4 Pro, DeepSeek V4.1
+  Flash, Gemma 4 31B, GLM-5.2, GLM-5.3 Flash, MiMo V2.5, MiMo V2.5 Pro and
+  MiniMax M3 no longer bill below what the gateway can charge.
 
 ## [0.3.3] - 2026-09-10
 

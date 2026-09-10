@@ -27,7 +27,7 @@
   <a href="https://chatbotkit.com/overview"><strong>Try it</strong></a> ·
   <a href="./docs/README.md"><strong>Documentation</strong></a> ·
   <a href="./docs/architecture.md"><strong>Architecture</strong></a> ·
-  <a href="./CONTRIBUTING.md"><strong>Contributing</strong></a> ·
+  <a href="./CONTRIBUTING.md"><strong>Contributing</strong></a>
 </p>
 
 </div>
@@ -75,7 +75,7 @@ docker compose -f oci://ghcr.io/chatbotkit/platform-community:latest logs platfo
 See [Deployment](./docs/deployment.md) for details.
 
 On an Apple silicon Mac you can skip Docker altogether:
-[ChatBotKit Studio](https://github.com/chatbotkit/studio) is a native macOS
+[CBK Studio](https://github.com/chatbotkit/studio) is a native macOS
 app that runs this same platform in an app-private VM, with model providers,
 logs and updates managed from the app.
 

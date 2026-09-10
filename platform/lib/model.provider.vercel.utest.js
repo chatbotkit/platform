@@ -325,6 +325,85 @@ describeIfConfigured('listModels', () => {
     }
   }
 
+  // @note the catalogue's single `pricing` block and context figures describe
+  // whichever backend the gateway chose to list, and change as backends come
+  // and go. A request is billed at the rate of the backend the gateway routes
+  // it to, so the configuration is held to the most expensive backend the
+  // model can reach (within its `gateway.only` pin): no routing decision may
+  // bill more than the configuration charges. Long-context tiers and
+  // peak-hour multipliers are left out, as they are for the catalogue price.
+  // Sizing is held to the backends the same way: the configured context must
+  // be one a reachable backend actually offers.
+  async function getEndpointFacts(modelId, config) {
+    const response = await fetch(
+      `https://ai-gateway.vercel.sh/v1/models/${modelId}/endpoints`,
+      {
+        headers: {
+          Authorization: `Bearer ${getVercelAPIKey()}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    )
+
+    if (!response.ok) {
+      return undefined
+    }
+
+    const { data } = await response.json()
+
+    const only = config.providerOptions?.gateway?.only
+
+    // endpoint slugs can be longer than the pin slug (`vertexAnthropic` for
+    // a `vertex` pin), so match on the prefix
+    const endpoints = (data?.endpoints || []).filter(
+      (endpoint) =>
+        !only?.length ||
+        only.some((slug) =>
+          String(endpoint.provider_name)
+            .toLowerCase()
+            .startsWith(slug.toLowerCase())
+        )
+    )
+
+    const rated = endpoints.map((endpoint) => ({
+      provider: endpoint.provider_name,
+      input: Number(endpoint.pricing?.prompt || 0),
+      output: Number(endpoint.pricing?.completion || 0),
+    }))
+
+    const input = Math.max(0, ...rated.map((item) => item.input))
+    const output = Math.max(0, ...rated.map((item) => item.output))
+
+    const providersAt = (side, value) =>
+      rated
+        .filter((item) => item[side] === value)
+        .map((item) => item.provider)
+        .join('|')
+
+    const contextLengths = endpoints
+      .map((endpoint) => endpoint.context_length)
+      .filter((value) => typeof value === 'number')
+    const maxCompletionTokens = endpoints
+      .map((endpoint) => endpoint.max_completion_tokens)
+      .filter((value) => typeof value === 'number')
+
+    return {
+      pricing:
+        input || output
+          ? {
+              input,
+              output,
+              inputProvider: providersAt('input', input),
+              outputProvider: providersAt('output', output),
+            }
+          : undefined,
+      contextLengths,
+      maxCompletionTokens: maxCompletionTokens.length
+        ? Math.max(...maxCompletionTokens)
+        : undefined,
+    }
+  }
+
   it('must match configured Vercel model pricing and sizing', async () => {
     const response = await fetch('https://ai-gateway.vercel.sh/v1/models', {
       headers: {
@@ -339,18 +418,28 @@ describeIfConfigured('listModels', () => {
 
     const modelsById = new Map(data.map((model) => [model.id, model]))
 
+    const languageModels = Object.entries(vercelLanguageModels).filter(
+      ([, config]) => !config.deprecated && config.visible
+    )
+
+    const endpointFactsByModel = new Map(
+      await Promise.all(
+        languageModels.map(async ([modelName, config]) => [
+          modelName,
+          await getEndpointFacts(getLanguageModel({ model: modelName }), config),
+        ])
+      )
+    )
+
     const mismatches = []
     // Models the gateway lists but for which it publishes no token pricing
     // (e.g. the perplexity/sonar* family return an empty `pricing` object).
     // Their absolute price cannot be diffed against upstream; we still check
     // ratio consistency and surface them so the gap is visible, not silent.
     const unverified = []
+    const overpriced = []
 
-    for (const [modelName, config] of Object.entries(vercelLanguageModels)) {
-      if (config.deprecated || !config.visible) {
-        continue
-      }
-
+    for (const [modelName, config] of languageModels) {
       const modelId = getLanguageModel({ model: modelName })
       const liveModel = modelsById.get(modelId)
 
@@ -360,13 +449,29 @@ describeIfConfigured('listModels', () => {
         continue
       }
 
-      const liveInputPrice = parseVercelPrice(liveModel.pricing?.input)
-      const liveOutputPrice = parseVercelPrice(liveModel.pricing?.output)
-      const liveContextLength = liveModel.context_window
-      const liveMaxCompletionTokens = liveModel.max_tokens
+      const endpointFacts = endpointFactsByModel.get(modelName)
+      const worstCase = endpointFacts?.pricing
+
+      const liveInputPrice = parseVercelPrice(
+        worstCase ? worstCase.input : liveModel.pricing?.input
+      )
+      const liveOutputPrice = parseVercelPrice(
+        worstCase ? worstCase.output : liveModel.pricing?.output
+      )
+      const liveContextLengths = endpointFacts?.contextLengths.length
+        ? endpointFacts.contextLengths
+        : [liveModel.context_window].filter((value) => typeof value === 'number')
+      // an upper bound, so the most permissive figure either source reports
+      const liveMaxCompletionTokens = Math.max(
+        ...[endpointFacts?.maxCompletionTokens, liveModel.max_tokens].filter(
+          (value) => typeof value === 'number'
+        )
+      )
 
       const hasUpstreamPricing =
-        liveModel.pricing?.input != null || liveModel.pricing?.output != null
+        Boolean(worstCase) ||
+        liveModel.pricing?.input != null ||
+        liveModel.pricing?.output != null
 
       if (!hasUpstreamPricing) {
         // The gateway lists the model but publishes no token pricing - there is
@@ -380,30 +485,45 @@ describeIfConfigured('listModels', () => {
           `${modelName}: upstream reports zero pricing (input=${liveInputPrice}, output=${liveOutputPrice})`
         )
       } else {
-        if (roundPrice(config.pricing.inputPrice || 0) !== liveInputPrice) {
-          mismatches.push(
-            `${modelName}: inputPrice ${config.pricing.inputPrice} !== ${liveInputPrice}`
-          )
-        }
+        // @note backends come and go, so the ceiling moves in both
+        // directions. Charging less than the ceiling under-bills and fails;
+        // charging more is margin left behind by a backend that went away,
+        // worth a look but not a defect.
+        const sides = [
+          ['inputPrice', liveInputPrice, worstCase?.inputProvider],
+          ['outputPrice', liveOutputPrice, worstCase?.outputProvider],
+        ]
 
-        if (roundPrice(config.pricing.outputPrice || 0) !== liveOutputPrice) {
-          mismatches.push(
-            `${modelName}: outputPrice ${config.pricing.outputPrice} !== ${liveOutputPrice}`
-          )
+        for (const [side, livePrice, provider] of sides) {
+          const configuredPrice = roundPrice(config.pricing[side] || 0)
+          const detail =
+            `${modelName}: ${side} ${config.pricing[side]} ` +
+            `${configuredPrice < livePrice ? '<' : '>'} ${livePrice}` +
+            (provider ? ` (${provider})` : '')
+
+          if (configuredPrice < livePrice) {
+            mismatches.push(detail)
+          } else if (configuredPrice > livePrice) {
+            overpriced.push(detail)
+          }
         }
       }
 
       if (
-        typeof liveContextLength === 'number' &&
-        config.maxTokens !== liveContextLength
+        liveContextLengths.length &&
+        !liveContextLengths.includes(config.maxTokens)
       ) {
         mismatches.push(
-          `${modelName}: maxTokens ${config.maxTokens} !== ${liveContextLength}`
+          `${modelName}: maxTokens ${config.maxTokens} not in ${[
+            ...new Set(liveContextLengths),
+          ]
+            .sort((a, b) => a - b)
+            .join('|')}`
         )
       }
 
       if (
-        typeof liveMaxCompletionTokens === 'number' &&
+        Number.isFinite(liveMaxCompletionTokens) &&
         config.maxOutputTokens > liveMaxCompletionTokens
       ) {
         mismatches.push(
@@ -412,12 +532,12 @@ describeIfConfigured('listModels', () => {
       }
 
       if (
-        typeof liveContextLength === 'number' &&
-        config.maxInputTokens > liveContextLength - config.maxOutputTokens
+        liveContextLengths.length &&
+        config.maxInputTokens > config.maxTokens - config.maxOutputTokens
       ) {
         mismatches.push(
           `${modelName}: maxInputTokens ${config.maxInputTokens} > ${
-            liveContextLength - config.maxOutputTokens
+            config.maxTokens - config.maxOutputTokens
           }`
         )
       }
@@ -721,6 +841,14 @@ describeIfConfigured('listModels', () => {
       }
     }
 
+    if (overpriced.length) {
+      // eslint-disable-next-line no-console
+      console.warn(
+        `[vercel-catalogue] ${overpriced.length} model(s) priced above the ` +
+          `most expensive reachable backend: ${overpriced.join('; ')}`
+      )
+    }
+
     if (unverified.length) {
       // eslint-disable-next-line no-console
       console.warn(
@@ -739,18 +867,7 @@ describeIfConfigured('listModels', () => {
     // longer matches anything means upstream fixed their catalogue - the test
     // then fails with a "stale exception" line so the entry is removed rather
     // than lingering. To extend, re-verify upstream first, then bump `expires`.
-    const upstreamMismatchExceptions = [
-      {
-        // MiniMax documents up to 1M context, but the gateway lists 512k.
-        prefix: 'minimax-m3: maxTokens',
-        expires: '2026-10-11',
-      },
-      {
-        // 1M context minus the documented 128k maximum output leaves 872k input.
-        prefix: 'minimax-m3: maxInputTokens',
-        expires: '2026-10-11',
-      },
-    ]
+    const upstreamMismatchExceptions = []
 
     const exceptionStates = upstreamMismatchExceptions.map((exception) => ({
       exception,

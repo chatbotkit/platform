@@ -145,3 +145,31 @@ export async function listProjectIds(
     return []
   }
 }
+
+/**
+ * Builds presigned download URLs for the given asset paths. Returns a map keyed
+ * by asset path so the client can render images without exposing storage.
+ */
+export async function buildAssetUrls(
+  client: Client,
+  spaceId: string,
+  paths: string[]
+): Promise<Record<string, string>> {
+  const entries = await Promise.all(
+    [...new Set(paths)].map(async (path) => {
+      try {
+        const { url } = await client.space.storage.download(spaceId, path)
+
+        return [path, url] as const
+      } catch {
+        return null
+      }
+    })
+  )
+
+  return Object.fromEntries(
+    entries.filter(
+      (entry): entry is readonly [string, string] => entry !== null
+    )
+  )
+}

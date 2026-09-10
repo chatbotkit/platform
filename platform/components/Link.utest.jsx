@@ -98,6 +98,31 @@ describe('Link', () => {
     expect(link).toHaveAttribute('tabindex', '-1')
   })
 
+  it('does not forward a locale unless one is given', () => {
+    render(
+      <Link href="/apps" target="_self">
+        Apps
+      </Link>
+    )
+
+    expect(screen.getByRole('link', { name: 'Apps' })).not.toHaveAttribute(
+      'locale'
+    )
+  })
+
+  it('forwards an explicit locale', () => {
+    render(
+      <Link href="/apps" target="_self" locale="fr">
+        Apps
+      </Link>
+    )
+
+    expect(screen.getByRole('link', { name: 'Apps' })).toHaveAttribute(
+      'locale',
+      'fr'
+    )
+  })
+
   it('forces prefetch immediately and on interval', () => {
     render(
       <Link href="/support" forcePrefetch forcePrefetchInterval={60000}>

@@ -21,6 +21,9 @@ jest.mock('@/prisma/client', () => ({
     verificationToken: {
       deleteMany: jest.fn(),
     },
+    session: {
+      update: jest.fn(),
+    },
   },
 }))
 
@@ -73,6 +76,41 @@ describe('auth.adapter', () => {
       expect(adapter).toHaveProperty('createUser')
       expect(adapter).toHaveProperty('getUserByEmail')
       expect(adapter).toHaveProperty('getUserByAccount')
+    })
+  })
+
+  describe('updateSession', () => {
+    it('should update the session without the token in the data payload', async () => {
+      const expires = new Date('2026-10-01T00:00:00.000Z')
+
+      prisma.session.update.mockResolvedValue({ sessionToken: 'tok', expires })
+
+      const result = await adapter.updateSession({
+        sessionToken: 'tok',
+        expires,
+      })
+
+      expect(prisma.session.update).toHaveBeenCalledWith({
+        where: { sessionToken: 'tok' },
+        data: { expires },
+      })
+      expect(result).toEqual({ sessionToken: 'tok', expires })
+    })
+
+    it('should report and swallow a failed expiry bump', async () => {
+      const error = new Error(
+        'target: main.-.primary: vttablet: rpc error: code = Aborted desc = transaction ended (transaction committed)'
+      )
+
+      prisma.session.update.mockRejectedValue(error)
+
+      const result = await adapter.updateSession({
+        sessionToken: 'tok',
+        expires: new Date(),
+      })
+
+      expect(result).toBeNull()
+      expect(captureException).toHaveBeenCalledWith(error)
     })
   })
 
