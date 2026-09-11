@@ -51,7 +51,10 @@ provider.
 - Sandboxed code and shell execution
 - Web widgets, portals and messaging channels
 - REST and GraphQL APIs, webhooks and generated client types
-- Node.js, Python and Go SDKs and a Terraform provider
+- [Node.js](https://github.com/chatbotkit/node-sdk),
+  [Python](https://github.com/chatbotkit/python-sdk) and
+  [Go](https://github.com/chatbotkit/go-sdk) SDKs and a
+  [Terraform provider](https://github.com/chatbotkit/terraform-provider-chatbotkit)
 - Authentication, users, teams, contacts and multi-tenant identity
 - Access control, moderation, PII protection and audit
 - Traces, events, ratings, usage and operational logs
