@@ -79,6 +79,9 @@ On an Apple silicon Mac you can skip Docker altogether:
 app that runs this same platform in an app-private VM, with model providers,
 logs and updates managed from the app.
 
+Or skip running it yourself: [ChatBotKit](https://chatbotkit.com) is the
+managed, hosted edition of this same platform.
+
 ## Local development
 
 Binary assets are stored with Git LFS, so install it (`git lfs install`)
