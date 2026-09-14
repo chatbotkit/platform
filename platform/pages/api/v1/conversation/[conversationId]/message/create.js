@@ -11,23 +11,12 @@ import { requiredUrlParam } from '@/lib/query.get'
 import { notAuthorized, notFound, ok } from '@/lib/response'
 import { recordMessageUsage } from '@/lib/usage.record'
 
-import descriptionSchema from '@/schemas/description'
-import messageTextSchema from '@/schemas/messageText'
-import messageTypeSchema from '@/schemas/messageType'
-import metaSchema from '@/schemas/meta'
-import nameSchema from '@/schemas/name'
+import { messageSchema } from '@/schemas/messages'
 
-export const bodySchema = schema.object({
-  name: nameSchema,
-  description: descriptionSchema,
-
-  type: messageTypeSchema.required(),
-
-  text: messageTextSchema.required(),
-
+// @note the same shape a stateless completion accepts for its messages, so an
+// activity message is held to its meta here too
+export const bodySchema = messageSchema.append({
   entities: schema.array().items(schema.object({}).unknown(true)),
-
-  meta: metaSchema,
 })
 
 /**

@@ -9,10 +9,18 @@ let highlighterPromise: Promise<HighlighterGeneric<string, string>> | null =
 
 export function getHighlighter() {
   if (!highlighterPromise) {
-    highlighterPromise = import('shiki').then(({ createHighlighter }) =>
+    // @note the JavaScript engine rather than the default Oniguruma one: the
+    // latter needs WebAssembly, which iOS Lockdown Mode removes, and the page
+    // then fails with an unhandled rejection. Forgiving so a grammar the
+    // engine cannot compile degrades to plain text instead of throwing.
+    highlighterPromise = Promise.all([
+      import('shiki'),
+      import('shiki/engine/javascript'),
+    ]).then(([{ createHighlighter }, { createJavaScriptRegexEngine }]) =>
       createHighlighter({
         themes: [githubDark, githubLight],
         langs: [],
+        engine: createJavaScriptRegexEngine({ forgiving: true }),
       })
     )
   }

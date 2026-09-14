@@ -21,12 +21,17 @@ import {
 import { createConversation } from '@/lib/conversation.create'
 import cuid from '@/lib/cuid'
 import debug, { assert, createSpan } from '@/lib/debug'
-import { captureError } from '@/lib/error'
 import schema, { withSchema } from '@/lib/joi.handler'
 import { withLimits } from '@/lib/limit.handler'
 import { withPost } from '@/lib/method'
 import { requiredUrlParam } from '@/lib/query.get'
-import { notFound, ok, respondFromError, throwNotFound } from '@/lib/response'
+import {
+  captureUnknownError,
+  notFound,
+  ok,
+  respondFromError,
+  throwNotFound,
+} from '@/lib/response'
 import { getRandomId } from '@/lib/string'
 import { cacheUser, fastGetUserById } from '@/lib/user.get'
 
@@ -335,7 +340,7 @@ export default withPost(
           } catch (e) {
             debug(`responding with error`, { e })
 
-            await captureError(e)
+            await captureUnknownError(e)
 
             return respondFromError(e)
           }

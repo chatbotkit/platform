@@ -36,6 +36,12 @@ const SQLITE_MAX_LENGTH = 1000000000
 export const MAX_DB_STRING_BYTES_LENGTH = SQLITE_MAX_LENGTH
 
 /**
+ * The max length of what the blueprint declares `@db.VarChar(768)` - a source
+ * URL - stored here as an unconstrained TEXT column.
+ */
+export const MAX_DB_SOURCE_URL_BYTES_LENGTH = SQLITE_MAX_LENGTH
+
+/**
  * The max length of what the blueprint declares `@db.Text`, stored here as an
  * unconstrained TEXT column.
  */

@@ -9,9 +9,11 @@ import {
   mintInstallationToken,
   postIssueComment,
 } from '@/lib/github.app'
+import { getStatefulConversationEngine } from '@/lib/conversation.engine'
 import { accountConversationalLimitsOk } from '@/lib/limit.core'
 import { logEvent } from '@/lib/log'
 import memcache from '@/lib/memcache'
+import { captureUnknownException } from '@/lib/response'
 
 import { handleInteractEvent } from '@/pages/api/v1/integration/github/[githubIntegrationId]/queue'
 
@@ -95,7 +97,6 @@ jest.mock('@/lib/conversation.engine', () => ({
 }))
 
 jest.mock('@/lib/error', () => ({
-  captureException: jest.fn(),
   captureInputError: jest.fn(),
 }))
 
@@ -113,6 +114,7 @@ jest.mock(
 )
 
 jest.mock('@/lib/response', () => ({
+  captureUnknownException: jest.fn(),
   throwLimitsReached: jest.fn(() => {
     throw new Error('limits reached')
   }),
@@ -177,6 +179,28 @@ describe('GitHub queue allowFrom gate', () => {
     await handleInteractEvent(githubIntegrationId, payload())
 
     expect(postIssueComment).toHaveBeenCalled()
+  })
+
+  it('logs a reply failure through the expected-error filter', async () => {
+    // @note a GitHub 4xx reaches here as a FetchError with a known code; the
+    // filter keeps it out of Sentry while a real fault still gets captured
+    const upstream = new Error('GitHub API GET /orgs/acme/issues failed: 404')
+
+    getStatefulConversationEngine.mockResolvedValueOnce({
+      send: jest.fn(async () => undefined),
+      receive: jest.fn(async () => {
+        throw upstream
+      }),
+      dispose: jest.fn(async () => undefined),
+    })
+
+    await handleInteractEvent(githubIntegrationId, payload())
+
+    expect(postIssueComment).not.toHaveBeenCalled()
+    expect(captureUnknownException).toHaveBeenCalledWith(upstream)
+    expect(logEvent).toHaveBeenCalledWith(
+      expect.objectContaining({ name: 'GitHub Integration Failed' })
+    )
   })
 
   it('answers a listed login', async () => {

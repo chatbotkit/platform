@@ -2,10 +2,15 @@
 import prisma from '@/prisma/client'
 
 import debug from '@/lib/debug'
-import { captureError } from '@/lib/error'
 import { withPost } from '@/lib/method'
 import { requiredUrlParam } from '@/lib/query.get'
-import { notAuthorized, notFound, ok, respondFromError } from '@/lib/response'
+import {
+  captureUnknownError,
+  notAuthorized,
+  notFound,
+  ok,
+  respondFromError,
+} from '@/lib/response'
 import { withSession } from '@/lib/session.handler'
 
 /**
@@ -74,7 +79,9 @@ export default withPost(
     try {
       await doSetup(triggerIntegration)
     } catch (e) {
-      await captureError(e)
+      // @note a setup refused for a missing or rejected configuration is a
+      // conflict the caller reads, not a fault
+      await captureUnknownError(e)
 
       return respondFromError(e)
     }

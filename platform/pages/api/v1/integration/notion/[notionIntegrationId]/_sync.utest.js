@@ -127,6 +127,14 @@ describe('doSync (notion integration)', () => {
       expect(require('@/lib/batch').runBatchJobAsync).not.toHaveBeenCalled()
     })
 
+    it('should throw conflict when the token is missing', async () => {
+      const integration = makeIntegration({ token: null })
+
+      await expect(doSync(integration)).rejects.toThrow('No token specified')
+
+      expect(require('@/lib/batch').runBatchJobAsync).not.toHaveBeenCalled()
+    })
+
     it('should return without launching job when database limits are exceeded', async () => {
       const { databaseLimitsOk } = require('@/lib/limit.core')
 

@@ -7,7 +7,7 @@ import { captureError } from '@/lib/error'
 import { createRecord } from '@/lib/record'
 import { getStore } from '@/lib/store.types'
 
-import handler from './create'
+import handler, { bodySchema } from './create'
 
 jest.mock('@/prisma/client', () => ({
   __esModule: true,
@@ -30,23 +30,19 @@ jest.mock('@/lib/limit.handler', () => ({
   withSessionLimits: (_limits, fn) => fn,
 }))
 
-jest.mock('@/lib/joi.handler', () => {
-  const schema = {
-    object: jest.fn().mockReturnThis(),
-  }
-
-  return {
-    __esModule: true,
-    default: schema,
-    withSchema: jest.fn((_schema, fn) => fn),
-  }
-})
+jest.mock('@/lib/joi.handler', () => ({
+  __esModule: true,
+  ...jest.requireActual('@/lib/joi.handler'),
+  withSchema: jest.fn((_schema, fn) => fn),
+}))
 
 jest.mock('@/lib/query.get', () => ({
   requiredUrlParam: jest.fn((req, param) => req.query[param]),
 }))
 
 jest.mock('@/lib/response', () => ({
+  // @note the real filter, so a known-code error is not captured
+  captureUnknownError: jest.requireActual('@/lib/response').captureUnknownError,
   ok: (data) => ({ status: 200, body: data }),
   notFound: () => ({ status: 404 }),
   notAuthorized: () => ({ status: 403 }),
@@ -208,6 +204,23 @@ describe('POST /api/v1/dataset/[datasetId]/record/create', () => {
 
       await expect(handler(req, mockSession, mockBody)).rejects.toThrow(
         'DB timeout'
+      )
+    })
+  })
+
+  describe('bodySchema', () => {
+    it('should accept text', () => {
+      expect(bodySchema.validate({ text: 'Some record text' }).error).toBeUndefined()
+    })
+
+    it('should require text', () => {
+      expect(bodySchema.validate({}).error.message).toContain('"text"')
+    })
+
+    it('should reject empty or blank text', () => {
+      expect(bodySchema.validate({ text: '' }).error.message).toContain('"text"')
+      expect(bodySchema.validate({ text: ' \n\t ' }).error.message).toContain(
+        '"text"'
       )
     })
   })

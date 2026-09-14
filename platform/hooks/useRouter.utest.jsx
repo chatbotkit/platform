@@ -34,6 +34,8 @@ jest.mock('@/hooks/useHost', () => ({
   useSiteHost: jest.fn(),
 }))
 
+jest.mock('@/hooks/useHydrated', () => jest.fn(() => true))
+
 jest.mock('@/i18n.config', () => ({
   __esModule: true,
   default: { locales: ['en'], defaultLocale: 'en', domainLocales: [] },
@@ -83,6 +85,22 @@ function setup({
 describe('useRouter href resolution by host', () => {
   beforeEach(() => {
     jest.clearAllMocks()
+  })
+
+  describe('before hydration', () => {
+    it('ignores the request cookie host so the server and first client render agree', () => {
+      const useHydrated = require('@/hooks/useHydrated')
+
+      useHydrated.mockReturnValueOnce(false)
+
+      const router = setup({ cookieHostname: 'site.example.com' })
+
+      // @note the server reads the cookie from the request and the browser
+      // cannot until it has hydrated - the absolute href is left as is on both
+      expect(router.resolveHref('https://site.example.com/pricing')).toBe(
+        'https://site.example.com/pricing'
+      )
+    })
   })
 
   describe('on the site host', () => {

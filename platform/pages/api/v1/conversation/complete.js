@@ -14,11 +14,7 @@ import {
 } from '@/lib/conversation.tag'
 import debug from '@/lib/debug'
 import { withStreamContinuity } from '@/lib/stream'
-import {
-  captureError,
-  errorResponseToError,
-  errorToSafeErrorResponse,
-} from '@/lib/error'
+import { errorResponseToError, errorToSafeErrorResponse } from '@/lib/error'
 import { anySignal } from '@/lib/fetch'
 import { events } from '@/lib/it'
 import schema, { withSchema } from '@/lib/joi.handler'
@@ -29,7 +25,7 @@ import {
   uploadNamespaceAttachmentFromURL,
 } from '@/lib/namespace.attachment'
 import { getSafeNamespace } from '@/lib/namespace.safe'
-import { throwBadRequest } from '@/lib/response'
+import { captureUnknownError, throwBadRequest } from '@/lib/response'
 import { createTimeoutMonitor } from '@/lib/timeout.monitor'
 import { getMaxFileSize } from '@/lib/user.limits'
 
@@ -399,7 +395,7 @@ export async function* complete(session, body, options = {}) {
     } catch (e) {
       debug(`responding with error`, { e }).log('api.v1.conversation.complete')
 
-      await captureError(e)
+      await captureUnknownError(e)
 
       push(
         createSinkEvent({

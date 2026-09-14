@@ -14,6 +14,7 @@ import { withSession } from '@/lib/session.handler'
 import aliasSchema from '@/schemas/alias'
 import blueprintIdSchema from '@/schemas/blueprintId'
 import datasetIdSchema from '@/schemas/datasetId'
+import dbSourceUrlSchema from '@/schemas/dbSourceUrl'
 import dbStringSchema from '@/schemas/dbString'
 import descriptionSchema from '@/schemas/description'
 import metaSchema from '@/schemas/meta'
@@ -30,7 +31,7 @@ export const bodySchema = schema.object({
 
   datasetId: datasetIdSchema('manipulate'),
 
-  url: dbStringSchema.uri({
+  url: dbSourceUrlSchema.uri({
     scheme: ['http', 'https'],
   }),
 

@@ -14,12 +14,12 @@ import {
 } from '@/lib/app.context'
 import { APP_AUDIENCE } from '@/lib/audience.consts'
 import { setupHeadersContext } from '@/lib/context.setup'
+import { captureUnknownException } from '@/lib/response'
 import {
   getContextFrontendHost,
   getContextRequestHost,
   runInContext,
 } from '@/lib/context.store'
-import { captureException } from '@/lib/error'
 import type { ZodSchema } from '@/lib/zod.schema'
 import schema from '@/lib/zod.schema'
 
@@ -107,7 +107,9 @@ export function appActionHandler<U, T, R>(
 
         return it
       } catch (e) {
-        await captureException(e)
+        // @note an error with a known code - not found, not authorized, limits
+        // reached - is an expected answer the caller renders, not a fault
+        await captureUnknownException(e)
 
         return {
           error: {

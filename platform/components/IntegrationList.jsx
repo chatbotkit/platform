@@ -17,8 +17,8 @@ import clsx from 'clsx'
 
 // Integrations render as a single merged list across every integration type.
 // The table below is the source of truth: it drives the combined GraphQL
-// query, the type tag on every row, and the private (development and staging
-// only) gating.
+// query, the type tag on every row, and the optional `private` (development
+// and staging only) gating; no type is gated at the moment.
 export const INTEGRATION_TYPES = [
   { type: 'widget', connection: 'widgetIntegrations' },
   { type: 'slack', connection: 'slackIntegrations' },
@@ -59,9 +59,9 @@ export const INTEGRATION_TYPES = [
   },
   { type: 'mcpserver', connection: 'mcpserverIntegrations' },
   { type: 'skillserver', connection: 'skillserverIntegrations' },
-  { type: 'anam', connection: 'anamIntegrations', private: true },
-  { type: 'avatar', connection: 'avatarIntegrations', private: true },
-  { type: 'recall', connection: 'recallIntegrations', private: true },
+  { type: 'anam', connection: 'anamIntegrations' },
+  { type: 'avatar', connection: 'avatarIntegrations' },
+  { type: 'recall', connection: 'recallIntegrations' },
 ]
 
 // @note every connection is capped at its first 100 integrations. When a

@@ -50,6 +50,8 @@ jest.mock('@/lib/query.get', () => ({
 }))
 
 jest.mock('@/lib/response', () => ({
+  // @note the real filter, so a known-code error is not captured
+  captureUnknownError: jest.requireActual('@/lib/response').captureUnknownError,
   ok: (data) => ({ status: 200, body: data }),
   notFound: () => ({ status: 404 }),
   respondFromError: (err) => ({ status: 500, error: err }),

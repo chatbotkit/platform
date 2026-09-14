@@ -8,7 +8,7 @@ import {
   getContextFrontendHost,
   getContextRequestHost,
 } from '@/lib/context.store'
-import { captureException } from '@/lib/error'
+import { captureUnknownException } from '@/lib/response'
 import schema from '@/lib/zod.schema'
 
 import {
@@ -47,8 +47,8 @@ jest.mock('@/lib/context.setup', () => ({
   setupHeadersContext: jest.fn(),
 }))
 
-jest.mock('@/lib/error', () => ({
-  captureException: jest.fn(),
+jest.mock('@/lib/response', () => ({
+  captureUnknownException: jest.fn(),
 }))
 
 describe('app.action', () => {
@@ -195,7 +195,7 @@ describe('app.action', () => {
             message: 'Test error',
           },
         })
-        expect(captureException).toHaveBeenCalledWith(mockError)
+        expect(captureUnknownException).toHaveBeenCalledWith(mockError)
       })
 
       it('should handle validation errors in input schema', async () => {
@@ -216,7 +216,7 @@ describe('app.action', () => {
         const result = await handler({ name: 123 })
 
         expect(result).toHaveProperty('error')
-        expect(captureException).toHaveBeenCalled()
+        expect(captureUnknownException).toHaveBeenCalled()
       })
 
       it('should handle validation errors in config schema', async () => {
@@ -237,7 +237,7 @@ describe('app.action', () => {
         const result = await handler({})
 
         expect(result).toHaveProperty('error')
-        expect(captureException).toHaveBeenCalled()
+        expect(captureUnknownException).toHaveBeenCalled()
       })
     })
 

@@ -46,7 +46,12 @@ jest.mock('@/lib/query.get', () => ({
 
 jest.mock('@/lib/error', () => ({
   captureError: jest.fn(),
-  SystemError: class SystemError extends Error {},
+  SystemError: class SystemError extends Error {
+    constructor(message, code) {
+      super(message)
+      this.code = code
+    }
+  },
 }))
 
 jest.mock('@/lib/response', () => {
@@ -280,7 +285,8 @@ describe('POST /api/v1/integration/messenger/[messengerIntegrationId]/setup', ()
       const { captureError } = jest.requireMock('@/lib/error')
       const { respondFromError } = jest.requireMock('@/lib/response')
 
-      expect(captureError).toHaveBeenCalled()
+      // @note a conflict is an expected answer, so it is not captured
+      expect(captureError).not.toHaveBeenCalled()
       expect(respondFromError).toHaveBeenCalled()
     })
   })

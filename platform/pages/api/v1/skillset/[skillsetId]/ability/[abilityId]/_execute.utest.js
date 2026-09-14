@@ -47,6 +47,8 @@ jest.mock('@/lib/usage.model', () => ({
 }))
 
 jest.mock('@/lib/response', () => ({
+  // @note the real filter, so a known-code error is not captured
+  captureUnknownError: jest.requireActual('@/lib/response').captureUnknownError,
   throwNotFound: jest.fn(() => {
     throw Object.assign(new Error('Not found'), { code: 'NOT_FOUND' })
   }),

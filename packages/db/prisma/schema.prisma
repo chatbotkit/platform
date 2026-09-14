@@ -2256,7 +2256,7 @@ model NotionIntegration {
   name        String @default("")
   description String @default("")
 
-  token String /// @encrypted
+  token String? /// @encrypted
 
   expiresIn Float?
 

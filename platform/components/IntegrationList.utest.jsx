@@ -1,4 +1,4 @@
-import IntegrationList from './IntegrationList'
+import IntegrationList, { INTEGRATION_TYPES } from './IntegrationList'
 
 import '@testing-library/jest-dom'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
@@ -340,22 +340,45 @@ describe('IntegrationList', () => {
       expect(screen.queryByText('Load more')).not.toBeInTheDocument()
     })
 
-    it('should query the private connections only when they are shown', async () => {
+    it('should query every integration connection without the private flag', async () => {
       respondWith({})
 
-      const { unmount } = render(<IntegrationList authenticated={true} />)
+      render(<IntegrationList authenticated={true} />)
 
       await waitFor(() => expect(mockFetch).toHaveBeenCalled())
 
-      expect(lastQuery()).not.toContain('anamIntegrations')
+      for (const { connection } of INTEGRATION_TYPES) {
+        expect(lastQuery()).toContain(connection)
+      }
+    })
 
-      unmount()
+    it('should query the private connections only when they are shown', async () => {
+      respondWith({})
 
-      render(<IntegrationList authenticated={true} showPrivateIntegrations />)
+      const privateTypes = [
+        ...INTEGRATION_TYPES,
+        { type: 'hidden', connection: 'hiddenIntegrations', private: true },
+      ]
 
-      await waitFor(() => expect(mockFetch).toHaveBeenCalledTimes(2))
+      INTEGRATION_TYPES.splice(0, INTEGRATION_TYPES.length, ...privateTypes)
 
-      expect(lastQuery()).toContain('anamIntegrations')
+      try {
+        const { unmount } = render(<IntegrationList authenticated={true} />)
+
+        await waitFor(() => expect(mockFetch).toHaveBeenCalled())
+
+        expect(lastQuery()).not.toContain('hiddenIntegrations')
+
+        unmount()
+
+        render(<IntegrationList authenticated={true} showPrivateIntegrations />)
+
+        await waitFor(() => expect(mockFetch).toHaveBeenCalledTimes(2))
+
+        expect(lastQuery()).toContain('hiddenIntegrations')
+      } finally {
+        INTEGRATION_TYPES.pop()
+      }
     })
   })
 
