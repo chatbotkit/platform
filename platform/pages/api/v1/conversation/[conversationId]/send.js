@@ -4,15 +4,12 @@ import { getStatefulConversationEngine } from '@/lib/conversation.engine'
 import { TAG_ERROR, TAG_RESULT, createSinkEvent } from '@/lib/conversation.tag'
 import debug from '@/lib/debug'
 import { withStream } from '@/lib/stream'
-import {
-  captureError,
-  errorResponseToError,
-  errorToSafeErrorResponse,
-} from '@/lib/error'
+import { errorResponseToError, errorToSafeErrorResponse } from '@/lib/error'
 import schema, { withSchema } from '@/lib/joi.handler'
 import { withSessionLimits } from '@/lib/limit.handler'
 import { withPost } from '@/lib/method'
 import { requiredUrlParam } from '@/lib/query.get'
+import { captureUnknownError } from '@/lib/response'
 
 import extensionsSchema from '@/schemas/inlineExtensions'
 import functionsSchema from '@/schemas/functionsSchema'
@@ -275,7 +272,7 @@ export default withPost(
         } catch (e) {
           debug(`responding with error`, { e })
 
-          await captureError(e)
+          await captureUnknownError(e)
 
           const event = createSinkEvent({
             type: TAG_ERROR,

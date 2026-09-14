@@ -15,7 +15,7 @@ import {
 } from '@/lib/conversation.idle'
 import { TAG_ERROR } from '@/lib/conversation.tag'
 import debug, { assert } from '@/lib/debug'
-import { captureError, captureInputError } from '@/lib/error'
+import { captureInputError } from '@/lib/error'
 import { setupFrontendHostContext } from '@/lib/integration.context'
 import it from '@/lib/it'
 import { runTasksEach } from '@/lib/job'
@@ -25,6 +25,7 @@ import { withQueueHandler } from '@/lib/queue2'
 import { updateSessionStore } from '@/lib/session.context'
 import { fastGetUserById } from '@/lib/user.get'
 import { parseAsync } from '@/lib/zod.schema'
+import { captureUnknownError } from '@/lib/response'
 
 import {
   IDLE_EVENT_TYPE as CONVERSATION_IDLE_EVENT_TYPE,
@@ -188,7 +189,7 @@ export async function handleCompleteEvent(payload, context) {
       'api.v1.conversation.handleCompleteEvent'
     )
 
-    await captureError(e)
+    await captureUnknownError(e)
 
     await publishChannelMessage(
       sessionChannelId,

@@ -65,6 +65,8 @@ jest.mock('@/lib/response', () => ({
 }))
 
 const { getFileInstance } = require('@/lib/file.storage')
+const { createThumbnail } = require('@/lib/image.transform')
+const { captureUnknownException } = require('@/lib/response')
 const { getSession } = require('@/lib/session.get')
 
 describe('GET /api/v1/file/[fileId]/thumbnail/download', () => {
@@ -115,5 +117,39 @@ describe('GET /api/v1/file/[fileId]/thumbnail/download', () => {
       'CDN-Cache-Control': 'private, max-age=60',
     })
     expect(result.headers).not.toHaveProperty('Vercel-CDN-Cache-Control')
+  })
+
+  it('serves the icon without capturing when the image does not decode', async () => {
+    prisma.file.findUnique.mockResolvedValue({
+      id: 'file123',
+      userId: 'user123',
+      visibility: FileVisibility.public,
+      meta: { contentType: 'image/png' },
+    })
+    createThumbnail.mockRejectedValueOnce(
+      new Error('unrecognised content at end of stream')
+    )
+
+    const result = await handler({ query: { fileId: 'file123' } })
+
+    expect(result.status).toBe(200)
+    expect(result.headers).toMatchObject({ 'Content-Type': 'image/svg+xml' })
+    expect(captureUnknownException).not.toHaveBeenCalled()
+  })
+
+  it('captures a storage failure before falling back to the icon', async () => {
+    prisma.file.findUnique.mockResolvedValue({
+      id: 'file123',
+      userId: 'user123',
+      visibility: FileVisibility.public,
+      meta: { contentType: 'image/png' },
+    })
+    getFileInstance.mockRejectedValueOnce(new Error('storage down'))
+
+    const result = await handler({ query: { fileId: 'file123' } })
+
+    expect(result.status).toBe(200)
+    expect(result.headers).toMatchObject({ 'Content-Type': 'image/svg+xml' })
+    expect(captureUnknownException).toHaveBeenCalledTimes(1)
   })
 })

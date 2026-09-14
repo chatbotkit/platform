@@ -2,11 +2,10 @@
 import { ensureTrustedContact } from '@/lib/contact.create'
 import { createConversation } from '@/lib/conversation.create'
 import debug from '@/lib/debug'
-import { captureError } from '@/lib/error'
 import schema, { withSchema } from '@/lib/joi.handler'
 import { withSessionLimits } from '@/lib/limit.handler'
 import { withPost } from '@/lib/method'
-import { ok, respondFromError } from '@/lib/response'
+import { captureUnknownError, ok, respondFromError } from '@/lib/response'
 
 import botConfigSchema from '@/schemas/botConfig'
 import botIdSchema from '@/schemas/botId'
@@ -240,7 +239,7 @@ export default withPost(
       } catch (e) {
         debug(`responding with error`, { e })
 
-        await captureError(e)
+        await captureUnknownError(e)
 
         return respondFromError(e)
       }

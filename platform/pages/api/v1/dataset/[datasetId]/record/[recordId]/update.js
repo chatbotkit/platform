@@ -2,13 +2,18 @@
 import prisma from '@/prisma/client'
 
 import debug from '@/lib/debug'
-import { captureError } from '@/lib/error'
 import schema, { withSchema } from '@/lib/joi.handler'
 import { getMeta } from '@/lib/meta'
 import { withPost } from '@/lib/method'
 import { requiredUrlParam } from '@/lib/query.get'
 import { updateRecord } from '@/lib/record'
-import { notAuthorized, notFound, ok, respondFromError } from '@/lib/response'
+import {
+  captureUnknownError,
+  notAuthorized,
+  notFound,
+  ok,
+  respondFromError,
+} from '@/lib/response'
 import { withSession } from '@/lib/session.handler'
 import { getStore } from '@/lib/store.types'
 
@@ -17,7 +22,9 @@ import recordTextSchema from '@/schemas/recordText'
 import sourceSchema from '@/schemas/source'
 
 export const bodySchema = schema.object({
-  text: recordTextSchema,
+  // @note optional, but the store keeps the stored text only when the field
+  // is absent - an empty string would replace it and the store refuses that
+  text: recordTextSchema.invalid('').pattern(/\S/, 'non-blank'),
 
   source: sourceSchema,
 
@@ -123,7 +130,7 @@ export default withPost(
 
         return ok({ id: recordId })
       } catch (e) {
-        await captureError(e)
+        await captureUnknownError(e)
 
         return respondFromError(e)
       }

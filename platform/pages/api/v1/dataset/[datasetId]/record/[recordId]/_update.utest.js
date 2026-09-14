@@ -35,6 +35,8 @@ jest.mock('@/lib/joi.handler', () => ({
 }))
 
 jest.mock('@/lib/response', () => ({
+  // @note the real filter, so a known-code error is not captured
+  captureUnknownError: jest.requireActual('@/lib/response').captureUnknownError,
   notFound: () => ({ status: 404 }),
   notAuthorized: () => ({ status: 403 }),
   ok: (data) => ({ status: 200, ...data }),
@@ -216,6 +218,13 @@ describe('POST /api/v1/dataset/{datasetId}/record/{recordId}/update', () => {
       const { error } = bodySchema.validate({})
 
       expect(error).toBeUndefined()
+    })
+
+    it('should reject empty or blank text', () => {
+      expect(bodySchema.validate({ text: '' }).error.message).toContain('"text"')
+      expect(bodySchema.validate({ text: ' \n ' }).error.message).toContain(
+        '"text"'
+      )
     })
   })
 })

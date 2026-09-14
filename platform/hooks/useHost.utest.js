@@ -446,6 +446,25 @@ describe('configured apexes', () => {
     expect(result.current).toBe('portal.example.com')
   })
 
+  it('should seed the apexes empty on the server render', () => {
+    // @note the apexes are server-only environment - the browser bundle has
+    // none, so a seeded server render would never match the first client one
+    let portal = 'unset'
+    let space = 'unset'
+
+    function Probe() {
+      portal = usePortalApex()
+      space = useSpaceApex()
+
+      return null
+    }
+
+    renderToString(<Probe />)
+
+    expect(portal).toBe('')
+    expect(space).toBe('')
+  })
+
   it('should resolve the space apex from the document', () => {
     document.documentElement.dataset.spaceApex = 'space.brand.example'
 

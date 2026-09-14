@@ -255,32 +255,51 @@ describe('POST /api/v1/conversation/{conversationId}/message/create', () => {
   })
 
   describe('bodySchema', () => {
-    it('should require type field', () => {
-      const { error } = bodySchema.validate({ text: 'hello' })
+    // @note the schema carries the activity rule as an external rule, so it
+    // validates asynchronously
+    const invalid = (body) => bodySchema.validateAsync(body)
 
-      expect(error).toBeDefined()
+    const valid = async (body) => {
+      await expect(bodySchema.validateAsync(body)).resolves.toBeDefined()
+    }
+
+    it('should require type field', async () => {
+      await expect(invalid({ text: 'hello' })).rejects.toThrow('"type"')
     })
 
-    it('should require text field', () => {
-      const { error } = bodySchema.validate({ type: 'user' })
-
-      expect(error).toBeDefined()
+    it('should require text field', async () => {
+      await expect(invalid({ type: 'user' })).rejects.toThrow('"text"')
     })
 
-    it('should accept valid user message', () => {
-      const { error } = bodySchema.validate({ type: 'user', text: 'hello' })
-
-      expect(error).toBeUndefined()
+    it('should accept valid user message', async () => {
+      await valid({ type: 'user', text: 'hello' })
     })
 
-    it('should accept valid bot message', () => {
-      const { error } = bodySchema.validate({ type: 'bot', text: 'response' })
-
-      expect(error).toBeUndefined()
+    it('should reject an activity message without activity meta', async () => {
+      await expect(invalid({ type: 'activity', text: '' })).rejects.toThrow(
+        "missing 'meta'"
+      )
     })
 
-    it('should accept all optional fields', () => {
-      const { error } = bodySchema.validate({
+    it('should accept an activity message with activity meta', async () => {
+      await valid({
+        type: 'activity',
+        text: '',
+        meta: {
+          activity: {
+            type: 'request',
+            function: { name: 'lookup', arguments: {} },
+          },
+        },
+      })
+    })
+
+    it('should accept valid bot message', async () => {
+      await valid({ type: 'bot', text: 'response' })
+    })
+
+    it('should accept all optional fields', async () => {
+      await valid({
         type: 'user',
         text: 'hello',
         name: 'msg',
@@ -288,8 +307,6 @@ describe('POST /api/v1/conversation/{conversationId}/message/create', () => {
         entities: [],
         meta: {},
       })
-
-      expect(error).toBeUndefined()
     })
   })
 })

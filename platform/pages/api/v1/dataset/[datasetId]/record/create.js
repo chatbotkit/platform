@@ -2,13 +2,18 @@
 import prisma from '@/prisma/client'
 
 import debug from '@/lib/debug'
-import { captureError } from '@/lib/error'
 import schema, { withSchema } from '@/lib/joi.handler'
 import { withSessionLimits } from '@/lib/limit.handler'
 import { withPost } from '@/lib/method'
 import { requiredUrlParam } from '@/lib/query.get'
 import { createRecord } from '@/lib/record'
-import { notAuthorized, notFound, ok, respondFromError } from '@/lib/response'
+import {
+  captureUnknownError,
+  notAuthorized,
+  notFound,
+  ok,
+  respondFromError,
+} from '@/lib/response'
 import { getStore } from '@/lib/store.types'
 
 import metaSchema from '@/schemas/meta'
@@ -16,7 +21,9 @@ import recordTextSchema from '@/schemas/recordText'
 import sourceSchema from '@/schemas/source'
 
 export const bodySchema = schema.object({
-  text: recordTextSchema.required(),
+  // @note the vector store refuses a record without text - reject blank text
+  // here so the caller gets a 400 instead of a store error
+  text: recordTextSchema.invalid('').pattern(/\S/, 'non-blank').required(),
 
   source: sourceSchema,
 
@@ -105,7 +112,7 @@ export default withPost(
 
         return ok({ id })
       } catch (e) {
-        await captureError(e)
+        await captureUnknownError(e)
 
         return respondFromError(e)
       }

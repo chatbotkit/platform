@@ -22,8 +22,8 @@ import {
 import { parse } from '@/lib/cookie'
 import { isProduction } from '@/lib/env'
 import { getExternalAPIHost } from '@/lib/host'
-import { isLocalhost } from '@/lib/localhost'
 import { hostToHostname, normalizeRequestHost } from '@/lib/host.parse'
+import { isLocalhost } from '@/lib/localhost'
 
 import useCookie from '@/hooks/useCookie'
 import useHydrated from '@/hooks/useHydrated'
@@ -97,7 +97,11 @@ export function useAPIHost(): string {
 }
 
 export function usePortalApex(): string {
-  const [apex, setApex] = useState<string>(portalApex || '')
+  // @note the apexes are server-only environment, so the constant is set on
+  // the server and empty in the browser - seed empty on both sides and resolve
+  // in the layout effect, or the server HTML never matches the first render
+
+  const [apex, setApex] = useState<string>('')
 
   useHydrationSafeLayoutEffect(() => {
     setApex(document.documentElement.dataset.portalApex || portalApex || '')
@@ -107,7 +111,11 @@ export function usePortalApex(): string {
 }
 
 export function useSpaceApex(): string {
-  const [apex, setApex] = useState<string>(spaceApex || '')
+  // @note the apexes are server-only environment, so the constant is set on
+  // the server and empty in the browser - seed empty on both sides and resolve
+  // in the layout effect, or the server HTML never matches the first render
+
+  const [apex, setApex] = useState<string>('')
 
   useHydrationSafeLayoutEffect(() => {
     setApex(document.documentElement.dataset.spaceApex || spaceApex || '')

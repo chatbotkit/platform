@@ -4,17 +4,17 @@ import prisma from '@/prisma/client'
 import { setContextContact, setContextNamespace } from '@/lib/context.store'
 import { TAG_ERROR, TAG_RESULT, createSinkEvent } from '@/lib/conversation.tag'
 import { withStream } from '@/lib/stream'
-import {
-  captureError,
-  errorResponseToError,
-  errorToSafeErrorResponse,
-} from '@/lib/error'
+import { errorResponseToError, errorToSafeErrorResponse } from '@/lib/error'
 import schema, { withSchema } from '@/lib/joi.handler'
 import { withSessionLimits } from '@/lib/limit.handler'
 import { withPost } from '@/lib/method'
 import { getSafeNamespace } from '@/lib/namespace.safe'
 import { requiredUrlParam } from '@/lib/query.get'
-import { throwNotAuthorized, throwNotFound } from '@/lib/response'
+import {
+  captureUnknownError,
+  throwNotAuthorized,
+  throwNotFound,
+} from '@/lib/response'
 import { applySkillset } from '@/lib/skillset.apply'
 import { Usage } from '@/lib/usage.model'
 
@@ -285,7 +285,7 @@ export default withPost(
             messages,
           })
         } catch (e) {
-          await captureError(e)
+          await captureUnknownError(e)
 
           const event = createSinkEvent({
             type: TAG_ERROR,

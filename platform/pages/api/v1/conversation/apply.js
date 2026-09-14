@@ -12,11 +12,7 @@ import {
 } from '@/lib/conversation.tag'
 import debug from '@/lib/debug'
 import { withStreamContinuity } from '@/lib/stream'
-import {
-  captureError,
-  errorResponseToError,
-  errorToSafeErrorResponse,
-} from '@/lib/error'
+import { errorResponseToError, errorToSafeErrorResponse } from '@/lib/error'
 import { events } from '@/lib/it'
 import schema, { withSchema } from '@/lib/joi.handler'
 import { withSessionLimits } from '@/lib/limit.handler'
@@ -26,7 +22,7 @@ import {
   uploadNamespaceAttachmentFromURL,
 } from '@/lib/namespace.attachment'
 import { getSafeNamespace } from '@/lib/namespace.safe'
-import { throwBadRequest } from '@/lib/response'
+import { captureUnknownError, throwBadRequest } from '@/lib/response'
 import { getMaxFileSize } from '@/lib/user.limits'
 
 import backstorySchema from '@/schemas/backstory'
@@ -346,7 +342,7 @@ export async function* apply(session, body, options = {}) {
     } catch (e) {
       debug(`responding with error`, { e }).log('api.v1.conversation.apply')
 
-      await captureError(e)
+      await captureUnknownError(e)
 
       push(
         createSinkEvent({

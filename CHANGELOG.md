@@ -5,6 +5,44 @@ here. The release version is defined in the workspace root `package.json`.
 
 ## [Unreleased]
 
+## [0.4.1] - 2026-09-14
+
+### Fixed
+
+- Anam, Avatar and Recall integrations appear in the integrations list in
+  every environment. The three types were marked private and only listed in
+  development and staging, so an integration created through a blueprint was
+  reachable by URL but missing from the list and its total.
+- Hydration no longer fails on pages that link to the page's own origin or to
+  a portal or space host. The router read the request host cookie on the
+  server but not on the first client render, and the apex hooks were seeded
+  from server-only environment, so the server HTML never matched the browser.
+  Both now resolve after hydration, as `useHost` already did.
+- Sitemap integrations accept source URLs up to 768 bytes. The `url` column
+  was a plain db string, so a long sitemap URL failed the onboarding wizard
+  with a 191-byte limit error.
+- A stored image that fails to decode gets the generated icon thumbnail
+  without being reported as an error, and a GitHub integration reply that
+  fails on an expected GitHub 4xx is logged without being reported either.
+- The Notion integration token column is optional, as the credential columns
+  of every other integration are, so creating one without a token no longer
+  fails in the database. A sync on an integration without a token answers
+  409 instead of launching the crawler. Creating or updating a dataset record
+  with empty or blank text answers 400 instead of failing in the vector store.
+- Creating a conversation message of type `activity`, or updating a message
+  so that it becomes one without its activity meta, answers 400 as the
+  stateless completion already did. A stored activity message without that
+  meta broke every later completion of that conversation.
+- Code blocks highlight with shiki's JavaScript regex engine instead of the
+  WebAssembly one, so pages with code no longer fail in iOS Lockdown Mode.
+- App actions report only unexpected failures. An expected answer such as
+  reaching the account limits is returned to the app without being reported
+  as an error.
+- Integration setup, session create, record, conversation create and the
+  conversation completion routes report only unexpected failures. An answer
+  with a known code - not found, bad request, limits reached, a completion
+  timeout - reaches the caller as before without being reported as an error.
+
 ## [0.4.0] - 2026-09-10
 
 ### Changed

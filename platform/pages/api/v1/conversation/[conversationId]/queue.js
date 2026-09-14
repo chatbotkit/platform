@@ -21,7 +21,7 @@ import {
   createSinkEvent,
 } from '@/lib/conversation.tag'
 import debug from '@/lib/debug'
-import { captureError, captureInputError } from '@/lib/error'
+import { captureInputError } from '@/lib/error'
 import { ABORT_ERROR_NAME, anySignal } from '@/lib/fetch'
 import { setupFrontendHostContext } from '@/lib/integration.context'
 import { tryParse as tryJsonParse } from '@/lib/json'
@@ -35,6 +35,7 @@ import { updateSessionStore } from '@/lib/session.context'
 import { getRandomId } from '@/lib/string'
 import { userToSessionUser } from '@/lib/user.session'
 import { parseAsync } from '@/lib/zod.schema'
+import { captureUnknownError } from '@/lib/response'
 
 import {
   IDLE_EVENT_TYPE as EXTRACT_INTEGRATION_IDLE_EVENT_TYPE,
@@ -812,7 +813,7 @@ export async function handleCompleteEvent(conversationId, payload, context) {
       'api.v1.conversation.conversationId.handleCompleteEvent'
     )
 
-    await captureError(e)
+    await captureUnknownError(e)
 
     await publishChannelMessage(
       sessionChannelId,

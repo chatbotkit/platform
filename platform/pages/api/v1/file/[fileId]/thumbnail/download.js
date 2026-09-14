@@ -109,16 +109,23 @@ export default withGet(async function (req) {
       }
 
       const imageData = await fileInstance.arrayBuffer()
-      const { buffer: thumbnailBuffer, mimeType } = await createThumbnail(
-        imageData,
-        { contentType }
-      )
 
-      return send(thumbnailBuffer, {
-        'Content-Type': mimeType,
+      let thumbnail
 
-        ...(cacheHeaders || null),
-      })
+      try {
+        thumbnail = await createThumbnail(imageData, { contentType })
+      } catch {
+        // @note the stored bytes are user input - a truncated or mislabeled
+        // image fails to decode and gets the icon, which is not a bug
+      }
+
+      if (thumbnail) {
+        return send(thumbnail.buffer, {
+          'Content-Type': thumbnail.mimeType,
+
+          ...(cacheHeaders || null),
+        })
+      }
     } catch (e) {
       await captureUnknownException(e)
 

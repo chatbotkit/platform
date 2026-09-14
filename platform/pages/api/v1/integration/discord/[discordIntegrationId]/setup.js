@@ -3,10 +3,10 @@ import prisma from '@/prisma/client'
 
 import debug from '@/lib/debug'
 import { fetchAPI } from '@/lib/discord.api'
-import { captureError } from '@/lib/error'
 import { withPost } from '@/lib/method'
 import { requiredUrlParam } from '@/lib/query.get'
 import {
+  captureUnknownError,
   notAuthorized,
   notFound,
   ok,
@@ -153,7 +153,9 @@ export default withPost(
     try {
       await doSetup(discordIntegration)
     } catch (e) {
-      await captureError(e)
+      // @note a setup refused for a missing or rejected configuration is a
+      // conflict the caller reads, not a fault
+      await captureUnknownError(e)
 
       return respondFromError(e)
     }

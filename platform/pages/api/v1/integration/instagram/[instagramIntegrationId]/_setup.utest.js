@@ -299,7 +299,8 @@ describe('POST /api/v1/integration/instagram/[instagramIntegrationId]/setup', ()
     const { captureError } = jest.requireMock('@/lib/error')
     const { respondFromError } = jest.requireMock('@/lib/response')
 
-    expect(captureError).toHaveBeenCalled()
+    // @note a conflict is an expected answer, so it is not captured
+    expect(captureError).not.toHaveBeenCalled()
     expect(respondFromError).toHaveBeenCalled()
   })
 })

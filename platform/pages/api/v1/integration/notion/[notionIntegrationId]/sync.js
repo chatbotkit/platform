@@ -43,6 +43,14 @@ export async function doSync(notionIntegration) {
     return
   }
 
+  // @note the token is optional at create time, as on every other integration
+
+  if (!notionIntegration.token) {
+    throwConflict('No token specified')
+
+    return
+  }
+
   if (!(await databaseLimitsOk(notionIntegration.user, ['database/record']))) {
     debug(`aborting due to exceeded limits`)
 
@@ -112,8 +120,8 @@ export async function doSync(notionIntegration) {
     expiresAt: notionIntegration.expiresIn
       ? Date.now() + notionIntegration.expiresIn
       : scheduleIn
-      ? Date.now() + scheduleIn
-      : undefined,
+        ? Date.now() + scheduleIn
+        : undefined,
 
     // limits
 

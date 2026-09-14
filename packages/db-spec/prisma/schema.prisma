@@ -2202,7 +2202,7 @@ model SitemapIntegration {
   name        String @default("")
   description String @default(dbgenerated("(_utf8mb4\\'\\')")) @db.Text
 
-  url String?
+  url String? @db.VarChar(768)
 
   glob String?
 
@@ -2256,7 +2256,7 @@ model NotionIntegration {
   name        String @default("")
   description String @default(dbgenerated("(_utf8mb4\\'\\')")) @db.Text
 
-  token String @db.Text /// @encrypted
+  token String? @db.Text /// @encrypted
 
   expiresIn Float?
 

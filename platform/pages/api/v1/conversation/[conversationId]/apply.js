@@ -6,16 +6,13 @@ import { getStatefulConversationEngine } from '@/lib/conversation.engine'
 import { TAG_ERROR, TAG_RESULT, createSinkEvent } from '@/lib/conversation.tag'
 import debug from '@/lib/debug'
 import { withStreamContinuity } from '@/lib/stream'
-import {
-  captureError,
-  errorResponseToError,
-  errorToSafeErrorResponse,
-} from '@/lib/error'
+import { errorResponseToError, errorToSafeErrorResponse } from '@/lib/error'
 import { events } from '@/lib/it'
 import schema, { withSchema } from '@/lib/joi.handler'
 import { withSessionLimits } from '@/lib/limit.handler'
 import { withPost } from '@/lib/method'
 import { requiredUrlParam } from '@/lib/query.get'
+import { captureUnknownError } from '@/lib/response'
 
 import extensionsSchema from '@/schemas/inlineExtensions'
 import functionsSchema from '@/schemas/functionsSchema'
@@ -211,7 +208,7 @@ export async function* apply(session, conversationId, body, options = {}) {
         'api.v1.conversation.[conversationId].apply'
       )
 
-      await captureError(e)
+      await captureUnknownError(e)
 
       push(
         createSinkEvent({

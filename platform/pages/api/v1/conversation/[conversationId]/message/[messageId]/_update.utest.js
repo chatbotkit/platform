@@ -264,6 +264,60 @@ describe('/api/v1/conversation/[conversationId]/message/[messageId]/update', () 
   })
 
   describe('authorization', () => {
+    it('should return 400 when switching to activity without activity meta', async () => {
+      prisma.conversation.findUnique.mockResolvedValue(mockConversation)
+
+      const result = await handler(mockReq, mockSession, { type: 'activity' })
+
+      expect(result.status).toBe(400)
+      expect(prisma.message.update).not.toHaveBeenCalled()
+    })
+
+    it('should return 400 when replacing the meta of an activity message', async () => {
+      prisma.conversation.findUnique.mockResolvedValue({
+        ...mockConversation,
+        messages: [
+          {
+            id: 'msg_xyz',
+            type: 'activity',
+            meta: {
+              activity: { type: 'request', function: { name: 'lookup' } },
+            },
+          },
+        ],
+      })
+
+      // @note the mocked getMeta merges, so make the merge drop the activity
+      getMeta.mockReturnValueOnce({ note: 'edited' })
+
+      const result = await handler(mockReq, mockSession, {
+        meta: { note: 'edited' },
+      })
+
+      expect(result.status).toBe(400)
+      expect(prisma.message.update).not.toHaveBeenCalled()
+    })
+
+    it('should update the text of an activity message without meta in the body', async () => {
+      prisma.conversation.findUnique.mockResolvedValue({
+        ...mockConversation,
+        messages: [
+          {
+            id: 'msg_xyz',
+            type: 'activity',
+            meta: {
+              activity: { type: 'request', function: { name: 'lookup' } },
+            },
+          },
+        ],
+      })
+
+      const result = await handler(mockReq, mockSession, { text: 'edited' })
+
+      expect(result.status).toBe(200)
+      expect(prisma.message.update).toHaveBeenCalled()
+    })
+
     it('should return 404 when the conversation does not exist', async () => {
       prisma.conversation.findUnique.mockResolvedValue(null)
 

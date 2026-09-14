@@ -16,7 +16,7 @@ import { createConversation } from '@/lib/conversation.create'
 import { getStatefulConversationEngine } from '@/lib/conversation.engine'
 import { hasConversation } from '@/lib/conversation.find'
 import debug from '@/lib/debug'
-import { captureException, captureInputError } from '@/lib/error'
+import { captureInputError } from '@/lib/error'
 import {
   assertAppCredentials,
   createCommentReaction,
@@ -38,7 +38,11 @@ import { logEvent } from '@/lib/log'
 import memcache from '@/lib/memcache'
 import queue from '@/lib/queue'
 import { withQueueHandlerBounded } from '@/lib/queue2'
-import { throwLimitsReached, throwNotFound } from '@/lib/response'
+import {
+  captureUnknownException,
+  throwLimitsReached,
+  throwNotFound,
+} from '@/lib/response'
 import { updateSessionStore } from '@/lib/session.context'
 import { resolveSessionDuration } from '@/lib/session.duration'
 import { userToSessionUser } from '@/lib/user.session'
@@ -575,7 +579,9 @@ You can only reply with comments; do not promise actions beyond commenting.
       await postIssueComment({ token, owner, repo, issueNumber, body: reply })
     }
   } catch (error) {
-    await captureException(error)
+    // @note a GitHub 4xx surfaces here as a FetchError with a known code -
+    // the agent already sees it, so it is not captured
+    await captureUnknownException(error)
 
     await logEvent({
       user: { id: integration.userId },

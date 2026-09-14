@@ -28,6 +28,7 @@ import {
   useCookieHost,
   useSiteHost,
 } from '@/hooks/useHost'
+import useHydrated from '@/hooks/useHydrated'
 
 import i18n from '@/i18n.config'
 import base from '@/next.config.d/base.config'
@@ -169,9 +170,18 @@ export default function useRouter() {
   // host cookie carry them; the app tables hold hosts too and are looked up
   // by hostname
 
-  const cookieHost = useCookieHost()
+  const requestCookieHost = useCookieHost()
   const audienceHost = useAudienceHost()
   const siteHostRuntime = useSiteHost()
+
+  // @note the cookie is read from the request on the server but is not
+  // readable during the first client render, so it is ignored until hydration
+  // - otherwise the server strips own-origin hrefs the client keeps absolute
+  // and hydration fails - see useHost
+
+  const hydrated = useHydrated()
+
+  const cookieHost = hydrated ? requestCookieHost : ''
 
   const host = cookieHost || audienceHost
   const hostname = hostToHostname(host)

@@ -12,11 +12,7 @@ import {
 } from '@/lib/conversation.tag'
 import debug from '@/lib/debug'
 import { withStreamContinuity } from '@/lib/stream'
-import {
-  captureError,
-  errorResponseToError,
-  errorToSafeErrorResponse,
-} from '@/lib/error'
+import { errorResponseToError, errorToSafeErrorResponse } from '@/lib/error'
 import { anySignal } from '@/lib/fetch'
 import { events } from '@/lib/it'
 import schema, { withSchema } from '@/lib/joi.handler'
@@ -25,6 +21,7 @@ import { withPost } from '@/lib/method'
 import { requiredUrlParam } from '@/lib/query.get'
 import { getRandomId } from '@/lib/string'
 import { createTimeoutMonitor } from '@/lib/timeout.monitor'
+import { captureUnknownError } from '@/lib/response'
 
 import extensionsSchema from '@/schemas/inlineExtensions'
 import functionsSchema from '@/schemas/functionsSchema'
@@ -275,7 +272,7 @@ export async function* complete(session, conversationId, body, options = {}) {
         'api.v1.conversation.[conversationId].complete'
       )
 
-      await captureError(e)
+      await captureUnknownError(e)
 
       push(
         createSinkEvent({

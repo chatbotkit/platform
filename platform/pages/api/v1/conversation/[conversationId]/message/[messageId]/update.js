@@ -8,27 +8,21 @@ import { getMeta } from '@/lib/meta'
 import { withPost } from '@/lib/method'
 import { detectPiiEntities, getSafeTextAndEntities } from '@/lib/pii'
 import { requiredUrlParam } from '@/lib/query.get'
-import { notAuthorized, notFound, ok } from '@/lib/response'
+import { badRequest, notAuthorized, notFound, ok } from '@/lib/response'
 import { withSession } from '@/lib/session.handler'
 
-import descriptionSchema from '@/schemas/description'
-import messageTextSchema from '@/schemas/messageText'
-import messageTypeSchema from '@/schemas/messageType'
-import metaSchema from '@/schemas/meta'
-import nameSchema from '@/schemas/name'
+import {
+  assertActivityMessage,
+  messageFieldsSchema,
+} from '@/schemas/messages'
 
-export const bodySchema = schema.object({
-  name: nameSchema,
-  description: descriptionSchema,
-
-  type: messageTypeSchema,
-
-  text: messageTextSchema,
-
-  entities: schema.array().items(schema.object({}).unknown(true)),
-
-  meta: metaSchema,
-})
+// @note the message fields with type and text optional - the activity rule
+// runs in the handler against the stored message, since the body is partial
+export const bodySchema = messageFieldsSchema
+  .fork(['type', 'text'], (field) => field.optional())
+  .append({
+    entities: schema.array().items(schema.object({}).unknown(true)),
+  })
 
 /**
  * @swagger
@@ -135,6 +129,8 @@ export default withPost(
             select: {
               id: true,
 
+              type: true,
+
               meta: true,
             },
 
@@ -153,6 +149,22 @@ export default withPost(
 
       if (!conversation.messages.length) {
         return notFound()
+      }
+
+      const [existingMessage] = conversation.messages
+
+      const nextMeta = getMeta(meta, existingMessage.meta)
+
+      // @note the update may switch the type to activity or replace the meta,
+      // and an activity message without its meta breaks the next completion -
+      // check the message as it will be stored, not the body on its own
+      try {
+        assertActivityMessage({
+          type: type || existingMessage.type,
+          meta: meta === undefined ? existingMessage.meta : nextMeta,
+        })
+      } catch (e) {
+        return badRequest(e.message)
       }
 
       await prisma.message.update({
@@ -174,7 +186,7 @@ export default withPost(
 
           // meta and others
 
-          meta: getMeta(meta, conversation.messages[0].meta),
+          meta: nextMeta,
         },
       })
 

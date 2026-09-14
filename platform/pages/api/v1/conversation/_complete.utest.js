@@ -341,7 +341,8 @@ describe('complete', () => {
           },
         })
       )
-      expect(captureError).toHaveBeenCalledWith(safeError)
+      // @note a known-code error is the client's answer, so it is not captured
+      expect(captureError).not.toHaveBeenCalled()
     })
 
     it('should emit TAG_ERROR and no sendResult when process() throws', async () => {

@@ -11,7 +11,13 @@ describe('getHighlighter', () => {
     const mockHighlighter = { codeToHtml: jest.fn() }
     const createHighlighter = jest.fn().mockResolvedValue(mockHighlighter)
 
+    const engine = { name: 'javascript' }
+    const createJavaScriptRegexEngine = jest.fn(() => engine)
+
     jest.doMock('shiki', () => ({ createHighlighter }))
+    jest.doMock('shiki/engine/javascript', () => ({
+      createJavaScriptRegexEngine,
+    }))
 
     const { getHighlighter: getTestHighlighter } = require('./highlighter')
 
@@ -21,9 +27,13 @@ describe('getHighlighter', () => {
     expect(first).toBe(second)
     await expect(first).resolves.toBe(mockHighlighter)
     expect(createHighlighter).toHaveBeenCalledTimes(1)
+    expect(createJavaScriptRegexEngine).toHaveBeenCalledWith({
+      forgiving: true,
+    })
     expect(createHighlighter).toHaveBeenCalledWith({
       themes: [expect.anything(), expect.anything()],
       langs: [],
+      engine,
     })
   })
 })

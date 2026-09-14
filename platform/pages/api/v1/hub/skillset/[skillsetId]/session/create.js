@@ -6,12 +6,16 @@ import prisma from '@/prisma/client'
 import { getConversationDetails } from '@/lib/bot.conversation'
 import { createConversation } from '@/lib/conversation.create'
 import debug from '@/lib/debug'
-import { captureError } from '@/lib/error'
 import schema, { withSchema } from '@/lib/joi.handler'
 import { withLimits } from '@/lib/limit.handler'
 import { withPost } from '@/lib/method'
 import { requiredUrlParam } from '@/lib/query.get'
-import { ok, respondFromError, throwNotFound } from '@/lib/response'
+import {
+  captureUnknownError,
+  ok,
+  respondFromError,
+  throwNotFound,
+} from '@/lib/response'
 import { withSession } from '@/lib/session.handler'
 
 import backstorySchema from '@/schemas/backstory'
@@ -111,7 +115,7 @@ export default withPost(
           } catch (e) {
             debug(`responding with error`, { e })
 
-            await captureError(e)
+            await captureUnknownError(e)
 
             return respondFromError(e)
           }

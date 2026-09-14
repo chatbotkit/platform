@@ -29,6 +29,8 @@ jest.mock('@/lib/error', () => ({
 }))
 
 jest.mock('@/lib/response', () => ({
+  // @note the real filter, so a known-code error is not captured
+  captureUnknownError: jest.requireActual('@/lib/response').captureUnknownError,
   ok: jest.fn((data) => new Response(JSON.stringify(data), { status: 200 })),
   respondFromError: jest.fn(
     (e) => new Response(JSON.stringify({ message: e.message }), { status: 500 })
