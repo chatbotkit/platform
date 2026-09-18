@@ -223,5 +223,15 @@ describe('POST /api/v1/dataset/[datasetId]/record/create', () => {
         '"text"'
       )
     })
+
+    it('should reject text that is blank once normalized', () => {
+      // @note zero-width space is not whitespace, but normalization drops it
+      expect(bodySchema.validate({ text: '\u200b' }).error.message).toContain(
+        'printable'
+      )
+      expect(
+        bodySchema.validate({ text: 'a\u200b' }).error
+      ).toBeUndefined()
+    })
   })
 })

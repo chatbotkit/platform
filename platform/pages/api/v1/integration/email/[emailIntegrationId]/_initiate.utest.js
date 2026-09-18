@@ -90,6 +90,10 @@ describe('POST /api/v1/integration/email/{emailIntegrationId}/initiate', () => {
         subject: 'Hello',
         text: '   ',
       },
+      // @note the queue payload requires every field, so a missing one must
+      // fail here as a 400 rather than at enqueue time
+      {},
+      { email: 'recipient@example.com', subject: 'Hello' },
     ]
 
     for (const body of invalidBodies) {

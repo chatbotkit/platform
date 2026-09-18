@@ -567,6 +567,48 @@ describe('errorToErrorResponse', () => {
     })
   })
 
+  it('should keep the code of a SystemError from another module copy', () => {
+    const { errorToErrorResponse } = require('./index')
+
+    // @note a second bundled copy of this module has its own SystemError
+    // class, so only the shared brand identifies it
+    class ForeignSystemError extends Error {
+      constructor(message, code) {
+        super(message)
+
+        this.code = code
+
+        Object.defineProperty(
+          this,
+          Symbol.for('@chatbotkit-dev/errors/SystemError'),
+          { value: true, enumerable: false }
+        )
+      }
+    }
+
+    const result = errorToErrorResponse(
+      new ForeignSystemError('Upstream refused', 'NOT_AUTHORIZED')
+    )
+
+    expect(result).toEqual({
+      code: 'NOT_AUTHORIZED',
+      message: 'Upstream refused',
+    })
+  })
+
+  it('should not treat a plain error with a code as a SystemError', () => {
+    const { errorToErrorResponse } = require('./index')
+
+    const error = Object.assign(new Error('socket hang up'), {
+      code: 'ECONNRESET',
+    })
+
+    expect(errorToErrorResponse(error)).toEqual({
+      code: 'GENERIC_ERROR',
+      message: 'socket hang up',
+    })
+  })
+
   it('should handle string error', () => {
     const { errorToErrorResponse } = require('./index')
 

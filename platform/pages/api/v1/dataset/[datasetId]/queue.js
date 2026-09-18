@@ -626,16 +626,18 @@ export const handleImportJobEndEvent = withDatasetAndLimits(
 
     // @note update integration sync status to synced when job completes
     // @todo generalize this so that each integration can handle this itself
+    // @note updateMany because the integration may have been deleted while
+    // the import job was running
     {
       if (context?.sitemapIntegrationId) {
-        await prisma.sitemapIntegration.update({
+        await prisma.sitemapIntegration.updateMany({
           where: { id: context.sitemapIntegrationId },
           data: { syncStatus: SyncStatus.synced, lastSyncedAt: new Date() },
         })
       }
 
       if (context?.notionIntegrationId) {
-        await prisma.notionIntegration.update({
+        await prisma.notionIntegration.updateMany({
           where: { id: context.notionIntegrationId },
           data: { syncStatus: SyncStatus.synced, lastSyncedAt: new Date() },
         })

@@ -13,7 +13,7 @@ import {
 } from '@/lib/context.store'
 import { parseBasicCredentials } from '@/lib/creds.basic.parse'
 import debug, { assert } from '@/lib/debug'
-import { UserAuthError } from '@/lib/error'
+import { UserAuthError, UserConfigError } from '@/lib/error'
 import { toHeaders } from '@/lib/header'
 import { getAccessToken } from '@/lib/oauth.token'
 import { canUseSecret } from '@/lib/secret.access'
@@ -483,10 +483,18 @@ export async function getSecretValueAndType(
 
       const { importPKCS8, SignJWT } = await import('jose')
 
-      const privateKey = await importPKCS8(
-        normalizePrivateKeyPemToPKCS8(trimmedValue),
-        algorithm
-      )
+      let privateKey
+
+      try {
+        privateKey = await importPKCS8(
+          normalizePrivateKeyPemToPKCS8(trimmedValue),
+          algorithm
+        )
+      } catch {
+        throw new UserConfigError(
+          `The JWT secret value is not a valid ${algorithm} private key in PEM (PKCS#8) form`
+        )
+      }
 
       const token = await new SignJWT(claims)
         .setProtectedHeader({ alg: algorithm })

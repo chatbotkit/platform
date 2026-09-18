@@ -1,6 +1,8 @@
 import { MAX_DB_TEXT_BYTES_LENGTH } from '@/prisma/constraints'
 
-import recordTextSchema from '@/schemas/recordText'
+import recordTextSchema, {
+  nonBlankRecordTextSchema,
+} from '@/schemas/recordText'
 
 const itIfTextLengthIsConstrained =
   MAX_DB_TEXT_BYTES_LENGTH <= 1000000 ? it : it.skip
@@ -103,5 +105,19 @@ describe('recordTextSchema', () => {
 
     expect(result.error).toBeDefined()
     expect(result.error.message).toContain('string')
+  })
+
+  describe('nonBlankRecordTextSchema', () => {
+    it('should reject empty, whitespace and nonprintable-only text', () => {
+      expect(nonBlankRecordTextSchema.validate('').error).toBeDefined()
+      expect(nonBlankRecordTextSchema.validate(' \n ').error).toBeDefined()
+      expect(
+        nonBlankRecordTextSchema.validate('\u200b\u200c').error.message
+      ).toContain('printable')
+    })
+
+    it('should accept text with printable characters', () => {
+      expect(nonBlankRecordTextSchema.validate('hello').error).toBeUndefined()
+    })
   })
 })

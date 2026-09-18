@@ -8,6 +8,8 @@ import prisma from '@/prisma/client'
 import memcache from '@/lib/memcache'
 import {
   audioModelToUseType,
+  decisionModelToUseType,
+  getBaseDecisionModelTokenCount,
   getBaseImageModelTokenCount,
   getBaseLanguageModelTokenCount,
   getBaseRerankModelTokenCount,
@@ -33,6 +35,7 @@ import {
   recordImageUsage,
   recordLanguageTokenUsage,
   recordMessageUsage,
+  recordDecisionTokenUsage,
   recordRerankTokenUsage,
   recordUsage,
   recordVideoTokenUsage,
@@ -78,6 +81,8 @@ jest.mock('@/lib/model.utils', () => ({
 
   getBaseRerankModelTokenCount: jest.fn((model, count) => count * 4),
 
+  getBaseDecisionModelTokenCount: jest.fn((model, count) => count * 5),
+
   languageModelToUseType: jest.fn((model) => {
     const mapping = {
       'gpt-4': 'OPENAI_GPT_4_TOKEN',
@@ -92,6 +97,8 @@ jest.mock('@/lib/model.utils', () => ({
   videoModelToUseType: jest.fn(() => 'VERCEL_GROK_IMAGINE_VIDEO_TOKEN'),
 
   rerankModelToUseType: jest.fn(() => 'VERCEL_RERANK_V4_FAST_TOKEN'),
+
+  decisionModelToUseType: jest.fn(() => 'TYPESAFE_JEV_TOKEN'),
 
   audioModelToUseType: jest.fn((model) => {
     const mapping = {
@@ -117,6 +124,10 @@ jest.mock('@/lib/model.utils', () => ({
 
   useTypeToRerankModelMapping: {
     VERCEL_RERANK_V4_FAST_TOKEN: 'rerank-v4-fast',
+  },
+
+  useTypeToDecisionModelMapping: {
+    TYPESAFE_JEV_TOKEN: 'jev',
   },
 }))
 
@@ -249,6 +260,11 @@ describe('usage.record', () => {
     it('should calibrate rerank model token counts', () => {
       // mock getBaseRerankModelTokenCount returns count * 4
       expect(getCalibratedBaseCount('VERCEL_RERANK_V4_FAST_TOKEN', 3)).toBe(12)
+    })
+
+    it('should calibrate decision model token counts', () => {
+      // mock getBaseDecisionModelTokenCount returns count * 5
+      expect(getCalibratedBaseCount('TYPESAFE_JEV_TOKEN', 3)).toBe(15)
     })
 
     it('should pass through counts for non-calibrated types', () => {
@@ -1492,6 +1508,51 @@ describe('usage.record', () => {
       expect(memcache.incrementInWindow).toHaveBeenCalledWith(
         'usage-user123-token',
         4,
+        2678400
+      )
+    })
+  })
+
+  describe('recordDecisionTokenUsage', () => {
+    beforeEach(() => {
+      fastGetUserById.mockResolvedValue({ id: 'user123', parentId: null })
+
+      prisma.usage.create.mockResolvedValue({})
+
+      memcache.incrementInWindow.mockResolvedValue(1)
+    })
+
+    it('should convert model to use type and calibrate base token usage', async () => {
+      await recordDecisionTokenUsage({
+        user: { id: 'user123' },
+        count: 1,
+        model: 'jev',
+      })
+
+      expect(decisionModelToUseType).toHaveBeenCalledWith('jev')
+      expect(getBaseDecisionModelTokenCount).toHaveBeenCalledWith(
+        'jev',
+        1
+      )
+      expect(prisma.usage.create).toHaveBeenCalledWith({
+        data: {
+          userId: 'user123',
+          type: 'TYPESAFE_JEV_TOKEN',
+          count: 1,
+          conversationId: 'conv123',
+          messageId: undefined,
+          contactId: 'contact456',
+          botId: 'bot789',
+          datasetId: undefined,
+          skillsetId: undefined,
+          meta: {
+            ipAddress: '192.168.1.1',
+          },
+        },
+      })
+      expect(memcache.incrementInWindow).toHaveBeenCalledWith(
+        'usage-user123-token',
+        5,
         2678400
       )
     })

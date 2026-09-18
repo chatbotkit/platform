@@ -1,6 +1,7 @@
 import { FetchError } from '@/lib/fetch'
 import { rethrowMcpError } from '@/lib/mcp.error'
 
+import { StreamableHTTPError } from '@modelcontextprotocol/sdk/client/streamableHttp.js'
 import { McpError } from '@modelcontextprotocol/sdk/types.js'
 
 describe('mcp.error', () => {
@@ -63,6 +64,52 @@ describe('mcp.error', () => {
       } catch (e) {
         expect(e).toBeInstanceOf(FetchError)
         expect(e.name).toBe('FetchError')
+      }
+    })
+
+    it('should convert StreamableHTTPError to FetchError with the status code mapped', () => {
+      const error = new StreamableHTTPError(
+        403,
+        'Error POSTing to endpoint: forbidden'
+      )
+
+      try {
+        rethrowMcpError(error)
+      } catch (e) {
+        expect(e).toBeInstanceOf(FetchError)
+        expect(e.message).toBe(
+          'Streamable HTTP error: Error POSTing to endpoint: forbidden'
+        )
+        expect(e.code).toBe('NOT_AUTHORIZED')
+        expect(e.name).toBe('FetchError({"status":403})')
+      }
+    })
+
+    it('should map a 5xx StreamableHTTPError to its gateway code', () => {
+      const error = new StreamableHTTPError(
+        502,
+        'Error POSTing to endpoint: Container suddenly disconnected, try again'
+      )
+
+      try {
+        rethrowMcpError(error)
+      } catch (e) {
+        expect(e).toBeInstanceOf(FetchError)
+        expect(e.code).toBe('BAD_GATEWAY')
+      }
+    })
+
+    it('should keep an unmapped StreamableHTTPError status as the code', () => {
+      const error = new StreamableHTTPError(
+        418,
+        'Error POSTing to endpoint: teapot'
+      )
+
+      try {
+        rethrowMcpError(error)
+      } catch (e) {
+        expect(e).toBeInstanceOf(FetchError)
+        expect(e.code).toBe('418')
       }
     })
 

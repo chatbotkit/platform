@@ -34,6 +34,24 @@ import {
 import fs from 'node:fs'
 import { zodToJsonSchema } from 'zod-to-json-schema'
 
+// @note inlined rather than declared as components: a component that is a
+// union of primitives and objects has no name in the generated Go types
+const decisionInputSchema = {
+  description: 'Text, or a JSON object or array of related context',
+  oneOf: [
+    { type: 'string' },
+    { type: 'object', additionalProperties: true },
+    { type: 'array', items: {} },
+  ],
+}
+
+const decisionCriterionSchema = {
+  ...decisionInputSchema,
+  description:
+    'A description of an option or level, or null when its name says enough',
+  nullable: true,
+}
+
 export const swaggerDefinitionV1 = {
   failOnErrors: true,
 
@@ -1066,6 +1084,112 @@ export const swaggerDefinitionV1 = {
                 },
               },
               required: ['type', 'createdAt', 'data'],
+            },
+          ],
+        },
+
+        DecisionQuestion: {
+          description: 'A typed question to answer about the state',
+          oneOf: [
+            {
+              type: 'object',
+              properties: {
+                type: { type: 'string', enum: ['boolean'] },
+                instructions: decisionInputSchema,
+                criteria: {
+                  description: 'What a true and a false answer mean',
+                  type: 'object',
+                  properties: {
+                    true: decisionCriterionSchema,
+                    false: decisionCriterionSchema,
+                  },
+                  required: ['true', 'false'],
+                },
+              },
+              required: ['type', 'instructions'],
+            },
+            {
+              type: 'object',
+              properties: {
+                type: { type: 'string', enum: ['choice'] },
+                instructions: decisionInputSchema,
+                criteria: {
+                  description:
+                    'The options keyed by name, each with a description (2 to 255)',
+                  type: 'object',
+                  minProperties: 2,
+                  maxProperties: 255,
+                  additionalProperties: decisionCriterionSchema,
+                },
+              },
+              required: ['type', 'instructions', 'criteria'],
+            },
+            {
+              type: 'object',
+              properties: {
+                type: { type: 'string', enum: ['score'] },
+                instructions: decisionInputSchema,
+                criteria: {
+                  description:
+                    'The levels ordered from lowest to highest (2 to 10)',
+                  type: 'array',
+                  minItems: 2,
+                  maxItems: 10,
+                  items: decisionCriterionSchema,
+                },
+              },
+              required: ['type', 'instructions', 'criteria'],
+            },
+          ],
+        },
+
+        DecisionAnswer: {
+          description: 'The answer to a typed question',
+          oneOf: [
+            {
+              type: 'object',
+              properties: {
+                type: { type: 'string', enum: ['boolean'] },
+                probability: {
+                  description:
+                    'The probability from 0 to 1 that the answer is true',
+                  type: 'number',
+                },
+              },
+              required: ['type', 'probability'],
+            },
+            {
+              type: 'object',
+              properties: {
+                type: { type: 'string', enum: ['choice'] },
+                choice: {
+                  description: 'The name of the most likely option',
+                  type: 'string',
+                },
+                probabilities: {
+                  description: 'The probability of each option',
+                  type: 'object',
+                  additionalProperties: { type: 'number' },
+                },
+              },
+              required: ['type', 'choice'],
+            },
+            {
+              type: 'object',
+              properties: {
+                type: { type: 'string', enum: ['score'] },
+                score: {
+                  description:
+                    'The probability-weighted level index, starting at 0',
+                  type: 'number',
+                },
+                probabilities: {
+                  description: 'The probability of each level keyed by its index',
+                  type: 'object',
+                  additionalProperties: { type: 'number' },
+                },
+              },
+              required: ['type', 'score'],
             },
           ],
         },

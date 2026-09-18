@@ -539,7 +539,7 @@ export function blueprintToTerraform(blueprint) {
 }
 
 provider "chatbotkit" {
-  # api_key = "..." # Or set CHATBOTKIT_API_KEY env var
+  # api_token = "..." # Or set CHATBOTKIT_API_TOKEN env var
 }`)
 
   // Convert each resource type in order

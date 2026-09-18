@@ -295,10 +295,14 @@ export default function Auth({
 
     toast.success('Signing you in...')
 
+    // @note NextAuth stores the identifier lowercased at issuance and rejects
+    // the callback on a strict compare, and codes are lowercase hex, so a
+    // capitalised address or code must be normalized before it is sent
+
     const url = new URL('/api/auth/callback/email', window.location.origin)
 
-    url.searchParams.append('email', formRef.current.email.value)
-    url.searchParams.append('token', formRef.current.token.value)
+    url.searchParams.append('email', email.normalize('NFKC').toLowerCase())
+    url.searchParams.append('token', token.toLowerCase())
     url.searchParams.append('callbackUrl', nextUrl)
 
     // @note email codes are single-use too, so skip client routing's

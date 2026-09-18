@@ -2,7 +2,12 @@ import { useEffect, useState } from 'react'
 
 import fetch from '@/lib/fetch'
 
-export type ModelType = 'language' | 'image' | 'video' | 'rerank'
+export type ModelType =
+  | 'language'
+  | 'image'
+  | 'video'
+  | 'rerank'
+  | 'decision'
 
 type AvailableModels = {
   ids: string[]

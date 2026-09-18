@@ -7,9 +7,11 @@ import {
 
 import {
   convertLanguageModelTokenCount,
+  getBaseDecisionModelTokenCount,
   getBaseImageModelTokenCount,
   getBaseLanguageModelTokenCount,
   getBaseVideoModelTokenCount,
+  getDecisionModelTokenRatio,
   getImageModelTokenRatio,
   getVideoModelTokenRatio,
 } from '@/lib/model.utils'
@@ -53,6 +55,17 @@ jest.mock('@/config/models', () => {
         },
       },
     },
+    decisionModels: {
+      jev: {
+        provider: 'typesafe',
+        pricing: {
+          tokenRatio: 0.003,
+          inputTokenRatio: 0.003,
+          outputTokenRatio: 0,
+        },
+      },
+    },
+    defaultDecisionModel: 'jev',
     videoModels: {
       ...actual.videoModels,
       'veo-3.1': {
@@ -470,6 +483,85 @@ describe('Usage', () => {
           getImageModelTokenRatio('gpt-image-1.5', type)
         )
       }
+    })
+  })
+
+  describe('addDecisionTokens', () => {
+    it('calibrates the tokens with the ratio of their side', () => {
+      const usage = new Usage()
+
+      usage.addDecisionTokens(100000, 'jev', 'input')
+
+      expect(usage.token).toBe(300)
+      expect(usage.items).toEqual([
+        { tokens: 100000, model: 'jev', type: 'input', debit: 300, ratio: 0.003 },
+      ])
+    })
+
+    it('debits every call at least one base token, like the other model classes', () => {
+      const usage = new Usage()
+
+      usage.addDecisionTokens(100, 'jev', 'input') // worth 0.3
+      usage.addDecisionTokens(300, 'jev', 'input') // worth 0.9
+
+      expect(usage.token).toBe(2)
+      expect(usage.items.map(({ debit }) => debit)).toEqual([1, 1])
+    })
+
+    it('agrees with getBaseDecisionModelTokenCount / getDecisionModelTokenRatio', () => {
+      const usage = new Usage()
+
+      usage.addDecisionTokens(4321, 'jev', 'input')
+
+      expect(usage.token).toBe(
+        getBaseDecisionModelTokenCount('jev', 4321, 'input')
+      )
+      expect(usage.items[0].ratio).toBe(
+        getDecisionModelTokenRatio('jev', 'input')
+      )
+    })
+
+    it('debits nothing for a free side and gives it no line item', () => {
+      const usage = new Usage()
+
+      usage.addDecisionTokens(5000, 'jev', 'output')
+
+      expect(usage.token).toBe(0)
+      expect(usage.items).toEqual([])
+    })
+
+    it('is a no-op for zero or negative tokens', () => {
+      const usage = new Usage()
+
+      usage.addDecisionTokens(0, 'jev', 'input')
+      usage.addDecisionTokens(-5, 'jev', 'input')
+
+      expect(usage.token).toBe(0)
+      expect(usage.items).toEqual([])
+    })
+
+    it('records as base tokens with the decision line items', async () => {
+      const usage = new Usage()
+
+      usage.addDecisionTokens(1000, 'jev', 'input')
+
+      await usage.recordBaseTokens({
+        user: { id: 'user-1' },
+        meta: { reason: 'decision/create' },
+      })
+
+      expect(recordLanguageTokenUsage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          count: 3,
+          model: baseLanguageModel,
+          meta: {
+            reason: 'decision/create',
+            lineItems: [
+              { tokens: 1000, model: 'jev', type: 'input', debit: 3, ratio: 0.003 },
+            ],
+          },
+        })
+      )
     })
   })
 

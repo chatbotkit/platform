@@ -342,7 +342,7 @@ export default function Index({ token, apiEndpoint, examples }) {
                         {`import { ChatBotKit } from '@chatbotkit/sdk'
 
 const cbk = new ChatBotKit({
-  secret: 'your-api-token-here'
+  token: 'your-api-token-here'
 })
 
 // Example: Create a conversation
@@ -474,7 +474,7 @@ func main() {
 }
 
 provider "chatbotkit" {
-  # api_key = "..." # Or set CHATBOTKIT_API_KEY env var
+  # api_token = "..." # Or set CHATBOTKIT_API_TOKEN env var
 }`}
                       </CodeBlock>
                       <p className="text-sm">

@@ -8,6 +8,7 @@ import {
 } from '@/lib/context.store'
 import debug from '@/lib/debug'
 import { installMcpTools } from '@/lib/mcp.direct'
+import { rethrowMcpError } from '@/lib/mcp.error'
 import { throwNotAuthorized } from '@/lib/response'
 import type { ZodSchemaFor } from '@/lib/zod.schema'
 import z from '@/lib/zod.schema'
@@ -104,23 +105,27 @@ export default authenticatedHandler(
       setContextNamespace(namespace)
     }
 
-    const result = await installMcpTools(session.user, {
-      sessionId,
+    try {
+      const result = await installMcpTools(session.user, {
+        sessionId,
 
-      url: mcpUrl,
-      headers: mcpHeaders,
+        url: mcpUrl,
+        headers: mcpHeaders,
 
-      headerSource,
+        headerSource,
 
-      tools,
+        tools,
 
-      prefix,
-    })
+        prefix,
+      })
 
-    debug('installed tools', { result }).log(
-      'auxiliary.skillset.ability.chatbotkit.mcp.tool.install.handler'
-    )
+      debug('installed tools', { result }).log(
+        'auxiliary.skillset.ability.chatbotkit.mcp.tool.install.handler'
+      )
 
-    return result
+      return result
+    } catch (e) {
+      rethrowMcpError(e)
+    }
   }
 )

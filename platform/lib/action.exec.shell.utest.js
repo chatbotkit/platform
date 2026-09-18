@@ -1,4 +1,5 @@
 import {
+  MAX_FILE_CONTENTS_BYTES,
   doShellExec,
   doShellSkillsetInstall,
   doShellScript,
@@ -211,6 +212,29 @@ describe('action.exec.shell', () => {
           { path: 'valid.txt', contents: 'valid content' },
         ],
       })
+    })
+
+    it('should reject a file whose contents exceed the byte cap', async () => {
+      const { exec } = await import('@/lib/sandbox.shell')
+
+      await expect(
+        doShellExec({
+          session: 'test-namespace',
+          input: 'cat big.txt',
+          params: {
+            cmd: 'cat big.txt',
+            files: [
+              {
+                path: 'big.txt',
+                contents: 'a'.repeat(MAX_FILE_CONTENTS_BYTES + 1),
+              },
+            ],
+          },
+          options: { userId: 'user-123' },
+        })
+      ).rejects.toThrow(/at most \d+ bytes/)
+
+      expect(exec).not.toHaveBeenCalled()
     })
 
     it('should throw error when cmd is missing', async () => {
@@ -989,6 +1013,38 @@ describe('action.exec.shell', () => {
           options: { userId: 'user-123' },
         })
       ).rejects.toThrow()
+    })
+
+    it('should reject contents that exceed the byte cap', async () => {
+      const { writeFile } = await import('@/lib/sandbox.shell')
+
+      await expect(
+        doShellWrite({
+          session: 'test-namespace',
+          input: '',
+          params: {
+            file: 'big.txt',
+            contents: 'a'.repeat(MAX_FILE_CONTENTS_BYTES + 1),
+          },
+          options: { userId: 'user-123' },
+        })
+      ).rejects.toThrow(/at most \d+ bytes/)
+
+      expect(writeFile).not.toHaveBeenCalled()
+
+      // @note the cap counts bytes, so a multi-byte string under the character
+      // limit can still exceed it
+      await expect(
+        doShellWrite({
+          session: 'test-namespace',
+          input: '',
+          params: {
+            file: 'big.txt',
+            contents: 'é'.repeat(MAX_FILE_CONTENTS_BYTES / 2 + 1),
+          },
+          options: { userId: 'user-123' },
+        })
+      ).rejects.toThrow(/at most \d+ bytes/)
     })
 
     it('should throw error when contents parameter is missing', async () => {

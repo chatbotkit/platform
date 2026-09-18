@@ -6,14 +6,25 @@ export default function useBroadcastChannel(
   const [channel, setChannel] = useState<BroadcastChannel | null>(null)
 
   useEffect(() => {
-    if (typeof window !== 'undefined' && window.BroadcastChannel) {
-      const bc = new BroadcastChannel(channelName)
+    if (typeof window === 'undefined' || !window.BroadcastChannel) {
+      return
+    }
 
-      setChannel(bc)
+    let bc: BroadcastChannel
 
-      return () => {
-        bc.close()
-      }
+    try {
+      bc = new BroadcastChannel(channelName)
+    } catch {
+      // @note Firefox throws SecurityError when storage is blocked, as in a
+      // third-party iframe under strict tracking protection
+
+      return
+    }
+
+    setChannel(bc)
+
+    return () => {
+      bc.close()
     }
   }, [channelName])
 

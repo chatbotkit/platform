@@ -16,7 +16,20 @@ export default function useBroadcastChannelState<T>(
   const valueRef = useRef<T>(value)
 
   useEffect(() => {
-    const channel = new BroadcastChannel(`${uniquePrefix}-${channelName}`)
+    if (typeof BroadcastChannel === 'undefined') {
+      return
+    }
+
+    let channel: BroadcastChannel
+
+    try {
+      channel = new BroadcastChannel(`${uniquePrefix}-${channelName}`)
+    } catch {
+      // @note Firefox throws SecurityError when storage is blocked, as in a
+      // third-party iframe under strict tracking protection
+
+      return
+    }
 
     setChannel(channel)
 

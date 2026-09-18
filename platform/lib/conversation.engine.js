@@ -154,6 +154,7 @@ import { detectPiiEntities, getSafeTextAndEntities } from '@/lib/pii'
 import { fallbackOnFailure, neitherTrue, wait } from '@/lib/promise'
 import { computePrompt } from '@/lib/prompt'
 import {
+  isUnknownError,
   throwBadRequest,
   throwConflict,
   throwNoSubscription,
@@ -5114,8 +5115,15 @@ ${getCombinedDescription(inlineSkillset.description)}`
     let success = false
 
     try {
+      // @note meta must travel along - an activity message carries its tool
+      // call and result there and has no text of its own
+
       const { summary, usage: compactUsage } = await compactMessages(
-        messagesToSummarize.map(({ type, text }) => ({ type, text })),
+        messagesToSummarize.map(({ type, text, meta }) => ({
+          type,
+          text,
+          meta,
+        })),
         {
           user: { id: this.userId },
           usageReferences: this.usageReferences,
@@ -5421,7 +5429,12 @@ export class BasicFunctionEngine extends CoreEngine {
                   { newMessages: [] }
                 )
               } catch (e) {
-                await captureException(e)
+                // @note an expected code, such as a channel wait that timed
+                // out, is normal operation and stays out of Sentry
+
+                if (isUnknownError(e)) {
+                  await captureException(e)
+                }
 
                 // @note we are deliberately hiding the error from the user
                 // because this is an internal issue

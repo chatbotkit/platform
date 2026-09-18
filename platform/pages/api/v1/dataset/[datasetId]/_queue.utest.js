@@ -1,7 +1,13 @@
+import prisma from '@/prisma/client'
+
 import { chunkFile } from '@/lib/chunk'
+import { logEvent } from '@/lib/log'
 import { upsertRecord } from '@/lib/record'
 
-import { splitImportBlob } from '@/pages/api/v1/dataset/[datasetId]/queue'
+import {
+  handleImportJobEndEvent,
+  splitImportBlob,
+} from '@/pages/api/v1/dataset/[datasetId]/queue'
 
 jest.mock('@/prisma/client', () => ({
   __esModule: true,
@@ -20,6 +26,18 @@ jest.mock('@/lib/store.types', () => ({
 jest.mock('@/lib/chunk', () => ({
   chunkFile: jest.fn(),
   chunkUrl: jest.fn(),
+}))
+
+jest.mock('@/lib/limit.core', () => ({
+  databaseLimitsOk: jest.fn(() => Promise.resolve(true)),
+}))
+
+jest.mock('@/lib/log', () => ({
+  logEvent: jest.fn(),
+}))
+
+jest.mock('@/lib/notify', () => ({
+  notifyDatasetSyncCompleted: jest.fn(),
 }))
 
 const capturedErrors = []
@@ -42,6 +60,34 @@ describe('dataset queue', () => {
   beforeEach(() => {
     jest.clearAllMocks()
     capturedErrors.length = 0
+  })
+
+  describe('handleImportJobEndEvent', () => {
+    it('marks the source integration synced without failing when it is gone', async () => {
+      prisma.dataset = {
+        findUnique: jest.fn().mockResolvedValue(mockDataset),
+      }
+
+      // @note updateMany resolves with a zero count for a deleted integration
+      // where update would throw a not found error
+      prisma.sitemapIntegration = {
+        updateMany: jest.fn().mockResolvedValue({ count: 0 }),
+      }
+
+      await handleImportJobEndEvent('dataset-123', {
+        context: { sitemapIntegrationId: 'sitemap-1' },
+        urls: [],
+      })
+
+      expect(prisma.sitemapIntegration.updateMany).toHaveBeenCalledWith({
+        where: { id: 'sitemap-1' },
+        data: expect.objectContaining({ syncStatus: 'synced' }),
+      })
+
+      expect(logEvent).toHaveBeenCalledWith(
+        expect.objectContaining({ type: 'dataset.import.job.finish' })
+      )
+    })
   })
 
   describe('splitImportBlob', () => {

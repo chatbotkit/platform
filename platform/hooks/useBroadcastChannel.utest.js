@@ -48,6 +48,21 @@ describe('useBroadcastChannel', () => {
       expect(mockBroadcastChannel).toHaveBeenCalledWith('custom-name')
       expect(result.current.name).toBe('custom-name')
     })
+
+    it('should stay null when the browser refuses the channel', () => {
+      global.BroadcastChannel = jest.fn(() => {
+        throw new DOMException('The operation is insecure.', 'SecurityError')
+      })
+
+      const { result, unmount } = renderHook(() =>
+        useBroadcastChannel('test-channel')
+      )
+
+      expect(global.BroadcastChannel).toHaveBeenCalledWith('test-channel')
+      expect(result.current).toBeNull()
+
+      expect(() => unmount()).not.toThrow()
+    })
   })
 
   describe('channel lifecycle', () => {

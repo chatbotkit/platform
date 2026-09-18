@@ -17,6 +17,8 @@ import {
 import memcache from '@/lib/memcache'
 import {
   audioModelToUseType,
+  decisionModelToUseType,
+  getBaseDecisionModelTokenCount,
   getBaseImageModelTokenCount,
   getBaseLanguageModelTokenCount,
   getBaseRerankModelTokenCount,
@@ -24,6 +26,7 @@ import {
   imageModelToUseType,
   languageModelToUseType,
   rerankModelToUseType,
+  useTypeToDecisionModelMapping,
   useTypeToImageModelMapping,
   useTypeToLanguageModelMapping,
   useTypeToRerankModelMapping,
@@ -95,6 +98,13 @@ export function getCalibratedBaseCount(type: string, count: number): number {
   if (useTypeToRerankModelMapping[type]) {
     return getBaseRerankModelTokenCount(
       useTypeToRerankModelMapping[type],
+      count
+    )
+  }
+
+  if (useTypeToDecisionModelMapping[type]) {
+    return getBaseDecisionModelTokenCount(
+      useTypeToDecisionModelMapping[type],
       count
     )
   }
@@ -785,6 +795,43 @@ export async function recordRerankTokenUsage({
   }).log('usage.record.recordRerankTokenUsage')
 
   const type = rerankModelToUseType(model)
+
+  // @note the reason we do not calibrate here is because this operation is
+  // handled by the usage queue
+
+  await recordUsage({ user, type, count, meta, references })
+}
+
+/**
+ * Options for recordDecisionTokenUsage.
+ */
+interface RecordDecisionTokenUsageOptions {
+  user: Pick<User, 'id'>
+  count: number
+  model: string
+  meta?: Record<string, unknown>
+  references?: UsageReferences
+}
+
+/**
+ * Records decision model token usage.
+ */
+export async function recordDecisionTokenUsage({
+  user,
+  count,
+  model,
+  meta,
+  references,
+}: RecordDecisionTokenUsageOptions): Promise<void> {
+  debug(`recording decision token usage`, {
+    user,
+    count,
+    model,
+    meta,
+    references,
+  }).log('usage.record.recordDecisionTokenUsage')
+
+  const type = decisionModelToUseType(model)
 
   // @note the reason we do not calibrate here is because this operation is
   // handled by the usage queue

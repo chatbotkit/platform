@@ -17,13 +17,13 @@ import {
 import { getStore } from '@/lib/store.types'
 
 import metaSchema from '@/schemas/meta'
-import recordTextSchema from '@/schemas/recordText'
+import { nonBlankRecordTextSchema } from '@/schemas/recordText'
 import sourceSchema from '@/schemas/source'
 
 export const bodySchema = schema.object({
   // @note the vector store refuses a record without text - reject blank text
   // here so the caller gets a 400 instead of a store error
-  text: recordTextSchema.invalid('').pattern(/\S/, 'non-blank').required(),
+  text: nonBlankRecordTextSchema.required(),
 
   source: sourceSchema,
 

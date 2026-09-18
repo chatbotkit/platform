@@ -335,6 +335,39 @@ describe('useBroadcastChannelState', () => {
     })
   })
 
+  describe('refused channel', () => {
+    let originalBroadcastChannel
+
+    beforeEach(() => {
+      originalBroadcastChannel = global.BroadcastChannel
+
+      global.BroadcastChannel = jest.fn(() => {
+        throw new DOMException('The operation is insecure.', 'SecurityError')
+      })
+    })
+
+    afterEach(() => {
+      global.BroadcastChannel = originalBroadcastChannel
+    })
+
+    it('should keep the initial value and ignore sends', () => {
+      const { result, unmount } = renderHook(() =>
+        useBroadcastChannelState('test-channel', 'initial')
+      )
+
+      expect(global.BroadcastChannel).toHaveBeenCalledTimes(1)
+      expect(result.current[0]).toBe('initial')
+
+      act(() => {
+        result.current[1]('updated')
+      })
+
+      expect(result.current[0]).toBe('initial')
+
+      expect(() => unmount()).not.toThrow()
+    })
+  })
+
   describe('channel isolation', () => {
     it('should isolate messages between different channel names', async () => {
       const { result: result1 } = renderHook(() =>

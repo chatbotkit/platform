@@ -1,6 +1,9 @@
 // @ts-check
+import { MAX_DB_STRING_BYTES_LENGTH } from '@/prisma/constraints'
+
 import { resolveBuilderExperience } from '@/lib/experience'
 import { hostToHostname } from '@/lib/host.parse'
+import { trimToByteLength } from '@/lib/string'
 
 import { getDocumentHost } from '@/hooks/useHost'
 import { getPartnerFromDocument } from '@/hooks/usePartner'
@@ -12,6 +15,19 @@ const allSteps = [
   '/new/user',
   '/new/channel',
 ]
+
+/**
+ * @param {string|undefined} value
+ * @param {number} maxLength
+ * @returns {string|undefined}
+ */
+function clip(value, maxLength) {
+  if (typeof value !== 'string') {
+    return value
+  }
+
+  return trimToByteLength(value.slice(0, maxLength), MAX_DB_STRING_BYTES_LENGTH)
+}
 
 /**
  * @type {import('./index').Template}
@@ -56,13 +72,14 @@ export const template = {
     const { channel, organization, industry, role, goal, intent } = values
 
     // @note the values are clipped to the same limits /api/v1/me/update
-    // enforces so pre-seeded or stale values can never fail the save
+    // enforces so pre-seeded or stale values can never fail the save - the
+    // string columns are also byte-bound, which matters for non-latin names
     const { error: userUpdateError } = await fetch(`/api/v1/me/update`, {
       data: {
-        channel: channel?.slice(0, 64),
-        organization: organization?.slice(0, 128),
-        industry: industry?.slice(0, 64),
-        role: role?.slice(0, 64),
+        channel: clip(channel, 64),
+        organization: clip(organization, 128),
+        industry: clip(industry, 64),
+        role: clip(role, 64),
         goal: goal?.slice(0, 2048),
       },
       loadingMessage: `Saving your information and preferences...`,

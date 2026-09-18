@@ -5,6 +5,16 @@ function sleep(ms) {
 }
 
 describe('createDebouncedAction (leading throttle)', () => {
+  // @note the window is measured with Date.now(), so a real clock lets a
+  // loaded CI runner push the second trigger past it; fake timers pin it
+  beforeEach(() => {
+    jest.useFakeTimers()
+  })
+
+  afterEach(() => {
+    jest.useRealTimers()
+  })
+
   test('immediate first trigger', async () => {
     let count = 0
 
@@ -48,7 +58,7 @@ describe('createDebouncedAction (leading throttle)', () => {
     })
 
     await d.trigger()
-    await sleep(45)
+    await jest.advanceTimersByTimeAsync(45)
     await d.trigger()
 
     expect(count).toBe(2)
@@ -105,10 +115,19 @@ describe('createDebouncedAction (leading throttle)', () => {
       intervalMs: 50,
     })
 
-    await d.trigger()
-    await d.trigger()
-    await sleep(55)
-    await d.trigger()
+    // the action sleeps on the fake clock, so each trigger is driven by hand
+    async function triggerAndSettle() {
+      const pending = d.trigger()
+
+      await jest.advanceTimersByTimeAsync(10)
+
+      await pending
+    }
+
+    await triggerAndSettle()
+    await triggerAndSettle()
+    await jest.advanceTimersByTimeAsync(55)
+    await triggerAndSettle()
 
     expect(events).toEqual(['done', 'done'])
   })
@@ -136,7 +155,7 @@ describe('createDebouncedAction (leading throttle)', () => {
     await d1.trigger()
     await d2.trigger() // suppressed
 
-    await sleep(35)
+    await jest.advanceTimersByTimeAsync(35)
 
     await d1.trigger()
     await d2.trigger()

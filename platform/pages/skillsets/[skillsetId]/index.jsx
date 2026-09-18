@@ -543,7 +543,7 @@ function getSkillsetExecutionSections(
         content: `import { ChatBotKit } from '@chatbotkit/sdk'
 
 const client = new ChatBotKit({
-  secret: process.env.CHATBOTKIT_API_SECRET,
+  token: process.env.CHATBOTKIT_API_TOKEN,
 })
 
 const skillsetId = '${skillset.id}'
@@ -582,7 +582,7 @@ func main() {
   ctx := context.Background()
 
   client := sdk.New(sdk.Options{
-    Secret: os.Getenv("CHATBOTKIT_API_SECRET"),
+    Token: os.Getenv("CHATBOTKIT_API_TOKEN"),
   })
 
   skillsetID := "${skillset.id}"
@@ -615,12 +615,12 @@ func main() {
       code: {
         language: 'bash',
         content: `# Required env vars:
-# export CHATBOTKIT_API_SECRET="..."
+# export CHATBOTKIT_API_TOKEN="..."
 # export SKILLSET_ID="${skillset.id}"
 # export ABILITY_ID="${firstAbilityId}"
 
 API_BASE="${apiBase}"
-AUTH_HEADER="Authorization: Bearer $CHATBOTKIT_API_SECRET"
+AUTH_HEADER="Authorization: Bearer $CHATBOTKIT_API_TOKEN"
 JSON_HEADER="Content-Type: application/json"
 
 curl -X POST "$API_BASE/skillset/$SKILLSET_ID/ability/$ABILITY_ID/execute" \\

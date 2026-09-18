@@ -6,12 +6,15 @@ import debug from '@/lib/debug'
 import { captureObservation } from '@/lib/error'
 import {
   convertLanguageModelTokenCount,
+  getBaseDecisionModelTokenCount,
   getBaseImageModelTokenCount,
   getBaseLanguageModelTokenCount,
   getBaseVideoModelTokenCount,
+  getDecisionModelTokenRatio,
   getImageModelTokenRatio,
   getLanguageModelTokenRatio,
   getVideoModelTokenRatio,
+  parseDecisionModel,
   parseImageModel,
   parseLanguageModel,
   parseVideoModel,
@@ -209,6 +212,54 @@ export class Usage {
       '#baseToken': this.#baseToken,
       '#lineItems': this.#lineItems,
     }).log('usage.Usage.addImageTokens')
+  }
+
+  /**
+   * Add decision tokens to the usage. Mirrors addImageTokens but uses the
+   * decision model calibration.
+   */
+  addDecisionTokens(
+    tokens: number,
+    model: string,
+    type: OperationType = 'default'
+  ) {
+    debug(`adding decision tokens`, {
+      '#baseToken': this.#baseToken,
+      '#lineItems': this.#lineItems,
+
+      tokens,
+      model,
+      type,
+    }).log('usage.Usage.addDecisionTokens')
+
+    const tokenRatio = getDecisionModelTokenRatio(model, type)
+
+    // @note a side the model does not charge for (zero ratio) is not usage
+
+    if (tokens <= 0 || tokenRatio === 0) {
+      debug(`no tokens to add`, { tokens }).log('usage.Usage.addDecisionTokens')
+
+      return
+    }
+
+    const { name: modelName } = parseDecisionModel(model)
+
+    const baseToken = getBaseDecisionModelTokenCount(model, tokens, type)
+
+    this.#baseToken += baseToken
+
+    this.#lineItems.push({
+      tokens: tokens,
+      model: modelName,
+      type: type,
+      debit: baseToken,
+      ratio: tokenRatio,
+    })
+
+    debug(`added decision tokens`, {
+      '#baseToken': this.#baseToken,
+      '#lineItems': this.#lineItems,
+    }).log('usage.Usage.addDecisionTokens')
   }
 
   /**
