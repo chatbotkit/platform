@@ -34,9 +34,12 @@ Sign in and open `/tokens` to create a token. The
 SDKs send it as a bearer token. The value shown at creation time is the only
 copy, so store it where the client will read it.
 
-The Node.js SDK and CLI read `CHATBOTKIT_API_SECRET`, and the Terraform
-provider reads `CHATBOTKIT_API_KEY`. The Python and Go SDKs take the token as
-a constructor argument; pass it from whatever environment variable you prefer.
+The CLI and the Terraform provider read the token from `CHATBOTKIT_API_TOKEN`,
+or `CBK_API_TOKEN` for short. The older `CHATBOTKIT_API_SECRET` and
+`CHATBOTKIT_API_KEY` names, and their `CBK_` forms, are still read. The
+Node.js, Python and Go SDKs take the token as the `token` option; pass it from
+whatever environment variable you prefer. The former option names (`secret`,
+and `api_key` in Terraform) still work and are deprecated.
 
 ## Point an SDK at your deployment
 
@@ -45,9 +48,11 @@ replaces it. The SDKs build request paths as `/api/v1/...` and only strip the
 `/api` prefix for the hosted API host, so the override is the bare origin of
 your deployment, with no `/api` suffix.
 
-None of the SDKs read the base URL from the environment. Set it in code or
-provider configuration, sourcing the value from your own configuration if the
-same program has to run against both a local deployment and the hosted API.
+The SDK libraries do not read the base URL from the environment; set it in
+code. The CLI and the Terraform provider read the deployment origin from
+`CHATBOTKIT_API_URL` (or `CBK_API_URL`), so one variable points both at the
+same deployment. Plain `http` works for local use, and a path prefix on the
+origin is preserved, so a deployment served under a sub-path is reachable.
 
 ### Node.js
 
@@ -59,7 +64,7 @@ npm install @chatbotkit/sdk
 import { BotClient } from '@chatbotkit/sdk/bot/index.js'
 
 const bot = new BotClient({
-  secret: process.env.CHATBOTKIT_API_SECRET,
+  token: process.env.CHATBOTKIT_API_TOKEN,
   baseUrl: 'http://127.0.0.1:8080',
 })
 
@@ -82,7 +87,7 @@ import os
 from chatbotkit import ChatBotKit
 
 cbk = ChatBotKit(
-    secret=os.environ["CHATBOTKIT_API_SECRET"],
+    token=os.environ["CHATBOTKIT_API_TOKEN"],
     base_url="http://127.0.0.1:8080",
 )
 
@@ -97,7 +102,7 @@ go get github.com/chatbotkit/go-sdk
 
 ```go
 client := sdk.New(sdk.Options{
-	Secret:  os.Getenv("CHATBOTKIT_API_SECRET"),
+	Token:   os.Getenv("CHATBOTKIT_API_TOKEN"),
 	BaseURL: "http://127.0.0.1:8080",
 })
 
@@ -107,12 +112,13 @@ bots, err := client.Bot.List(ctx, nil)
 ### Terraform
 
 The provider speaks GraphQL, so its `base_url` is the full GraphQL endpoint
-rather than the origin.
+rather than the origin. When `base_url` is not set, the provider derives the
+endpoint from the origin in `CHATBOTKIT_API_URL`.
 
 ```terraform
 provider "chatbotkit" {
-  api_key  = var.chatbotkit_api_key # or CHATBOTKIT_API_KEY
-  base_url = "http://127.0.0.1:8080/api/v1/graphql"
+  api_token = var.chatbotkit_api_token # or CHATBOTKIT_API_TOKEN
+  base_url  = "http://127.0.0.1:8080/api/v1/graphql"
 }
 ```
 
@@ -142,7 +148,7 @@ describe a local instance.
 A plain HTTP call confirms the origin and token before involving an SDK:
 
 ```bash
-curl -H "Authorization: Bearer $CHATBOTKIT_API_SECRET" \
+curl -H "Authorization: Bearer $CHATBOTKIT_API_TOKEN" \
   http://127.0.0.1:8080/api/v1/bot/list
 ```
 

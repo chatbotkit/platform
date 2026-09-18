@@ -22,6 +22,22 @@ jest.mock('@/lib/model.provider.openrouter', () => ({
   editImage: jest.fn(),
 }))
 
+// @note the module resolves models through the mocked parseAndRevealImageModel
+// below; the catalogue only has to be non-empty, as it is on any deployment
+// that serves image models
+jest.mock('@/config/models', () => {
+  const actual = jest.requireActual('@/config/models')
+
+  return {
+    ...actual,
+    __esModule: true,
+    imageModels: {
+      ...actual.imageModels,
+      'gpt-image-1': { provider: 'openai' },
+    },
+  }
+})
+
 jest.mock('@/lib/model.utils', () => ({
   parseAndRevealImageModel: jest.fn(),
 }))

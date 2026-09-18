@@ -38,7 +38,7 @@ import { exec, readFile, runCode, writeFile } from '@/lib/sandbox.shell'
 import { getTemporaryUserToken } from '@/lib/session.temp'
 import { getActiveSkillsetAbilities } from '@/lib/skillset.abilities'
 import { canUseSkillset } from '@/lib/skillset.access'
-import { toKebabCase } from '@/lib/string'
+import { byteLength, toKebabCase } from '@/lib/string'
 import { Usage } from '@/lib/usage.model'
 import { fastGetUserById } from '@/lib/user.get'
 import { revealUserPlan } from '@/lib/user.plan'
@@ -174,6 +174,20 @@ function getShellExecutionSession(options: ActionOptions): string {
 // @see data/abilities/catalogue/cbk.shell.ts for ability definitions related
 // to these schemas
 
+// @note the sandbox service caps a write-file request body at 4 MiB and the
+// contents travel base64-encoded (4/3 inflation), so 3 MB of contents is the
+// most that fits; the model gets a message it can act on instead of a 413
+export const MAX_FILE_CONTENTS_BYTES = 3_000_000
+
+function boundedContents(description: string) {
+  return z
+    .string()
+    .refine((value) => byteLength(value) <= MAX_FILE_CONTENTS_BYTES, {
+      message: `contents must be at most ${MAX_FILE_CONTENTS_BYTES} bytes; write the file in smaller parts`,
+    })
+    .describe(description)
+}
+
 /**
  * Shell exec schema defines the parameters for executing shell commands.
  */
@@ -183,7 +197,10 @@ export const shellExecSchema = z.object({
     .array(
       z.object({
         path: z.string().min(1).describe('The file path'),
-        contents: z.string().min(1).describe('The file contents'),
+        contents: boundedContents('The file contents').refine(
+          (value) => value.length > 0,
+          { message: 'contents must not be empty' }
+        ),
       })
     )
     .optional()
@@ -288,7 +305,7 @@ export type ShellReadSchema = z.infer<typeof shellReadSchema>
  */
 export const shellWriteSchema = z.object({
   file: z.string().min(1).describe('The file path to write'),
-  contents: z.string().describe('The contents to write to the file'),
+  contents: boundedContents('The contents to write to the file'),
   startLine: z.coerce
     .number()
     .int()
@@ -316,10 +333,9 @@ export type ShellWriteSchema = z.infer<typeof shellWriteSchema>
 export const shellRwSchema = z.object({
   file: z.string().min(1).describe('The file path to read from or write to'),
   mode: z.enum(['read', 'write']).describe('The operation mode: read or write'),
-  contents: z
-    .string()
-    .optional()
-    .describe('The contents to write to the file (required for write mode)'),
+  contents: boundedContents(
+    'The contents to write to the file (required for write mode)'
+  ).optional(),
   startLine: z.coerce
     .number()
     .int()

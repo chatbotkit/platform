@@ -14,9 +14,9 @@ import {
 import { INITIATE_EVENT_TYPE, sendEvent } from './queue'
 
 export const bodySchema = schema.object({
-  email: schema.string().trim().email(),
-  subject: schema.string().trim().min(1),
-  text: schema.string().trim().min(1),
+  email: schema.string().trim().email().required(),
+  subject: schema.string().trim().min(1).required(),
+  text: schema.string().trim().min(1).required(),
 })
 
 /**

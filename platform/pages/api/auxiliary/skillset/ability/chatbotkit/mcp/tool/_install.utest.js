@@ -267,6 +267,25 @@ describe('auxiliary/skillset/ability/chatbotkit/mcp/tool/install', () => {
         capturedHandlerFn(mockSession, baseParameters, mockHeaders)
       ).rejects.toThrow('Connection refused')
     })
+
+    it('should convert an McpError from installMcpTools to a FetchError', async () => {
+      const { McpError } = require('@modelcontextprotocol/sdk/types.js')
+      const { FetchError } = require('@/lib/fetch')
+
+      installMcpTools.mockRejectedValue(
+        new McpError(-32001, 'Request timed out', { timeout: 60000 })
+      )
+
+      const error = await capturedHandlerFn(
+        mockSession,
+        baseParameters,
+        mockHeaders
+      ).catch((e) => e)
+
+      expect(error).toBeInstanceOf(FetchError)
+      expect(error.message).toBe('MCP error -32001: Request timed out')
+      expect(error.code).toBe('-32001')
+    })
   })
 
   describe('combined context', () => {

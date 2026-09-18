@@ -1,4 +1,5 @@
 import type {
+  AnyDecisionModel,
   AnyImageModel,
   AnyLanguageModel,
   AnyRerankModel,
@@ -55,6 +56,8 @@ const WITH_MISTRAL_MODELS = IS_BROWSER || !!process.env.MISTRAL_MODELS_API_KEY
 const WITH_GROQ_MODELS = IS_BROWSER || !!process.env.GROQ_MODELS_API_KEY
 
 const WITH_DEEPSEEK_MODELS = IS_BROWSER || !!process.env.DEEPSEEK_MODELS_API_KEY
+
+const WITH_TYPESAFE_MODELS = IS_BROWSER || !!process.env.TYPESAFE_MODELS_API_KEY
 
 // @note these aliases carry no constraint of their own; they exist so a
 // catalogue's keys read as what they are. They came across from the JSDoc
@@ -4176,48 +4179,6 @@ export const vercelLanguageModels: Record<
 
       // mistral
 
-      'devstral-2': {
-        description: `Devstral 2 is Mistral AI's coding-focused model for agentic software engineering workflows.`,
-
-        provider: 'vercel',
-
-        providerModel: 'mistral/devstral-2',
-
-        family: 'devstral',
-
-        features: ['chat', 'functions'],
-
-        region: 'us',
-        availableRegions: ['us'],
-
-        maxTokens: 256_000,
-        maxInputTokens: 256_000 - 64_000,
-        maxOutputTokens: 64_000,
-
-        pricing: {
-          tokenRatio: 0.1111,
-          inputTokenRatio: 0.0286,
-          outputTokenRatio: 0.1111,
-          inputPrice: 0.4,
-          outputPrice: 2,
-        },
-
-        interactionMaxMessages: DEFAULT_INTERACTION_MAX_MESSAGES,
-
-        thresholdStrategy: 'truncate',
-
-        visible: true,
-        deprecated: false,
-
-        temperature: DEFAULT_TEMPERATURE,
-
-        frequencyPenalty: 0,
-        presencePenalty: 0,
-
-        tags: [],
-
-        addedDate: '2026-06-14',
-      },
 
       'mistral-large-latest': {
         description: `Top-tier reasoning for high-complexity tasks. The most powerful model of the Mistral AI family.`,
@@ -4233,8 +4194,8 @@ export const vercelLanguageModels: Record<
         region: 'us',
         availableRegions: ['us'],
 
-        maxTokens: 256_000,
-        maxInputTokens: 256_000 - 64_000,
+        maxTokens: 262_144,
+        maxInputTokens: 262_144 - 64_000,
         maxOutputTokens: 64_000,
 
         pricing: {
@@ -4276,16 +4237,16 @@ export const vercelLanguageModels: Record<
         region: 'us',
         availableRegions: ['us'],
 
-        maxTokens: 32_000,
-        maxInputTokens: 28_000,
+        maxTokens: 262_144,
+        maxInputTokens: 262_144 - 4_000,
         maxOutputTokens: 4_000,
 
         pricing: {
-          tokenRatio: 0.0167,
-          inputTokenRatio: 0.0071,
-          outputTokenRatio: 0.0167,
-          inputPrice: 0.1,
-          outputPrice: 0.3,
+          tokenRatio: 0.0333,
+          inputTokenRatio: 0.0107,
+          outputTokenRatio: 0.0333,
+          inputPrice: 0.15,
+          outputPrice: 0.6,
         },
 
         interactionMaxMessages: DEFAULT_INTERACTION_MAX_MESSAGES,
@@ -4334,11 +4295,11 @@ export const vercelLanguageModels: Record<
         maxOutputTokens: Math.ceil(1_000_000 * MAX_OUTPUT_TOKENS_RATIO),
 
         pricing: {
-          tokenRatio: 0.2444,
-          inputTokenRatio: 0.15,
-          outputTokenRatio: 0.2444,
-          inputPrice: 2.1,
-          outputPrice: 4.4,
+          tokenRatio: 0.2667,
+          inputTokenRatio: 0.1714,
+          outputTokenRatio: 0.2667,
+          inputPrice: 2.4,
+          outputPrice: 4.8,
         },
 
         interactionMaxMessages: DEFAULT_INTERACTION_MAX_MESSAGES,
@@ -5789,8 +5750,8 @@ export const vercelLanguageModels: Record<
         region: 'us',
         availableRegions: ['us'],
 
-        maxTokens: 262_114,
-        maxInputTokens: 262_114 - 65_535,
+        maxTokens: 262_144,
+        maxInputTokens: 262_144 - 65_535,
         maxOutputTokens: 65_535,
 
         pricing: {
@@ -6432,46 +6393,6 @@ export const mistralLanguageModels: Record<
   MistralLanguageModel
 > = WITH_MISTRAL_MODELS
   ? {
-      'devstral-2': {
-        description: `Devstral 2 is Mistral AI's coding-focused model for agentic software engineering workflows.`,
-
-        provider: 'mistral',
-
-        family: 'devstral',
-
-        features: ['chat', 'functions'],
-
-        region: 'us',
-        availableRegions: ['us'],
-
-        maxTokens: 256_000,
-        maxInputTokens: 256_000 - 64_000,
-        maxOutputTokens: 64_000,
-
-        pricing: {
-          tokenRatio: 0.1111,
-          inputTokenRatio: 0.0286,
-          outputTokenRatio: 0.1111,
-          inputPrice: 0.4,
-          outputPrice: 2,
-        },
-
-        interactionMaxMessages: DEFAULT_INTERACTION_MAX_MESSAGES,
-
-        thresholdStrategy: 'truncate',
-
-        visible: true,
-        deprecated: false,
-
-        temperature: DEFAULT_TEMPERATURE,
-
-        frequencyPenalty: 0,
-        presencePenalty: 0,
-
-        tags: [],
-
-        addedDate: '2026-06-14',
-      },
 
       'mistral-large-latest': {
         description: `Top-tier reasoning for high-complexity tasks. The most powerful model of the Mistral AI family.`,
@@ -6485,8 +6406,8 @@ export const mistralLanguageModels: Record<
         region: 'us',
         availableRegions: ['us'],
 
-        maxTokens: 256_000,
-        maxInputTokens: 256_000 - 64_000,
+        maxTokens: 262_144,
+        maxInputTokens: 262_144 - 64_000,
         maxOutputTokens: 64_000,
 
         pricing: {
@@ -6526,16 +6447,16 @@ export const mistralLanguageModels: Record<
         region: 'us',
         availableRegions: ['us'],
 
-        maxTokens: 32_000,
-        maxInputTokens: 28_000,
+        maxTokens: 262_144,
+        maxInputTokens: 262_144 - 4_000,
         maxOutputTokens: 4_000,
 
         pricing: {
-          tokenRatio: 0.0167,
-          inputTokenRatio: 0.0071,
-          outputTokenRatio: 0.0167,
-          inputPrice: 0.1,
-          outputPrice: 0.3,
+          tokenRatio: 0.0333,
+          inputTokenRatio: 0.0107,
+          outputTokenRatio: 0.0333,
+          inputPrice: 0.15,
+          outputPrice: 0.6,
         },
 
         interactionMaxMessages: DEFAULT_INTERACTION_MAX_MESSAGES,
@@ -7385,6 +7306,9 @@ const deprecatedLanguageModelProxyMapping: Record<string, string> = {
   'claude-v2.1': 'claude-3.5-sonnet',
   'claude-v2': 'claude-3.5-sonnet',
   'claude-instant-v1': 'claude-3.5-haiku',
+
+  // Mistral
+  'devstral-2': 'mistral-large-latest',
 
   // Deepseek
   'deepseek-chat': 'deepseek-v3.2',
@@ -8449,6 +8373,95 @@ export const visibleRerankModels: Record<string, AnyRerankModel> =
 // ---
 // ---
 
+const jevDecisionModel = {
+  description: `Jev is TypeSafe AI's System One decision model. It answers typed questions (boolean, choice, score) about a shared state and returns probabilities, suited to classification, routing, rubric-based assessment and automated verification.`,
+
+  family: 'jev',
+
+  features: [],
+
+  pricing: {
+    // @note input-only; every provider bills jev at $0.042 per 1M input tokens
+    // and nothing for output, so the default ratio carries the input ratio.
+    tokenRatio: 0.003,
+    inputTokenRatio: 0.003,
+    outputTokenRatio: 0,
+    inputPrice: 0.042,
+    outputPrice: 0,
+  },
+
+  region: 'us',
+  availableRegions: ['us'],
+
+  visible: true,
+  deprecated: false,
+
+  tags: [],
+
+  addedDate: '2026-09-18',
+} satisfies Omit<AnyDecisionModel, 'provider'>
+
+export const openrouterDecisionModels: Record<string, AnyDecisionModel> =
+  WITH_OPENROUTER_MODELS
+    ? {
+        jev: {
+          ...jevDecisionModel,
+
+          provider: 'openrouter',
+
+          providerModel: '~typesafe/jev-latest',
+        },
+      }
+    : {}
+
+export const vercelDecisionModels: Record<string, AnyDecisionModel> =
+  WITH_VERCEL_MODELS
+    ? {
+        jev: {
+          ...jevDecisionModel,
+
+          provider: 'vercel',
+
+          providerModel: 'typesafe-ai/jev',
+        },
+      }
+    : {}
+
+export const typesafeDecisionModels: Record<string, AnyDecisionModel> =
+  WITH_TYPESAFE_MODELS
+    ? {
+        jev: {
+          ...jevDecisionModel,
+
+          provider: 'typesafe',
+
+          providerModel: 'jev-latest',
+        },
+      }
+    : {}
+
+// @note one name, served by whichever provider is configured; a later spread
+// wins, so the official TypeSafe API takes precedence over the gateways.
+export const decisionModels: Record<string, AnyDecisionModel> = {
+  ...openrouterDecisionModels,
+  ...vercelDecisionModels,
+  ...typesafeDecisionModels,
+}
+
+export const defaultDecisionModel: string = pickDefaultModel(
+  'jev',
+  decisionModels
+)
+
+export const visibleDecisionModels: Record<string, AnyDecisionModel> =
+  Object.fromEntries(
+    Object.entries(decisionModels).filter(([, { visible }]) => visible)
+  )
+
+// ---
+// ---
+// ---
+
 export const speechToTextModels: Record<string, AnySpeechToTextModel> = {
   'gpt-4o-transcribe': {
     description: `GPT-4o Transcribe is OpenAI's speech-to-text model for audio transcription.`,
@@ -8543,6 +8556,10 @@ const models = {
   rerankModels,
   defaultRerankModel,
   visibleRerankModels,
+
+  decisionModels,
+  defaultDecisionModel,
+  visibleDecisionModels,
 
   speechToTextModels,
   defaultSpeechToTextModel,

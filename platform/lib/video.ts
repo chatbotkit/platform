@@ -1,6 +1,6 @@
 import { assertUnreachable } from '@chatbotkit-dev/typescript-utils/unreachable'
 
-import { defaultVideoModel } from '@/config/models'
+import { defaultVideoModel, videoModels } from '@/config/models'
 
 import { parseDataURL } from '@/lib/dataurl.parse'
 import debug from '@/lib/debug'
@@ -16,6 +16,7 @@ import {
   editVideo as editVercelVideo,
 } from '@/lib/model.provider.vercel.adaptor'
 import { parseAndRevealVideoModel } from '@/lib/model.utils'
+import { throwBadRequest } from '@/lib/response'
 import { getObject, putObject } from '@/lib/storage'
 
 import { v1 as uuidv1 } from 'uuid'
@@ -226,6 +227,13 @@ export async function createVideo(
 
   const { model = defaultVideoModel, user, signal } = options || {}
 
+  // @note a deployment serves video models only when a provider key is set;
+  // without one the catalogue is empty and any name would pass validation
+
+  if (!Object.keys(videoModels).length) {
+    throwBadRequest('No video model is configured on this deployment')
+  }
+
   const { name, config } = parseAndRevealVideoModel(model)
 
   const provider = config.provider
@@ -314,7 +322,21 @@ export async function editVideo(
     throw new Error('At least one video, frame, or audio is required')
   }
 
-  const { model = 'grok-imagine-video', user, signal } = options || {}
+  // @note the preferred edit model holds only when the deployment serves it;
+  // otherwise the catalogue default stands in rather than a name that cannot
+  // resolve
+  const {
+    model = videoModels['grok-imagine-video'] ? 'grok-imagine-video' : defaultVideoModel,
+    user,
+    signal,
+  } = options || {}
+
+  // @note a deployment serves video models only when a provider key is set;
+  // without one the catalogue is empty and any name would pass validation
+
+  if (!Object.keys(videoModels).length) {
+    throwBadRequest('No video model is configured on this deployment')
+  }
 
   const { name, config } = parseAndRevealVideoModel(model)
 

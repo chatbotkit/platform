@@ -18,13 +18,13 @@ import { withSession } from '@/lib/session.handler'
 import { getStore } from '@/lib/store.types'
 
 import metaSchema from '@/schemas/meta'
-import recordTextSchema from '@/schemas/recordText'
+import { nonBlankRecordTextSchema } from '@/schemas/recordText'
 import sourceSchema from '@/schemas/source'
 
 export const bodySchema = schema.object({
   // @note optional, but the store keeps the stored text only when the field
   // is absent - an empty string would replace it and the store refuses that
-  text: recordTextSchema.invalid('').pattern(/\S/, 'non-blank'),
+  text: nonBlankRecordTextSchema,
 
   source: sourceSchema,
 

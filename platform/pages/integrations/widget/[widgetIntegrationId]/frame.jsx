@@ -70,8 +70,8 @@ import { getAccept } from '@/lib/mime'
 import { equal, merge, pick } from '@/lib/object'
 import { sleep } from '@/lib/promise'
 import { isComponent } from '@/lib/react'
-import { captureUnknownError, isUnknownError } from '@/lib/response'
 import { textToEmojiSpans, wordsToSpans } from '@/lib/rehype.plugins'
+import { captureUnknownError, isUnknownError } from '@/lib/response'
 import { saveBlob, saveUrl } from '@/lib/save'
 import { buildOriginRestrictedCsp } from '@/lib/security.headers'
 import { anyString, byteSlice, getRandomId, toPascalCase } from '@/lib/string'
@@ -564,7 +564,6 @@ export function Form({ className, children, isLast, ...props }) {
     return [method, url, fields]
   }, [children])
 
-  // eslint-disable-next-line react-hooks/rules-of-hooks
   const [target] = useDOMQuerySelector('#mainInputArea', {
     waitForElements: true,
   })
@@ -3728,8 +3727,8 @@ export function ReceivedMessages({
             type === 'user'
               ? index === lastUserMessageIndex
               : type === 'bot'
-              ? index === lastBotMessageIndex
-              : false
+                ? index === lastBotMessageIndex
+                : false
 
           return (
             <Message.Memo
@@ -5778,7 +5777,10 @@ export function Conversation({
       } catch (error) {
         completionInFlightRef.current = false
 
-        throw error
+        // @note nothing awaits a dispatched handler, so a rethrow only surfaces
+        // as an unhandled rejection - report unexpected errors here instead
+
+        await captureUnknownError(error)
       }
     },
     [

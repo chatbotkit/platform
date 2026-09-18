@@ -38,7 +38,6 @@ import { runTasks } from '@/lib/job'
 import { getBaseLanguageModelTokenCount } from '@/lib/model.utils'
 import { nameToIcon } from '@/lib/name.icon'
 import { execPrompt } from '@/lib/prompt'
-import { parse as parseStructStr } from '@/lib/structstr'
 import {
   NOT_AUTHORIZED_CODE,
   NOT_FOUND_CODE,
@@ -48,10 +47,12 @@ import {
 } from '@/lib/response'
 import type { Session } from '@/lib/session.get'
 import { byteSlice, toCamelCase, toSlug } from '@/lib/string'
+import { parse as parseStructStr } from '@/lib/structstr'
 import { Usage } from '@/lib/usage.model'
 import { stringify as stringifyYaml } from '@/lib/yaml'
 import type { ZodSchemaFor } from '@/lib/zod.schema'
 import { z } from '@/lib/zod.schema'
+
 import type { InlineAbility } from '@/schemas/inlineExtensions'
 
 import autoAgentPrompt from '@/prompts/auto_agent_v1.yaml'
@@ -626,7 +627,8 @@ const listInternalSources = appMethodHandler(
                             name: edge.node.name,
                             description: edge.node.description || '', // @note technically the description cannot be null
                             instruction: edge.node.instruction,
-                            linkedSecretId: edge.node.linkedSecret?.id || undefined,
+                            linkedSecretId:
+                              edge.node.linkedSecret?.id || undefined,
                           },
                         ]
                       }),

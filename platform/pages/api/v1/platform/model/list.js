@@ -1,9 +1,11 @@
 // @ts-check
 import {
+  defaultDecisionModel,
   defaultImageModel,
   defaultLanguageModel,
   defaultRerankModel,
   defaultVideoModel,
+  decisionModels,
   imageModels,
   languageModels,
   rerankModels,
@@ -21,6 +23,7 @@ const modelCatalogues = {
   image: imageModels,
   video: videoModels,
   rerank: rerankModels,
+  decision: decisionModels,
 }
 
 // @note evaluated server-side, so these reflect the deployment's real,
@@ -30,6 +33,7 @@ const modelDefaults = {
   image: defaultImageModel,
   video: defaultVideoModel,
   rerank: defaultRerankModel,
+  decision: defaultDecisionModel,
 }
 
 /**
@@ -52,6 +56,7 @@ const modelDefaults = {
  *             - image
  *             - video
  *             - rerank
+ *             - decision
  *           default: language
  *       - in: query
  *         name: cursor
@@ -104,6 +109,7 @@ const modelDefaults = {
  *                               - image
  *                               - video
  *                               - rerank
+ *                               - decision
  *                           default:
  *                             description: Whether this model is the deployment's default for its type
  *                             type: boolean

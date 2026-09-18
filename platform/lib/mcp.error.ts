@@ -1,5 +1,8 @@
+import { statusToCodeMap } from '@chatbotkit-dev/http-codes'
+
 import { FetchError } from '@/lib/fetch'
 
+import { StreamableHTTPError } from '@modelcontextprotocol/sdk/client/streamableHttp.js'
 import { McpError } from '@modelcontextprotocol/sdk/types.js'
 
 /**
@@ -25,6 +28,20 @@ export function rethrowMcpError(e: unknown): never {
       e.data && typeof e.data === 'object'
         ? (e.data as Record<string, unknown>)
         : undefined
+    )
+  }
+
+  if (e instanceof StreamableHTTPError) {
+    // @note the transport carries the remote server's HTTP status as `code`;
+    // mapping it the way getFetchError does gives a 401/403/404/429 from the
+    // user's server its expected code instead of landing as a generic error
+
+    const status = Number(e.code)
+
+    throw new FetchError(
+      e.message,
+      (statusToCodeMap as Record<number, string>)[status] ?? String(e.code),
+      { status }
     )
   }
 

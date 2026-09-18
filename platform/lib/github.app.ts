@@ -13,6 +13,8 @@ const INSTALLATION_TOKEN_TTL_SECONDS = 50 * 60
 // @note the App slug is stable; cache for a day
 const APP_SLUG_TTL_SECONDS = 24 * 60 * 60
 
+const MAX_TEXT_CHARS = 60_000
+
 interface GithubRequestOptions {
   method?: string
   body?: unknown
@@ -62,7 +64,30 @@ export async function githubRequest(
     return null
   }
 
-  return await response.json()
+  const contentType = response.headers?.get('content-type') || ''
+
+  if (!contentType || /json/i.test(contentType)) {
+    return await response.json()
+  }
+
+  // @note some endpoints answer with plain text instead of JSON, e.g. the job
+  // logs at /repos/{owner}/{repo}/actions/jobs/{job_id}/logs
+  if (/^text\//i.test(contentType)) {
+    const text = await response.text()
+
+    // @note the tail is kept because the end of a log is where failures are
+    return text.length > MAX_TEXT_CHARS
+      ? '[text truncated]\n' + text.slice(-MAX_TEXT_CHARS)
+      : text
+  }
+
+  await response.body?.cancel()
+
+  throw new FetchError(
+    `GitHub API ${method} ${path} returned ${contentType} content, which cannot be returned here; only JSON and text responses are supported (for workflow logs use /repos/{owner}/{repo}/actions/jobs/{job_id}/logs, which is plain text)`,
+    statusToCodeMap[400],
+    { method, path, status: response.status, contentType }
+  )
 }
 
 // --- App JWT + installation token minting (per-integration GitHub App) ---

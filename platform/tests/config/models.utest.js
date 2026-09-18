@@ -3,12 +3,14 @@
  */
 import {
   baseLanguageModel,
+  defaultDecisionModel,
   defaultImageModel,
   defaultLanguageModel,
   defaultRerankModel,
   defaultSpeechToTextModel,
   defaultTextToSpeechModel,
   defaultVideoModel,
+  decisionModels,
   imageModels,
   languageModels,
   rerankModels,
@@ -27,6 +29,10 @@ const itIfLanguageModelsConfigured = Object.values(visibleLanguageModels).some(
 const itIfImageModelsConfigured = Object.keys(imageModels).length ? it : it.skip
 
 const itIfVideoModelsConfigured = Object.keys(videoModels).length ? it : it.skip
+
+const itIfDecisionModelsConfigured = Object.keys(decisionModels).length
+  ? it
+  : it.skip
 
 // @note these tests assert properties of the model catalogue itself rather
 // than behaviour of the platform that reads it: the data is the thing under
@@ -78,6 +84,75 @@ describe('model catalogue', () => {
       expect(videoModels[defaultVideoModel]).toBeDefined()
     }
   )
+
+  itIfDecisionModelsConfigured(
+    'defaultDecisionModel names a model the catalogue defines',
+    () => {
+      expect(decisionModels[defaultDecisionModel]).toBeDefined()
+    }
+  )
+
+  describe('decision model providers', () => {
+    const keys = [
+      'OPENROUTER_MODELS_API_KEY',
+      'VERCEL_MODELS_API_KEY',
+      'TYPESAFE_MODELS_API_KEY',
+    ]
+
+    const original = Object.fromEntries(keys.map((k) => [k, process.env[k]]))
+
+    afterEach(() => {
+      for (const key of keys) {
+        if (original[key] === undefined) {
+          delete process.env[key]
+        } else {
+          process.env[key] = original[key]
+        }
+      }
+    })
+
+    async function loadWith(configured) {
+      for (const key of keys) {
+        delete process.env[key]
+      }
+
+      for (const key of configured) {
+        process.env[key] = 'test-key'
+      }
+
+      jest.resetModules()
+
+      const { decisionModels } = await import('@/config/models')
+
+      return decisionModels
+    }
+
+    it.each([
+      [[], undefined, undefined],
+      [['OPENROUTER_MODELS_API_KEY'], 'openrouter', '~typesafe/jev-latest'],
+      [['VERCEL_MODELS_API_KEY'], 'vercel', 'typesafe-ai/jev'],
+      [['TYPESAFE_MODELS_API_KEY'], 'typesafe', 'jev-latest'],
+      [
+        ['OPENROUTER_MODELS_API_KEY', 'VERCEL_MODELS_API_KEY'],
+        'vercel',
+        'typesafe-ai/jev',
+      ],
+      [
+        [
+          'OPENROUTER_MODELS_API_KEY',
+          'VERCEL_MODELS_API_KEY',
+          'TYPESAFE_MODELS_API_KEY',
+        ],
+        'typesafe',
+        'jev-latest',
+      ],
+    ])('serves jev with %j through %s', async (configured, provider, providerModel) => {
+      const { jev } = await loadWith(configured)
+
+      expect(jev?.provider).toBe(provider)
+      expect(jev?.providerModel).toBe(providerModel)
+    })
+  })
 
   it.each([
     ['baseLanguageModel', baseLanguageModel, languageModels],

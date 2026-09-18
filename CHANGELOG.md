@@ -5,6 +5,122 @@ here. The release version is defined in the workspace root `package.json`.
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-09-18
+
+### Added
+
+- Decision models, a new model class that answers typed questions
+  (boolean, choice, score) about a state and returns probabilities. The first
+  model is `jev` (TypeSafe AI). It is served by whichever provider has a key:
+  the TypeSafe API (`TYPESAFE_MODELS_API_KEY`, new), Vercel AI Gateway
+  (`VERCEL_MODELS_API_KEY`) or OpenRouter (`OPENROUTER_MODELS_API_KEY`), in
+  that order of precedence. `GET /api/v1/platform/model/list?type=decision`
+  lists the class.
+- `POST /api/v1/decision/create` answers typed questions with a decision
+  model. It takes `model`, `state` and `questions`, returns `answers` and
+  `usage`, and is part of the public API specification. It is metered against
+  the token limit on the model's input tokens, like the other model classes.
+  A deployment with no decision provider key answers a 400 that says so.
+
+### Changed
+
+- The code snippets the application shows for the SDKs, the CLI and Terraform
+  (on the token, bot, dataset, skillset and secret pages, and in generated
+  Terraform) now use the `token` option, `api_token` and the
+  `CHATBOTKIT_API_TOKEN` environment variable. They need the SDK and provider
+  releases that introduce those names; the former names keep working there.
+  The SDK guide in `docs/sdks.md` also covers `CHATBOTKIT_API_URL` for pointing
+  the CLI and Terraform at a deployment.
+
+### Fixed
+
+- The image and video create and edit routes failed with an internal error on
+  a deployment that has no image or video provider key, because an empty model
+  catalogue accepts any model name. They now answer a 400 that says no such
+  model is configured. Editing without naming a model also failed when the
+  preferred edit model (`gpt-image-1`, `grok-imagine-video`) was not served;
+  it now falls back to the deployment's default model. Deployments that serve
+  those models are unaffected.
+- The chat app showed a generic failure, and reported an unhandled error to
+  Sentry, when a completion failed after the stream had started, for example
+  when the account was out of tokens. The failure left the server action
+  after it had returned, so the framework removed its message and code. The
+  React SDK stream now sends it as an error chunk, and the app shows the
+  prompt that matches the code, such as the limits reached one.
+- A timeout or protocol error from a user's MCP server while installing its
+  tools now surfaces as an upstream error with the MCP code, the way a tool
+  call already did, instead of a raw `McpError`.
+- The Call GitHub API ability failed with a JSON syntax error, reported to
+  Sentry, whenever the endpoint answered with something other than JSON. A
+  plain text response, such as a job log, is now returned as text and capped
+  to its last 60000 characters. A binary response, such as the zip of a
+  workflow run's logs, is refused with a 400 that names the content type and
+  points the model at the job logs endpoint.
+- An HTTP failure from a user's MCP server during a tool call, such as a
+  403 or a 502 while the server's container restarts, now surfaces with the
+  matching error code instead of a generic error. Statuses the platform
+  treats as expected, such as 401, 403, 404 and 429, no longer reach Sentry.
+- Creating or updating a dataset record whose text is only nonprintable
+  characters, such as a zero-width space, now returns a 400. The text passed
+  the whitespace check but normalization emptied it, so the vector store
+  refused the record and the request failed with a 500.
+- Writing a file larger than about 768 KiB from a shell skillset action
+  failed with an opaque 413 from the sandbox service and was reported to
+  Sentry. The service now accepts write bodies up to 4 MiB, and the exec,
+  write and rw actions reject contents over 3 MB with a message that tells
+  the model to write the file in smaller parts.
+- The `kimi-k2.5` model advertised a context window of 262114 tokens, a
+  digit transposition of the 262144 the gateway serves. The catalogue test
+  that compares configured limits against the live gateway now passes.
+- An upstream API refusal inside a skillset ability, such as a GitHub 403,
+  is no longer reported to Sentry. The error left the handler as a
+  `FetchError` but was serialized with a generic code, because the bundle
+  holds several copies of the errors module and `instanceof` does not hold
+  across them; a `SystemError` now carries a brand the serializer recognises
+  from any copy.
+- Compacting a conversation that contains tool activity now includes the
+  tool calls and results in the summary. The summary input carried only type
+  and text, so every activity message was reported as an unexpected state and
+  dropped before summarization.
+- Finishing a dataset import whose sitemap or Notion integration was deleted
+  while the job ran no longer fails the job with a record-not-found error.
+- Onboarding no longer fails at the last step with a byte-length error when
+  the organization name is written in a non-latin script. The value was
+  clipped by character count only, while the column is byte-bound.
+- Minting or using a JWT secret whose value is not a PEM private key answers
+  400 with a config error instead of a 500.
+- Signing in with an email code no longer fails when the address is typed
+  with a capital letter, as phone keyboards do. The code form sent the address
+  as typed while the code was issued under the lowercased one, so every such
+  attempt was refused and consumed the code.
+- The widget frame no longer fails to render in Firefox when the host page
+  blocks third-party storage. Opening the trace broadcast channel threw a
+  `SecurityError` inside a render effect, which the error boundary reported
+  as a page error on every load; both broadcast channel hooks now treat a
+  refused channel as unavailable.
+- Initiating an email integration with a missing `email`, `subject` or
+  `text` answers 400. The fields were optional in the request schema but
+  required by the queue payload, so an empty body failed at enqueue time
+  with a 500.
+- A widget message whose session token cannot be refreshed, such as an embed
+  of a deleted widget, no longer surfaces as an unhandled rejection. The
+  dispatched submit handler rethrew into nothing, so every attempt reached
+  Sentry even for expected refusals.
+- A function handler that fails with an expected code, such as a client
+  function whose channel wait timed out, is no longer reported to Sentry. The
+  outcome for the model is unchanged.
+- DeepSeek V4 Pro on the Vercel AI Gateway bills at the Alibaba backend rate
+  the gateway added, so no routing decision charges more than the model
+  configuration.
+- Mistral Large and Mistral Small follow the current Mistral catalogue: both
+  carry the 262,144-token context Mistral now serves, and Mistral Small bills
+  at Mistral's current list price instead of the retired one.
+
+### Removed
+
+- Devstral 2 is no longer offered. Mistral retired it from the Vercel AI
+  Gateway, so the name now resolves to Mistral Large for existing bots.
+
 ## [0.4.1] - 2026-09-14
 
 ### Fixed

@@ -2606,6 +2606,56 @@ The weather in London is rainy.
       })
     })
 
+    it('reports only unexpected function handler errors to Sentry', async () => {
+      const observability = (await import('@chatbotkit-dev/observability'))
+        .default
+
+      const captureSpy = jest
+        .spyOn(observability, 'captureException')
+        .mockResolvedValue(undefined)
+
+      const expected = new SystemError(
+        'No message received: channel wait was aborted (likely timeout)',
+        'no_message_received_aborted'
+      )
+
+      const unexpected = new Error('handler crashed')
+
+      mockChatResponses([
+        { finishReason: 'toolCalls', toolCalls: [makeToolCall('_expected')] },
+        { finishReason: 'toolCalls', toolCalls: [makeToolCall('_unexpected')] },
+        { finishReason: 'stop', completion: 'Done' },
+      ])
+
+      const { engine } = makeEngine({
+        maxCalls: 10,
+        maxCycles: 10,
+        internalFunctions: [
+          {
+            name: '_expected',
+            description: 'Fails with an expected code',
+            parameters: {},
+            handler: jest.fn().mockRejectedValue(expected),
+          },
+          {
+            name: '_unexpected',
+            description: 'Fails unexpectedly',
+            parameters: {},
+            handler: jest.fn().mockRejectedValue(unexpected),
+          },
+        ],
+      })
+
+      const response = await engine.complete()
+
+      expect(response.reason).toBe('stop')
+      expect(captureSpy.mock.calls.map(([error]) => error)).toEqual([
+        unexpected,
+      ])
+
+      captureSpy.mockRestore()
+    })
+
     it('limits tool-call recursion with maxIterations', async () => {
       const handler = jest.fn().mockResolvedValue({ ok: true })
 
@@ -6124,6 +6174,63 @@ describe('CoreEngine.addMessages', () => {
       text: 'Hello',
       meta: { foo: 'bar' },
     })
+  })
+})
+
+describe('CoreEngine.definitelyCompact', () => {
+  it('summarizes with activity meta and without backstory and checkpoints', async () => {
+    extractData.mockResolvedValueOnce({
+      data: { summary: 'Summary' },
+      usage: { token: 3 },
+    })
+
+    const engine = new CoreEngine({
+      userId: '123',
+      model: 'gpt-4o',
+      backstory: 'Backstory',
+      messages: [
+        { type: MessageType.checkpoint, text: 'Old summary' },
+        { type: MessageType.user, text: 'Hello' },
+        {
+          type: MessageType.activity,
+          text: '{}',
+          meta: { activity: { type: 'request', function: { name: 'fn' } } },
+        },
+        {
+          type: MessageType.activity,
+          text: '{}',
+          meta: { activity: { type: 'response', function: { name: 'fn' } } },
+        },
+        { type: MessageType.bot, text: 'Hi' },
+      ],
+    })
+
+    const { message, usage } = await engine.definitelyCompact()
+
+    expect(extractData).toHaveBeenCalledWith(
+      [
+        { type: MessageType.user, text: 'Hello', meta: undefined },
+        {
+          type: MessageType.activity,
+          text: '{}',
+          meta: { activity: { type: 'request', function: { name: 'fn' } } },
+        },
+        {
+          type: MessageType.activity,
+          text: '{}',
+          meta: { activity: { type: 'response', function: { name: 'fn' } } },
+        },
+        { type: MessageType.bot, text: 'Hi', meta: undefined },
+      ],
+      expect.anything(),
+      expect.anything()
+    )
+
+    expect(message).toMatchObject({
+      type: MessageType.checkpoint,
+      text: 'Summary',
+    })
+    expect(usage).toEqual({ token: 3 })
   })
 })
 

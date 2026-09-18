@@ -1,6 +1,10 @@
 import { siteHostname, siteUrl } from '@/config/site'
 
 import debug from '@/lib/debug'
+import type {
+  CreateDecisionOptions,
+  CreateDecisionResult,
+} from '@/lib/decision.types'
 import _fetch, { withRetry, withTimeout } from '@/lib/fetch'
 import { getSafeModelStore } from '@/lib/model.context'
 import { resolveProviderCredential } from '@/lib/model.credentials'
@@ -9,6 +13,10 @@ import {
   createChatCompletionStream as createOpenAICompatibleChatCompletionStream,
   throwOpenAIError,
 } from '@/lib/model.provider.openai'
+import {
+  fromSystemOneAnswers,
+  toSystemOneQuestions,
+} from '@/lib/model.provider.typesafe'
 
 /**
  * fetch instance dedicated for image creation (no timeout)
@@ -20,6 +28,16 @@ const fetchForImage = withRetry(withTimeout(_fetch, { timeout: 0 }), {
   retries: 5,
   retryDelay: 250,
   retryTimeout: true,
+})
+
+/**
+ * fetch instance dedicated for decisions, bounded so a slow provider fails
+ * within the response budget.
+ */
+const fetchForDecision = withRetry(withTimeout(_fetch, { timeout: 15_000 }), {
+  retries: 5,
+  retryDelay: 250,
+  retryTimeout: false,
 })
 
 /**
@@ -370,6 +388,72 @@ export async function editImage(
       model: model,
       inputTokens: images.length,
       outputTokens: urls.size || 1,
+    },
+  }
+}
+
+// --- Decision ---
+
+/**
+ * Answers typed questions about a state using OpenRouter's decision models
+ * (e.g. typesafe/jev).
+ *
+ * @note decisions live on an alpha endpoint outside /api/v1 and speak the
+ * System One wire format. zdr is not requested: the only provider is TypeSafe,
+ * which offers it to enterprise accounts only, so the request would not route.
+ */
+export async function decide(
+  options: CreateDecisionOptions
+): Promise<CreateDecisionResult> {
+  const { state, questions, model, modelOptions, signal } = options
+
+  debug(`decide using`, {
+    model,
+    modelOptions,
+    questionCount: Object.keys(questions).length,
+  }).log('openrouter.decide')
+
+  const body = {
+    model,
+
+    state,
+    questions: toSystemOneQuestions(questions),
+
+    ...(modelOptions && { provider: modelOptions }),
+  }
+
+  const response = await fetchForDecision(
+    'https://openrouter.ai/api/alpha/decisions',
+    {
+      method: 'POST',
+
+      headers: {
+        Authorization: `Bearer ${getOpenRouterAPIKey()}`,
+        'Content-Type': 'application/json',
+        'HTTP-Referer': siteUrl,
+        'X-Title': siteHostname,
+      },
+
+      body: JSON.stringify(body),
+
+      signal,
+    }
+  )
+
+  if (!response.ok) {
+    return await throwOpenAIError(response, { errorPrefix: 'OR_' })
+  }
+
+  const data = await response.json()
+
+  debug(`received data`, { data }).log('openrouter.decide.received')
+
+  return {
+    answers: fromSystemOneAnswers(data.answers),
+    usage: {
+      model,
+      inputTokens: data.usage?.input_tokens ?? 0,
+      outputTokens: data.usage?.output_tokens ?? 0,
     },
   }
 }

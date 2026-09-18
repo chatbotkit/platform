@@ -487,7 +487,7 @@ function getSecretUsageSections(secret) {
     ? `import { ChatBotKit, AuthorizationRequiredError } from '@chatbotkit/sdk'
 
 const client = new ChatBotKit({
-  secret: process.env.CHATBOTKIT_API_SECRET,
+  token: process.env.CHATBOTKIT_API_TOKEN,
 })
 
 const secretId = '${secretId}'
@@ -521,7 +521,7 @@ try {
     : `import { ChatBotKit } from '@chatbotkit/sdk'
 
 const client = new ChatBotKit({
-  secret: process.env.CHATBOTKIT_API_SECRET,
+  token: process.env.CHATBOTKIT_API_TOKEN,
 })
 
 const secretId = '${secretId}'
@@ -556,7 +556,7 @@ func main() {
   ctx := context.Background()
 
   client := sdk.New(sdk.Options{
-    Secret: os.Getenv("CHATBOTKIT_API_SECRET"),
+    Token: os.Getenv("CHATBOTKIT_API_TOKEN"),
   })
 
   secretID := "${secretId}"
@@ -602,7 +602,7 @@ func main() {
   ctx := context.Background()
 
   client := sdk.New(sdk.Options{
-    Secret: os.Getenv("CHATBOTKIT_API_SECRET"),
+    Token: os.Getenv("CHATBOTKIT_API_TOKEN"),
   })
 
   secretID := "${secretId}"
@@ -638,7 +638,7 @@ from chatbotkit import ChatBotKit, AuthorizationRequiredError
 
 
 async def main():
-    client = ChatBotKit(secret=os.environ["CHATBOTKIT_API_SECRET"])
+    client = ChatBotKit(token=os.environ["CHATBOTKIT_API_TOKEN"])
 
     secret_id = "${secretId}"
 
@@ -667,7 +667,7 @@ from chatbotkit import ChatBotKit
 
 
 async def main():
-    client = ChatBotKit(secret=os.environ["CHATBOTKIT_API_SECRET"])
+    client = ChatBotKit(token=os.environ["CHATBOTKIT_API_TOKEN"])
 
     secret_id = "${secretId}"
 

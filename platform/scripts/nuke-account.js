@@ -322,6 +322,7 @@ async function nukeAccount(userId, skipSet = new Set(), dryRun = true) {
   })
 
   // Initialize SDK client
+  // @note `secret` until the pinned @chatbotkit/sdk is one that accepts `token`
   const client = new ChatBotKit({
     secret: token,
   })

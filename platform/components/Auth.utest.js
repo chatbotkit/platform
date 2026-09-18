@@ -276,6 +276,39 @@ describe('Auth sign-in callbacks', () => {
     }
   )
 
+  it('lowercases a capitalised address and code before verifying', async () => {
+    const signin = jest.fn().mockResolvedValue({ ok: true })
+    const push = jest.fn()
+
+    require('@/hooks/useSignin').mockReturnValue({ signin })
+    require('@/hooks/useRouter').mockReturnValue({ query: {}, push })
+
+    const { container, findByLabelText } = render(<Auth providers={['email']} />)
+    const input = container.querySelector('input[name="email"]')
+
+    Object.defineProperties(input.form, {
+      email: { get: () => input.form.elements.namedItem('email') },
+      token: { get: () => input.form.elements.namedItem('token') },
+    })
+
+    // @note a phone keyboard capitalises the first letter of the address;
+    // NextAuth issued the code under the lowercased identifier
+    fireEvent.change(input, { target: { value: 'Luma@Example.com' } })
+    fireEvent.keyDown(input, { key: 'Enter' })
+
+    const pin = await findByLabelText('PIN field 1 of 6')
+
+    fireEvent.change(pin, { target: { value: 'BD6E92' } })
+
+    await waitFor(() => expect(window.location.assign).toHaveBeenCalledTimes(1))
+
+    const callback = new URL(window.location.assign.mock.calls[0][0])
+
+    expect(callback.pathname).toBe('/api/auth/callback/email')
+    expect(callback.searchParams.get('email')).toBe('luma@example.com')
+    expect(callback.searchParams.get('token')).toBe('bd6e92')
+  })
+
   it('normalizes the email and uses a fresh token for each attempt', async () => {
     const signin = jest.fn().mockResolvedValue({ ok: true })
     const push = jest.fn()

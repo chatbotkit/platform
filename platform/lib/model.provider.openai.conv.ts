@@ -94,7 +94,7 @@ import {
 } from '@/lib/namespace.attachment'
 import { clone } from '@/lib/object'
 import { awaitWithAbortGrace } from '@/lib/promise'
-import { throwConflict } from '@/lib/response'
+import { isUnknownError, throwConflict } from '@/lib/response'
 import { Result } from '@/lib/result'
 import { byteSlice, getRandomId } from '@/lib/string'
 import {
@@ -4505,7 +4505,12 @@ async function* completeChatConversationRound(
                       () => ({ error: HANDLER_DEADLINE_BYPASS_ERROR })
                     )
                   } catch (e) {
-                    await captureException(e)
+                    // @note an expected code, such as a channel wait that timed out,
+                    // is normal operation and stays out of Sentry
+
+                    if (isUnknownError(e)) {
+                      await captureException(e)
+                    }
 
                     // @note we are deliberately hiding the error from the user
                     // because this is an internal issue
@@ -5010,7 +5015,12 @@ async function* completeChatConversationRound(
                           () => ({ error: HANDLER_DEADLINE_BYPASS_ERROR })
                         )
                       } catch (e) {
-                        await captureException(e)
+                        // @note an expected code, such as a channel wait that timed out,
+                        // is normal operation and stays out of Sentry
+
+                        if (isUnknownError(e)) {
+                          await captureException(e)
+                        }
 
                         if (e instanceof SafeError) {
                           result = { error: e.message }
@@ -6561,7 +6571,12 @@ async function* completeResponseConversationRound(
                           () => ({ error: HANDLER_DEADLINE_BYPASS_ERROR })
                         )
                       } catch (e) {
-                        await captureException(e)
+                        // @note an expected code, such as a channel wait that timed out,
+                        // is normal operation and stays out of Sentry
+
+                        if (isUnknownError(e)) {
+                          await captureException(e)
+                        }
 
                         if (e instanceof SafeError) {
                           result = { error: e.message }
@@ -7635,7 +7650,12 @@ export async function* completeRealtimeConversationStream(
                   newMessages,
                 })
               } catch (e) {
-                await captureException(e)
+                // @note an expected code, such as a channel wait that timed out,
+                // is normal operation and stays out of Sentry
+
+                if (isUnknownError(e)) {
+                  await captureException(e)
+                }
 
                 if (e instanceof SafeError) {
                   result = { error: e.message }

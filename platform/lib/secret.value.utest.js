@@ -6,6 +6,7 @@ import { mockDeep, mockReset } from 'jest-mock-extended'
 import prisma from '@/prisma/client'
 
 import { encode as encodeB64 } from '@/lib/b64'
+import { UserConfigError } from '@/lib/error'
 import {
   runInContext,
   setContextContact,
@@ -3604,6 +3605,22 @@ describe('getSecretValueAndType - jwt secret type', () => {
       expect(payload.iat).toBeDefined()
       expect(payload.exp).toBeDefined()
       expect(payload.exp - payload.iat).toBe(600)
+    })()
+  })
+
+  it('should reject a value that is not a private key as a config error', async () => {
+    await runInContext(async () => {
+      setContextNamespace('test')
+
+      const secret = {
+        kind: 'shared',
+        type: 'jwt',
+        value: 'not-a-pem-key',
+      }
+
+      await expect(getSecretValueAndType(secret)).rejects.toBeInstanceOf(
+        UserConfigError
+      )
     })()
   })
 

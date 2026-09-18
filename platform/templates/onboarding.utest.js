@@ -5,6 +5,10 @@ import { getPartnerFromDocument } from '@/hooks/usePartner'
 
 import template from '@/templates/onboarding'
 
+jest.mock('@/prisma/constraints', () => ({
+  MAX_DB_STRING_BYTES_LENGTH: 12,
+}))
+
 jest.mock('@/lib/experience', () => ({
   resolveBuilderExperience: jest.fn(),
 }))
@@ -103,6 +107,28 @@ describe('onboarding template', () => {
             role: 'Founder',
             goal: 'Support',
           },
+        })
+      )
+    })
+
+    it('clips the customer details to the column byte limit', async () => {
+      await template.task({
+        values: {
+          channel: 'website',
+          organization: 'Организация',
+          industry: 'Software',
+          role: 'Founder',
+          goal: 'Support',
+        },
+        fetch: fetchMock,
+      })
+
+      expect(fetchMock).toHaveBeenCalledWith(
+        '/api/v1/me/update',
+        expect.objectContaining({
+          data: expect.objectContaining({
+            organization: 'Органи',
+          }),
         })
       )
     })

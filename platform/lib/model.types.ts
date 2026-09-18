@@ -390,6 +390,37 @@ export type VercelRerankModel = RerankModel & {
 export type AnyRerankModel = VercelRerankModel
 
 /**
+ * DECISION
+ */
+
+export type DecisionModel = Model & {
+  pricing: {
+    tokenRatio: number
+    inputTokenRatio?: number
+    outputTokenRatio?: number
+    inputPrice?: number
+    outputPrice?: number
+  }
+}
+
+export type VercelDecisionModel = DecisionModel & {
+  provider: 'vercel'
+}
+
+export type OpenRouterDecisionModel = DecisionModel & {
+  provider: 'openrouter'
+}
+
+export type TypeSafeDecisionModel = DecisionModel & {
+  provider: 'typesafe'
+}
+
+export type AnyDecisionModel =
+  | VercelDecisionModel
+  | OpenRouterDecisionModel
+  | TypeSafeDecisionModel
+
+/**
  * SPEACH TO TEXT
  */
 

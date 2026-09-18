@@ -26,6 +26,13 @@ export const CONTENT_MODERATION_ERROR_CODE = 'CONTENT_MODERATION'
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type Thrown = any
 
+// @note a bundle can carry more than one copy of this module (one per
+// runtime), each with its own class, so instanceof alone cannot recognise a
+// SystemError thrown by another copy - the brand is shared through the global
+// symbol registry
+
+const SYSTEM_ERROR_BRAND = Symbol.for('@chatbotkit-dev/errors/SystemError')
+
 export class SystemError extends Error {
   public code: string
 
@@ -38,7 +45,26 @@ export class SystemError extends Error {
 
     this.code = code
     this.data = data
+
+    Object.defineProperty(this, SYSTEM_ERROR_BRAND, {
+      value: true,
+      enumerable: false,
+    })
   }
+}
+
+/**
+ * Recognises a SystemError from any copy of this module.
+ */
+export function isSystemError(error: unknown): error is SystemError {
+  if (error instanceof SystemError) {
+    return true
+  }
+
+  return (
+    error instanceof Error &&
+    (error as unknown as Record<symbol, unknown>)[SYSTEM_ERROR_BRAND] === true
+  )
 }
 
 /**
@@ -254,7 +280,7 @@ export function errorIn(error: Error, collection: string[]) {
   return collection.includes(error.name) || collection.includes(error.message)
 }
 
-export function isKnownError(error: Error|string): boolean {
+export function isKnownError(error: Error | string): boolean {
   if (typeof error === 'string') {
     error = new Error(error)
   }
@@ -290,7 +316,7 @@ export function errorToErrorResponse(error: Thrown): {
   }
 
   switch (true) {
-    case error instanceof SystemError: {
+    case isSystemError(error): {
       return { code: error.code, message: error.message.toString() }
     }
 
@@ -362,7 +388,7 @@ export function errorResponseToError(
  *
  */
 export function errorToSystemError(error: Thrown, data?: unknown): SystemError {
-  if (error instanceof SystemError) {
+  if (isSystemError(error)) {
     return error
   }
 
@@ -454,9 +480,7 @@ const MAX_CAUSE_DEPTH = 5
  */
 export function extractCauseChain(
   error: Thrown
-):
-  | Array<{ name?: string; message?: string; code?: string }>
-  | undefined {
+): Array<{ name?: string; message?: string; code?: string }> | undefined {
   /** @type {Array<{name?: string, message?: string, code?: string}>} */
   const chain: {
     name: string | undefined
@@ -483,8 +507,8 @@ export function extractCauseChain(
         typeof current.message === 'string'
           ? current.message
           : typeof current === 'string'
-            ? current
-            : undefined,
+          ? current
+          : undefined,
 
       code:
         current.code !== undefined && current.code !== null
@@ -671,7 +695,10 @@ export async function captureException(e: Thrown): Promise<void> {
   }
 }
 
-export async function captureInputError(e: Thrown, data: unknown): Promise<void> {
+export async function captureInputError(
+  e: Thrown,
+  data: unknown
+): Promise<void> {
   // eslint-disable-next-line
   console.error(e)
 

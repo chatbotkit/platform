@@ -3,10 +3,12 @@ import { assertUnreachable } from '@chatbotkit-dev/typescript-utils/unreachable'
 
 import {
   baseLanguageModel,
+  defaultDecisionModel,
   defaultImageModel,
   defaultLanguageModel,
   defaultRerankModel,
   defaultVideoModel,
+  decisionModels,
   imageModels,
   languageModels,
   rerankModels,
@@ -28,6 +30,7 @@ import externalUrlSchema from '@/schemas/externalUrl'
  * @typedef {import('@/lib/model.types').AnyImageModel} AnyImageModel
  * @typedef {import('@/lib/model.types').AnyVideoModel} AnyVideoModel
  * @typedef {import('@/lib/model.types').AnyRerankModel} AnyRerankModel
+ * @typedef {import('@/lib/model.types').AnyDecisionModel} AnyDecisionModel
  * @typedef {import('@/lib/model.types').AnySpeechToTextModel} AnySpeechToTextModel
  * @typedef {import('@/lib/model.types').AnyTextToSpeechModel} AnyTextToSpeechModel
  */
@@ -86,6 +89,21 @@ export const videoModelToUseTypeMapping = Object.fromEntries(
  */
 export const rerankModelToUseTypeMapping = Object.fromEntries(
   Object.entries(rerankModels).map(([key, { provider }]) => [
+    key,
+    provider.toUpperCase() +
+      '_' +
+      key.toUpperCase().replace(/[-.]/g, '_') +
+      '_TOKEN',
+  ])
+)
+
+/**
+ * Maps the decision models to their corresponding use types.
+ *
+ * @type {Object.<string, string>}
+ */
+export const decisionModelToUseTypeMapping = Object.fromEntries(
+  Object.entries(decisionModels).map(([key, { provider }]) => [
     key,
     provider.toUpperCase() +
       '_' +
@@ -171,6 +189,18 @@ export const useTypeToVideoModelMapping = Object.fromEntries(
  */
 export const useTypeToRerankModelMapping = Object.fromEntries(
   Object.entries(rerankModelToUseTypeMapping).map(([key, value]) => [
+    value,
+    key,
+  ])
+)
+
+/**
+ * Maps the use types to their corresponding decision models.
+ *
+ * @type {Object.<string, string>}
+ */
+export const useTypeToDecisionModelMapping = Object.fromEntries(
+  Object.entries(decisionModelToUseTypeMapping).map(([key, value]) => [
     value,
     key,
   ])
@@ -954,6 +984,153 @@ export function rerankModelToUseType(model) {
   return type
 }
 
+// --- Decision Models ---
+
+/**
+ * @param {string} model
+ * @returns {number}
+ */
+export function getDecisionModelDefaultTokenRatio(model) {
+  const { name } = parseDecisionModel(model)
+
+  const config = decisionModels[name]
+
+  assert(config, `Model ${name} is not recognized`)
+
+  const {
+    pricing: { tokenRatio },
+  } = config
+
+  assert(tokenRatio, `Model ${name} does not have a token ratio`)
+
+  return tokenRatio
+}
+
+/**
+ * @param {string} model
+ * @returns {number}
+ */
+export function getDecisionModelInputTokenRatio(model) {
+  const { name } = parseDecisionModel(model)
+
+  const config = decisionModels[name]
+
+  assert(config, `Model ${name} is not recognized`)
+
+  const {
+    pricing: { tokenRatio, inputTokenRatio = tokenRatio },
+  } = config
+
+  return inputTokenRatio
+}
+
+/**
+ * @param {string} model
+ * @returns {number}
+ */
+export function getDecisionModelOutputTokenRatio(model) {
+  const { name } = parseDecisionModel(model)
+
+  const config = decisionModels[name]
+
+  assert(config, `Model ${name} is not recognized`)
+
+  const {
+    pricing: { tokenRatio, outputTokenRatio = tokenRatio },
+  } = config
+
+  return outputTokenRatio
+}
+
+/**
+ * @param {string} model
+ * @param {'default'|'output'|'input'} [type='default']
+ * @returns {number}
+ */
+export function getDecisionModelTokenRatio(model, type = 'default') {
+  let tokenRatio = 1
+
+  switch (type) {
+    case 'default': {
+      tokenRatio = getDecisionModelDefaultTokenRatio(model)
+
+      break
+    }
+
+    case 'output': {
+      tokenRatio = getDecisionModelOutputTokenRatio(model)
+
+      break
+    }
+
+    case 'input': {
+      tokenRatio = getDecisionModelInputTokenRatio(model)
+
+      break
+    }
+
+    default: {
+      assertUnreachable(type)
+    }
+  }
+
+  return tokenRatio
+}
+
+/**
+ * @param {string} sourceModel
+ * @param {number} sourceCount
+ * @param {'default'|'output'|'input'} [type='default']
+ * @returns {number}
+ * @throws {Error}
+ */
+export function getBaseDecisionModelTokenCount(
+  sourceModel,
+  sourceCount,
+  type = 'default'
+) {
+  debug(`getting base model token count`, {
+    sourceModel,
+    sourceCount,
+    type,
+  }).log('model.getBaseModelTokenCount')
+
+  if (sourceCount === 0) {
+    return 0
+  }
+
+  const tokenRatio = getDecisionModelTokenRatio(sourceModel, type)
+
+  const count = Math.max(1, Math.round(sourceCount * tokenRatio))
+
+  debug(`base model token count`, {
+    sourceModel,
+    sourceCount,
+    type,
+    tokenRatio,
+    count,
+  }).log('model.getBaseModelTokenCount')
+
+  return count
+}
+
+/**
+ * @param {string} model
+ * @returns {string}
+ * @throws {Error}
+ */
+export function decisionModelToUseType(model) {
+  const { name } = parseDecisionModel(model)
+
+  const type = decisionModelToUseTypeMapping[name]
+
+  if (!type) {
+    throw new Error(`Unrecognized model ${name}`)
+  }
+
+  return type
+}
+
 // --- Audio Models ---
 
 /**
@@ -1661,6 +1838,115 @@ export function revealRerankModel({ name, config }, rerankModel) {
  */
 export function parseAndRevealRerankModel(model) {
   return revealRerankModel(parseRerankModel(model))
+}
+
+/**
+ * @typedef {{
+ *   region?: 'us'|'eu'
+ * }} DecisionModelConfig
+ */
+
+const decisionModelValidationSchema = schema.object().keys({
+  name: schema
+    .string()
+    .valid(...Object.keys(decisionModels))
+    .required(),
+  config: schema
+    .object()
+    .keys({
+      region: schema.string().valid('us', 'eu'),
+    })
+    .required(),
+})
+
+/**
+ * @param {string} model
+ * @returns {{name: string, config: DecisionModelConfig}}
+ * @throws {Error}
+ */
+export function parseDecisionModel(model) {
+  model = model || defaultDecisionModel
+
+  let { name, config } = parse(model, defaultDecisionModel)
+
+  const { error, value } = decisionModelValidationSchema.validate({
+    name,
+    config,
+  })
+
+  if (error) {
+    throw error
+  }
+
+  name = value.name
+  config = value.config
+
+  return { name, config }
+}
+
+/**
+ * @param {string} name
+ * @param {DecisionModelConfig} config
+ * @returns {string}
+ * @throws {Error}
+ */
+export function buildDecisionModel(name, config) {
+  const { error, value } = decisionModelValidationSchema.validate({
+    name,
+    config,
+  })
+
+  if (error) {
+    throw error
+  }
+
+  name = value.name
+  config = value.config
+
+  const details = build(name, config, decisionModels[name])
+
+  return details
+}
+
+/**
+ * @param {{name: string, config: DecisionModelConfig}} parsedModel
+ * @param {AnyDecisionModel} [decisionModel]
+ * @returns {{name: string, config: AnyDecisionModel & DecisionModelConfig, originalName: string, originalConfig: DecisionModelConfig}}
+ */
+export function revealDecisionModel({ name, config }, decisionModel) {
+  const originalName = name
+  const originalConfig = config
+
+  let newName = name
+
+  let newConfig = {
+    ...(decisionModel
+      ? (({ proxyToModel: _, ...o }) => o)(decisionModel)
+      : undefined),
+
+    ...decisionModels[name],
+
+    ...config,
+  }
+
+  if (newConfig.proxyToModel) {
+    name = newConfig.proxyToModel
+
+    const result = revealDecisionModel({ name, config }, newConfig)
+
+    newName = result.name
+    newConfig = result.config
+  }
+
+  return { name: newName, config: newConfig, originalName, originalConfig }
+}
+
+/**
+ * @param {string} model
+ * @returns {ReturnType<typeof revealDecisionModel>}
+ */
+export function parseAndRevealDecisionModel(model) {
+  return revealDecisionModel(parseDecisionModel(model))
 }
 
 /**

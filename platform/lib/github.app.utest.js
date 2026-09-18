@@ -28,6 +28,7 @@ jest.mock('@/lib/fetch', () => ({
 
 jest.mock('@/lib/response', () => ({
   statusToCodeMap: {
+    400: 'BAD_REQUEST',
     401: 'NOT_AUTHORIZED',
     404: 'NOT_FOUND',
     500: 'INTERNAL_SERVER_ERROR',
@@ -112,6 +113,93 @@ describe('github.app', () => {
         code: 'NOT_FOUND',
         meta: { method: 'GET', path: '/repos/acme/missing', status: 404 },
       })
+    })
+
+    it('parses JSON when the content type is a JSON media type', async () => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        status: 200,
+        headers: new Headers({
+          'content-type': 'application/vnd.github+json; charset=utf-8',
+        }),
+        json: jest.fn().mockResolvedValue({ id: 1 }),
+      })
+
+      const data = await githubRequest('/repos/acme/demo', { token: 'token-1' })
+
+      expect(data).toEqual({ id: 1 })
+    })
+
+    it('returns plain text responses as text instead of parsing JSON', async () => {
+      const json = jest.fn().mockRejectedValue(new SyntaxError('not JSON'))
+
+      mockFetch.mockResolvedValue({
+        ok: true,
+        status: 200,
+        headers: new Headers({ 'content-type': 'text/plain; charset=utf-8' }),
+        json,
+        text: jest.fn().mockResolvedValue('2026-09-18T09:51:00Z build ok'),
+      })
+
+      const data = await githubRequest(
+        '/repos/acme/demo/actions/jobs/1/logs',
+        { token: 'token-1' }
+      )
+
+      expect(data).toBe('2026-09-18T09:51:00Z build ok')
+      expect(json).not.toHaveBeenCalled()
+    })
+
+    it('keeps the tail of oversized text responses', async () => {
+      const text = 'a'.repeat(100_000) + 'THE-END'
+
+      mockFetch.mockResolvedValue({
+        ok: true,
+        status: 200,
+        headers: new Headers({ 'content-type': 'text/plain' }),
+        text: jest.fn().mockResolvedValue(text),
+      })
+
+      const data = await githubRequest(
+        '/repos/acme/demo/actions/jobs/1/logs',
+        { token: 'token-1' }
+      )
+
+      expect(data.length).toBeLessThan(text.length)
+      expect(data.startsWith('[text truncated]')).toBe(true)
+      expect(data.endsWith('THE-END')).toBe(true)
+    })
+
+    it('rejects binary responses with an expected code without reading the body', async () => {
+      const json = jest.fn().mockRejectedValue(new SyntaxError('not JSON'))
+      const cancel = jest.fn().mockResolvedValue(undefined)
+
+      mockFetch.mockResolvedValue({
+        ok: true,
+        status: 200,
+        headers: new Headers({ 'content-type': 'application/zip' }),
+        body: { cancel },
+        json,
+      })
+
+      await expect(
+        githubRequest('/repos/acme/demo/actions/runs/1/logs', {
+          token: 'token-1',
+        })
+      ).rejects.toMatchObject({
+        name: 'FetchError',
+        message: expect.stringContaining('application/zip'),
+        code: 'BAD_REQUEST',
+        meta: {
+          method: 'GET',
+          path: '/repos/acme/demo/actions/runs/1/logs',
+          status: 200,
+          contentType: 'application/zip',
+        },
+      })
+
+      expect(json).not.toHaveBeenCalled()
+      expect(cancel).toHaveBeenCalled()
     })
   })
 

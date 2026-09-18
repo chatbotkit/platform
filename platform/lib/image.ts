@@ -1,6 +1,6 @@
 import { assertUnreachable } from '@chatbotkit-dev/typescript-utils/unreachable'
 
-import { defaultImageModel } from '@/config/models'
+import { defaultImageModel, imageModels } from '@/config/models'
 
 import { parseDataURL } from '@/lib/dataurl.parse'
 import debug from '@/lib/debug'
@@ -23,6 +23,7 @@ import {
   editImage as editVercelImage,
 } from '@/lib/model.provider.vercel.adaptor'
 import { parseAndRevealImageModel } from '@/lib/model.utils'
+import { throwBadRequest } from '@/lib/response'
 import { getObject, putObject } from '@/lib/storage'
 
 import { v1 as uuidv1 } from 'uuid'
@@ -134,6 +135,13 @@ export async function createImage(
   debug(`creating image`, { prompt, options })
 
   const { model = defaultImageModel, user, signal } = options || {}
+
+  // @note a deployment serves image models only when a provider key is set;
+  // without one the catalogue is empty and any name would pass validation
+
+  if (!Object.keys(imageModels).length) {
+    throwBadRequest('No image model is configured on this deployment')
+  }
 
   const { name, config } = parseAndRevealImageModel(model)
 
@@ -258,7 +266,22 @@ export async function editImage(
 ): Promise<ImageResult> {
   debug(`edit image`, { prompt, images, options })
 
-  const { model = 'gpt-image-1', user, mask, signal } = options || {}
+  // @note the preferred edit model holds only when the deployment serves it;
+  // otherwise the catalogue default stands in rather than a name that cannot
+  // resolve
+  const {
+    model = imageModels['gpt-image-1'] ? 'gpt-image-1' : defaultImageModel,
+    user,
+    mask,
+    signal,
+  } = options || {}
+
+  // @note a deployment serves image models only when a provider key is set;
+  // without one the catalogue is empty and any name would pass validation
+
+  if (!Object.keys(imageModels).length) {
+    throwBadRequest('No image model is configured on this deployment')
+  }
 
   const { name, config } = parseAndRevealImageModel(model)
 

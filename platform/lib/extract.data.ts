@@ -20,6 +20,7 @@ import zodToJsonSchema from 'zod-to-json-schema'
 export interface Message {
   type: MessageType
   text: string
+  meta?: Record<string, unknown>
 }
 
 // --- Core Extraction Functionality ---

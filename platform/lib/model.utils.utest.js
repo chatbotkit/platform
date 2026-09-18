@@ -23,7 +23,10 @@ import {
 import {
   audioModelToUseType,
   audioModelToUseTypeMapping,
+  buildDecisionModel,
   buildLanguageModel,
+  decisionModelToUseType,
+  decisionModelToUseTypeMapping,
   convertLanguageModelTokenCount,
   getBaseImageModelTokenCount,
   getBaseLanguageModelTokenCount,
@@ -31,6 +34,8 @@ import {
   getImageModelTokenRatio,
   getVideoModelTokenRatio,
   hasLanguageModelsByProvider,
+  getBaseDecisionModelTokenCount,
+  getDecisionModelTokenRatio,
   imageModelToUseType,
   imageModelToUseTypeMapping,
   languageModelToUseType,
@@ -42,6 +47,8 @@ import {
   modelSupportsImageInput,
   modelSupportsRealtime,
   modelSupportsResponses,
+  parseAndRevealDecisionModel,
+  parseDecisionModel,
   parseImageModel,
   parseLanguageModel,
   redactLanguageModel,
@@ -50,6 +57,7 @@ import {
   speechToTextModelToUseTypeMapping,
   textToSpeechModelToUseType,
   textToSpeechModelToUseTypeMapping,
+  useTypeToDecisionModelMapping,
 } from '@/lib/model.utils'
 
 jest.mock('@/config/models', () => {
@@ -216,6 +224,18 @@ jest.mock('@/config/models', () => {
       },
       ...actual.videoModels,
     },
+    decisionModels: {
+      jev: {
+        provider: 'typesafe',
+        providerModel: 'jev-latest',
+        pricing: {
+          tokenRatio: 0.003,
+          inputTokenRatio: 0.003,
+          outputTokenRatio: 0,
+        },
+      },
+    },
+    defaultDecisionModel: 'jev',
     speechToTextModels: {
       'gpt-4o-transcribe': { provider: 'openai' },
       ...actual.speechToTextModels,
@@ -632,6 +652,51 @@ describe('imageModelToUseType', () => {
     expect(typeof type).toBe('string')
     expect(type).toMatch(/^[A-Z][A-Z0-9_]+_TOKEN$/)
     expect(type).toBe(imageModelToUseTypeMapping[defaultImageModel])
+  })
+})
+
+describe('decision models', () => {
+  it('must correctly return the correct use type', () => {
+    const type = decisionModelToUseType('jev')
+
+    expect(type).toBe('TYPESAFE_JEV_TOKEN')
+    expect(type).toBe(decisionModelToUseTypeMapping.jev)
+    expect(useTypeToDecisionModelMapping[type]).toBe('jev')
+  })
+
+  it('must throw for a model the catalogue does not define', () => {
+    expect(() => decisionModelToUseType('gpt-image-1.5')).toThrow()
+  })
+
+  it('must return the ratio of each side', () => {
+    expect(getDecisionModelTokenRatio('jev')).toBe(0.003)
+    expect(getDecisionModelTokenRatio('jev', 'input')).toBe(0.003)
+    expect(getDecisionModelTokenRatio('jev', 'output')).toBe(0)
+  })
+
+  it('must calibrate to at least one base token, and to none for no tokens', () => {
+    expect(getBaseDecisionModelTokenCount('jev', 0, 'input')).toBe(0)
+    expect(getBaseDecisionModelTokenCount('jev', 100, 'input')).toBe(1)
+    expect(getBaseDecisionModelTokenCount('jev', 100000, 'input')).toBe(300)
+  })
+
+  it('must parse, build and reveal a model round trip', () => {
+    const built = buildDecisionModel('jev', { region: 'us' })
+
+    expect(parseDecisionModel(built)).toEqual({
+      name: 'jev',
+      config: { region: 'us' },
+    })
+
+    const { name, config } = parseAndRevealDecisionModel(built)
+
+    expect(name).toBe('jev')
+    expect(config.provider).toBe('typesafe')
+    expect(config.providerModel).toBe('jev-latest')
+  })
+
+  it('must refuse to build a model the catalogue does not define', () => {
+    expect(() => buildDecisionModel('gpt-image-1.5', {})).toThrow()
   })
 })
 

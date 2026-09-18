@@ -1,6 +1,10 @@
 import { blobToDataUrl } from '@/lib/dataurl.blob'
 import debug from '@/lib/debug'
 import { SystemError, UserInputError } from '@/lib/error'
+import type {
+  CreateDecisionOptions,
+  CreateDecisionResult,
+} from '@/lib/decision.types'
 import _fetch, { withRetry, withTimeout } from '@/lib/fetch'
 import { getSafeModelStore } from '@/lib/model.context'
 import { resolveProviderCredential } from '@/lib/model.credentials'
@@ -37,6 +41,16 @@ const fetchForImage = withRetry(withTimeout(_fetch, { timeout: 0 }), {
  * (5xx) are still retried.
  */
 const fetchForRerank = withRetry(withTimeout(_fetch, { timeout: 15_000 }), {
+  retries: 5,
+  retryDelay: 250,
+  retryTimeout: false,
+})
+
+/**
+ * fetch instance dedicated for decisions, bounded like fetchForRerank so a
+ * slow gateway fails within the response budget.
+ */
+const fetchForDecision = withRetry(withTimeout(_fetch, { timeout: 15_000 }), {
   retries: 5,
   retryDelay: 250,
   retryTimeout: false,
@@ -1057,6 +1071,72 @@ export async function rerank(
       // query+document token estimate if exact token billing is required.
       inputTokens: 0,
       outputTokens: 1,
+    },
+  }
+}
+
+// --- Decision ---
+
+/**
+ * Answers typed questions about a state using Vercel AI Gateway's evaluation
+ * models (e.g. typesafe-ai/jev), the gateway's name for decision models.
+ *
+ * @note these are not exposed through the OpenAI-compatible endpoint, so this
+ * targets the gateway model protocol directly (POST /v4/ai/evaluation-model
+ * with the ai-model-id header), mirroring the reranking model contract above.
+ */
+export async function decide(
+  options: CreateDecisionOptions
+): Promise<CreateDecisionResult> {
+  const { state, questions, model, modelOptions, signal } = options
+
+  debug(`decide using`, {
+    model,
+    modelOptions,
+    questionCount: Object.keys(questions).length,
+  }).log('vercel.decide')
+
+  const body = {
+    state,
+    questions,
+
+    ...(modelOptions && { providerOptions: modelOptions }),
+  }
+
+  const response = await fetchForDecision(
+    'https://ai-gateway.vercel.sh/v4/ai/evaluation-model',
+    {
+      method: 'POST',
+
+      headers: {
+        Authorization: `Bearer ${getVercelAPIKey()}`,
+        'Content-Type': 'application/json',
+        'ai-gateway-protocol-version': '0.0.1',
+        'ai-gateway-auth-method': 'api-key',
+        'ai-evaluation-model-specification-version': '4',
+        'ai-model-id': model,
+      },
+
+      body: JSON.stringify(body),
+
+      signal,
+    }
+  )
+
+  if (!response.ok) {
+    return await throwOpenAIError(response, { errorPrefix: 'VR_' })
+  }
+
+  const data = await response.json()
+
+  debug(`received data`, { data }).log('vercel.decide.received')
+
+  return {
+    answers: data.answers || {},
+    usage: {
+      model,
+      inputTokens: data.usage?.inputTokens ?? 0,
+      outputTokens: data.usage?.outputTokens ?? 0,
     },
   }
 }

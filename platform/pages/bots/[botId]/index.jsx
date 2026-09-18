@@ -461,7 +461,7 @@ function getBotExecutionSections(
         content: `import { ChatBotKit } from '@chatbotkit/sdk'
 
 const client = new ChatBotKit({
-  secret: process.env.CHATBOTKIT_API_SECRET,
+  token: process.env.CHATBOTKIT_API_TOKEN,
 })
 
 const botId = '${botId}'
@@ -526,7 +526,7 @@ func main() {
   ctx := context.Background()
 
   client := sdk.New(sdk.Options{
-    Secret: os.Getenv("CHATBOTKIT_API_SECRET"),
+    Token: os.Getenv("CHATBOTKIT_API_TOKEN"),
   })
 
   botID := "${botId}"
@@ -592,11 +592,11 @@ func main() {
       code: {
         language: 'bash',
         content: `# Required env vars:
-# export CHATBOTKIT_API_SECRET="..."
+# export CHATBOTKIT_API_TOKEN="..."
 # export BOT_ID="${botId}"
 
 API_BASE="${apiBase}"
-AUTH_HEADER="Authorization: Bearer $CHATBOTKIT_API_SECRET"
+AUTH_HEADER="Authorization: Bearer $CHATBOTKIT_API_TOKEN"
 JSON_HEADER="Content-Type: application/json"
 
 # 1) Completion stream (foreground)

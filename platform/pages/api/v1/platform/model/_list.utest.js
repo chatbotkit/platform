@@ -2,6 +2,17 @@ import { imageModels, languageModels } from '@/config/models'
 
 import handler from './list'
 
+jest.mock('@/config/models', () => {
+  const actual = jest.requireActual('@/config/models')
+
+  return {
+    ...actual,
+    __esModule: true,
+    decisionModels: { jev: { provider: 'typesafe', visible: true } },
+    defaultDecisionModel: 'jev',
+  }
+})
+
 jest.mock('@/lib/method', () => ({
   withGet: (fn) => fn,
 }))
@@ -67,6 +78,14 @@ describe('/api/v1/platform/model/list', () => {
         (item) => visibleModelIds.includes(item.id) && item.type === 'image'
       )
     ).toBe(true)
+  })
+
+  it('lists the decision models and marks the default', async () => {
+    const response = await handler({ query: { type: 'decision' } })
+
+    expect(response.items).toEqual([
+      expect.objectContaining({ id: 'jev', type: 'decision', default: true }),
+    ])
   })
 
   it('rejects an unknown model type', async () => {

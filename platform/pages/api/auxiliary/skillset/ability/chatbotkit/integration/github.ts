@@ -419,6 +419,10 @@ async function apiCall(
 
   const result = await githubRequest(path, { method, body: parsedBody, token })
 
+  if (typeof result === 'string') {
+    return { text: result }
+  }
+
   // @note normalize 204 No Content (e.g. DELETE) to a success object
   return result ?? { ok: true }
 }

@@ -374,7 +374,7 @@
     datasets, conversations, and settings.
 
     Isolation comes from the provider's run_as attribute. You hold one
-    parent User token (CHATBOTKIT_API_KEY) and configure one provider alias
+    parent User token (CHATBOTKIT_API_TOKEN) and configure one provider alias
     per customer, each with run_as set to that customer's child User ID, which
     sends the X-RunAs-UserId header. There are no per-customer tokens - account
     IDs are not secret. This is the standard Terraform multi-account pattern,
@@ -421,7 +421,7 @@
     might be a support bot, another a research agent with a sandbox. A single
     shared root composes them all and deploys every customer in one apply, with
     one shared state. Isolation comes from the provider's run_as attribute: you
-    hold one parent User token (CHATBOTKIT_API_KEY) and each module is wired to
+    hold one parent User token (CHATBOTKIT_API_TOKEN) and each module is wired to
     its customer's child User through a provider alias whose run_as sends the
     X-RunAs-UserId header. No per-customer tokens, no for_each.
 
