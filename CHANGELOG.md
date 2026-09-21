@@ -5,6 +5,31 @@ here. The release version is defined in the workspace root `package.json`.
 
 ## [Unreleased]
 
+## [0.5.1] - 2026-09-21
+
+### Added
+
+- The `grok-4.7` language model (SpaceXAI), served through Vercel AI Gateway
+  (`VERCEL_MODELS_API_KEY`) or OpenRouter (`OPENROUTER_MODELS_API_KEY`). It
+  takes over from `grok-4.6` as the featured Grok model; `grok-4.6` stays
+  available.
+
+### Fixed
+
+- A subscriber closing its `POST /api/v1/channel/{channelId}/subscribe`
+  connection no longer reports an `AbortError: channel stream aborted` to error
+  tracking. The subscription ends quietly, as the API documents.
+- A fetch action whose request starts with blank lines now runs instead of
+  failing with `cannot parse initial line`, and an empty request returns
+  `The fetch request is empty.` to the model without making a call.
+- A remote MCP server that does not answer in time (`MCP error -32001: Request
+  timed out`) is no longer reported to error tracking. The model still receives
+  the timeout error.
+- The built-in `clock10` clock no longer starts on Vercel. An instance frozen
+  between requests dropped the tick mid-publish and reported `TypeError: fetch
+  failed` to error tracking about 130 times a day. A serverless deployment
+  keeps the schedule in its queue backend, as before.
+
 ## [0.5.0] - 2026-09-18
 
 ### Added

@@ -1,5 +1,6 @@
 import { FetchError } from '@/lib/fetch'
 import { rethrowMcpError } from '@/lib/mcp.error'
+import { isUnknownError } from '@/lib/response'
 
 import { StreamableHTTPError } from '@modelcontextprotocol/sdk/client/streamableHttp.js'
 import { McpError } from '@modelcontextprotocol/sdk/types.js'
@@ -53,6 +54,22 @@ describe('mcp.error', () => {
         // visible in logs, distinguishing connect (30000) vs request (60000)
         // timeouts from remote-relayed errors that have no data
         expect(e.name).toBe('FetchError({"timeout":60000})')
+      }
+    })
+
+    it('should treat an McpError request timeout as an expected error', () => {
+      expect.assertions(3)
+
+      const mcpError = new McpError(-32001, 'Request timed out', {
+        timeout: 60000,
+      })
+
+      try {
+        rethrowMcpError(mcpError)
+      } catch (e) {
+        expect(e).toBeInstanceOf(FetchError)
+        expect(e.code).toBe('-32001')
+        expect(isUnknownError(e)).toBe(false)
       }
     })
 

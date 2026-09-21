@@ -90,6 +90,7 @@ describe('bodySchema', () => {
 describe('POST /api/v1/channel/{channelId}/subscribe', () => {
   const { streamChannelEvents } = require('@/lib/channel.session')
   const { throwBadRequest } = require('@/lib/response')
+  const { AbortError } = require('@/lib/fetch')
 
   const mockSession = { id: 'session-abc', user: { id: 'user-456' } }
 
@@ -266,6 +267,67 @@ describe('POST /api/v1/channel/{channelId}/subscribe', () => {
         type: 'message',
         data: { payload: 'important' },
       })
+    })
+
+    it('should end quietly when the subscriber closes the connection', async () => {
+      const channelId = 'valid-channel-id-abcde'
+      const req = { query: { channelId } }
+      const abortController = new AbortController()
+      const stream = { ...makeStream(), abortSignal: abortController.signal }
+
+      streamChannelEvents.mockReturnValue(
+        (async function* () {
+          yield { type: 'message', data: { seq: 1 } }
+
+          abortController.abort()
+
+          throw new AbortError('channel stream aborted')
+        })()
+      )
+
+      await expect(
+        handler(req, stream, mockSession, {})
+      ).resolves.toBeUndefined()
+
+      expect(stream.push).toHaveBeenCalledTimes(1)
+    })
+
+    it('should rethrow an abort the subscriber did not cause', async () => {
+      const channelId = 'valid-channel-id-abcde'
+      const req = { query: { channelId } }
+      const stream = {
+        ...makeStream(),
+        abortSignal: new AbortController().signal,
+      }
+
+      streamChannelEvents.mockReturnValue(
+        (async function* () {
+          throw new AbortError('channel stream aborted')
+        })()
+      )
+
+      await expect(handler(req, stream, mockSession, {})).rejects.toThrow(
+        'channel stream aborted'
+      )
+    })
+
+    it('should rethrow other errors after the subscriber disconnects', async () => {
+      const channelId = 'valid-channel-id-abcde'
+      const req = { query: { channelId } }
+      const abortController = new AbortController()
+      const stream = { ...makeStream(), abortSignal: abortController.signal }
+
+      streamChannelEvents.mockReturnValue(
+        (async function* () {
+          abortController.abort()
+
+          throw new Error('memcache unavailable')
+        })()
+      )
+
+      await expect(handler(req, stream, mockSession, {})).rejects.toThrow(
+        'memcache unavailable'
+      )
     })
 
     it('should not call stream.push when there are no events', async () => {

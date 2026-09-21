@@ -2237,6 +2237,51 @@ export const openrouterLanguageModels: Record<
 
       // xai
 
+      'grok-4.7': {
+        description: `Grok 4.7 is SpaceXAI's advanced model for coding and professional knowledge work, built to tackle complex, multi-hour tasks with improved self-verification and long-context handling. It strengthens software engineering, document creation, and presentation workflows while maintaining Grok 4.6's speed.`,
+
+        provider: 'openrouter',
+
+        providerModel: 'x-ai/grok-4.7',
+
+        family: 'grok',
+
+        features: ['chat', 'functions', 'image', 'reasoning'],
+
+        region: 'us',
+        availableRegions: ['us'],
+
+        featured: true,
+
+        maxTokens: 500_000,
+        maxInputTokens: Math.floor(500_000 * MAX_INPUT_TOKENS_RATIO),
+        maxOutputTokens: Math.ceil(500_000 * MAX_OUTPUT_TOKENS_RATIO),
+
+        pricing: {
+          tokenRatio: 0.2667,
+          inputTokenRatio: 0.1143,
+          outputTokenRatio: 0.2667,
+          inputPrice: 1.6,
+          outputPrice: 4.8,
+        },
+
+        interactionMaxMessages: DEFAULT_INTERACTION_MAX_MESSAGES,
+
+        thresholdStrategy: 'truncate',
+
+        visible: true,
+        deprecated: false,
+
+        temperature: DEFAULT_TEMPERATURE,
+
+        frequencyPenalty: 0,
+        presencePenalty: 0,
+
+        tags: [],
+
+        addedDate: '2026-09-21',
+      },
+
       'grok-4.6': {
         description: `Grok 4.6 builds on Grok 4.5 with a particular focus on long-running agents and more ambitious interactive and visual work. It stays with complex tasks across many steps, whether researching a topic, analyzing information, working across a codebase, or turning an idea into a polished application or work artifact.`,
 
@@ -2250,8 +2295,6 @@ export const openrouterLanguageModels: Record<
 
         region: 'us',
         availableRegions: ['us'],
-
-        featured: true,
 
         maxTokens: 500_000,
         maxInputTokens: Math.floor(500_000 * MAX_INPUT_TOKENS_RATIO),
@@ -5781,6 +5824,63 @@ export const vercelLanguageModels: Record<
 
       // xai
 
+      'grok-4.7': {
+        description: `Grok 4.7 is SpaceXAI's advanced model for coding and professional knowledge work, built to tackle complex, multi-hour tasks with improved self-verification and long-context handling. It strengthens software engineering, document creation, and presentation workflows while maintaining Grok 4.6's speed.`,
+
+        provider: 'vercel',
+
+        providerModel: 'spacexai/grok-4.7',
+
+        providerOptions: {
+          gateway: {
+            // @note xai is not a ZDR-compliant provider on the Vercel AI
+            // Gateway and is the only provider serving this model, so we opt it
+            // out of the platform's forced-ZDR default. With ZDR on, the gateway
+            // has no ZDR-compliant provider to route to and the request fails
+            // with no_providers_available. See the 'vercel gateway config' tests
+            // in lib/model.provider.vercel.utest.js
+            zeroDataRetention: false,
+          },
+        },
+
+        family: 'grok',
+
+        features: ['chat', 'functions', 'image', 'reasoning'],
+
+        region: 'us',
+        availableRegions: ['us'],
+
+        featured: true,
+
+        maxTokens: 500_000,
+        maxInputTokens: Math.floor(500_000 * MAX_INPUT_TOKENS_RATIO),
+        maxOutputTokens: Math.ceil(500_000 * MAX_OUTPUT_TOKENS_RATIO),
+
+        pricing: {
+          tokenRatio: 0.2,
+          inputTokenRatio: 0.0857,
+          outputTokenRatio: 0.2,
+          inputPrice: 1.2,
+          outputPrice: 3.6,
+        },
+
+        interactionMaxMessages: DEFAULT_INTERACTION_MAX_MESSAGES,
+
+        thresholdStrategy: 'truncate',
+
+        visible: true,
+        deprecated: false,
+
+        temperature: DEFAULT_TEMPERATURE,
+
+        frequencyPenalty: 0,
+        presencePenalty: 0,
+
+        tags: [],
+
+        addedDate: '2026-09-21',
+      },
+
       'grok-4.6': {
         description: `Grok 4.6 builds on Grok 4.5 with a particular focus on long-running agents and more ambitious interactive and visual work. It stays with complex tasks across many steps, whether researching a topic, analyzing information, working across a codebase, or turning an idea into a polished application or work artifact.`,
 
@@ -5808,8 +5908,6 @@ export const vercelLanguageModels: Record<
 
         region: 'us',
         availableRegions: ['us'],
-
-        featured: true,
 
         maxTokens: 500_000,
         maxInputTokens: Math.floor(500_000 * MAX_INPUT_TOKENS_RATIO),

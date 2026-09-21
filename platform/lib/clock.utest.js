@@ -99,6 +99,28 @@ describe('startClock', () => {
 
     expect(queue).toHaveBeenCalledTimes(1)
   })
+
+  // @note a serverless instance is frozen between requests, so a publish
+  // started by a timer dies mid-connection and is reported as a failure
+  it('never ticks on a serverless host', async () => {
+    const original = process.env.VERCEL
+
+    process.env.VERCEL = '1'
+
+    try {
+      stop = startClock()
+
+      await jest.advanceTimersByTimeAsync(CLOCK_INTERVAL * 3)
+
+      expect(queue).not.toHaveBeenCalled()
+    } finally {
+      if (original === undefined) {
+        delete process.env.VERCEL
+      } else {
+        process.env.VERCEL = original
+      }
+    }
+  })
 })
 
 describe('tick', () => {
