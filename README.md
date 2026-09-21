@@ -33,7 +33,7 @@
 </div>
 
 <p align="center">
-  <img width="2064" height="1400" alt="AI Platform" src="https://github.com/user-attachments/assets/714f6a5c-5b82-4b2a-af6a-51a1ce7260a1" />
+  <img width="4281" height="2676" alt="image" src="https://github.com/user-attachments/assets/64aa0234-3d78-4ba5-8c55-156e6ed9021f" />
 </p>
 
 Get the breadth of a managed AI platform with control over the infrastructure,
