@@ -77,12 +77,13 @@ import { makeJsonSafe } from '@/lib/struct'
 export * from '@chatbotkit-dev/http-codes'
 
 // @note error codes this application treats as expected alongside the HTTP
-// ones. They are not HTTP codes: one comes from prisma, the other from the
-// channel layer.
+// ones. They are not HTTP codes: they come from prisma, the channel layer and
+// the MCP client.
 
 export const knownExpectedCodesExtra = [
   'P2002', // @note prisma specific for unique constraint violation
   'no_message_received_aborted', // @note channel wait timeout - expected behavior when AI takes too long
+  '-32001', // @note mcp request timeout - the user's remote MCP server did not answer in time
 ]
 
 /**

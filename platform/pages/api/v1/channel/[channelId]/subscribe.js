@@ -1,11 +1,12 @@
 // @ts-check
 import { streamChannelEvents } from '@/lib/channel.session'
-import { withStream } from '@/lib/stream'
+import { ABORT_ERROR_NAME } from '@/lib/fetch'
 import schema, { withSchema } from '@/lib/joi.handler'
 import { withPost } from '@/lib/method'
 import { requiredUrlParam } from '@/lib/query.get'
 import { throwBadRequest } from '@/lib/response'
 import { withSession } from '@/lib/session.handler'
+import { withStream } from '@/lib/stream'
 
 export const bodySchema = schema.object({
   historyLength: schema.number().integer().min(0).max(10000).optional(),
@@ -94,18 +95,32 @@ export default withPost(
           ? { historyLength: body.historyLength }
           : undefined
 
-        for await (const event of streamChannelEvents(session, channelId, {
-          ...options,
+        try {
+          for await (const event of streamChannelEvents(session, channelId, {
+            ...options,
 
-          abortSignal: stream.abortSignal,
-        })) {
-          switch (event.type) {
-            case 'message': {
-              await stream.push({ type: 'message', data: event.data })
+            abortSignal: stream.abortSignal,
+          })) {
+            switch (event.type) {
+              case 'message': {
+                await stream.push({ type: 'message', data: event.data })
 
-              break
+                break
+              }
             }
           }
+        } catch (e) {
+          // @note the subscriber closing the connection is how a subscription
+          // normally ends
+
+          if (
+            stream.abortSignal?.aborted &&
+            /** @type {Error} */ (e)?.name === ABORT_ERROR_NAME
+          ) {
+            return
+          }
+
+          throw e
         }
       })
     )

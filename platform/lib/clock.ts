@@ -14,8 +14,8 @@
 // Two limits, both inherited from where this runs. A deployment with several
 // instances ticks once per instance, and only a queue that deduplicates across
 // processes collapses them - the barebone one does not, and says so. A
-// serverless host ends the interval with the instance, so a deployment there
-// needs its queue backend to keep the schedule.
+// serverless host freezes the instance between requests, so the clock does not
+// start there and the deployment needs its queue backend to keep the schedule.
 
 import { TEN_MINUTES_IN_MILLISECONDS } from '@chatbotkit-dev/time'
 
@@ -74,6 +74,14 @@ export async function tick(now: number = Date.now()): Promise<void> {
  * @returns a function that stops the clock
  */
 export function startClock(): () => void {
+  // @note a serverless instance is frozen between requests, so a publish
+  // started by the timer dies mid-connection; the queue backend's own schedule
+  // is the clock there
+
+  if (process.env.VERCEL) {
+    return () => {}
+  }
+
   debug(`clock started`, { interval: CLOCK_INTERVAL }).log('clock.start')
 
   const timer = setInterval(() => {

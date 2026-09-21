@@ -109,7 +109,7 @@
     "start": "next start",
     "storybook": "storybook dev -p ${STORYBOOK_PORT:-8001}",
     "studio": "npx prisma studio --port ${STUDIO_PORT:-8002}",
-    "test": "pnpm test:unit --coverage",
+    "test": "NODE_OPTIONS=--max-old-space-size=8192 pnpm test:unit --coverage",
     "test:integration": "NODE_ENV=test SKIP_FUNCTION_CACHE=true SKIP_USAGE_RECORDING=true SKIP_LOG_RECORDING=true jest -c jest.itest.config.js --forceExit",
     "test:unit": "NODE_ENV=test SKIP_FUNCTION_CACHE=true SKIP_USAGE_RECORDING=true SKIP_LOG_RECORDING=true jest -c jest.utest.config.js --forceExit"
   },

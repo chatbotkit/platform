@@ -367,7 +367,8 @@ export function parseRequest(input: string, delim?: string): ParsedRequest {
   {
     debug(`parsing request as HTTP`, { input, delim })
 
-    const request = parseHttpRequest(input, delim) as ParsedRequest
+    // @note a request line cannot start with whitespace, while yaml above depends on it
+    const request = parseHttpRequest(input.trimStart(), delim) as ParsedRequest
 
     return request
   }
@@ -587,6 +588,12 @@ export async function executeFetchAction(
   debug(`using`, { input, params, options }).log(
     'action.exec.fetch.executeFetchAction'
   )
+
+  if (input.trim() === '') {
+    return {
+      error: 'The fetch request is empty.',
+    }
+  }
 
   // @todo run through the zod schema declared above
 

@@ -2531,6 +2531,13 @@ options:
       expect(result.result).toBeDefined()
     })
 
+    it('should return an error for a blank request without fetching', async () => {
+      const result = await executeFetchAction(' \n\n', {}, mockOptions)
+
+      expect(result).toEqual({ error: 'The fetch request is empty.' })
+      expect(fetch).not.toHaveBeenCalled()
+    })
+
     it('should handle missing optional context values', async () => {
       getContextContact.mockReturnValue(null)
       getContextTimezone.mockReturnValue(null)
@@ -3435,6 +3442,14 @@ describe('parseRequest', () => {
     const result = parseRequest(input)
 
     expect(result).toEqual(parseHttpRequest(input))
+  })
+
+  it('should ignore blank lines before the HTTP request line', () => {
+    const result = parseRequest('\n\nGET /api/users\nAccept: text/plain', '\n')
+
+    expect(result).toEqual(
+      parseHttpRequest('GET /api/users\nAccept: text/plain', '\n')
+    )
   })
 
   it('should parse http urls as requests', () => {
