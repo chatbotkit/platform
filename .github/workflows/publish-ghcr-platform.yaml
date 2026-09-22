@@ -101,7 +101,13 @@ jobs:
             exit 0
           fi
 
-          if git diff --name-only "$BEFORE" "$GITHUB_SHA" | grep -qE "$pattern"; then
+          # @note files under those paths that cannot change the image: tests
+          # are dropped by .dockerignore, and nothing in the build reads these
+          # documents. Content markdown is read, so only these names are
+          # ignored, not `*.md`.
+          ignored='((^|/)(README|AGENTS|CLAUDE|CHANGELOG)\.md|\.(utest|itest)\.[^/]+)$'
+
+          if git diff --name-only "$BEFORE" "$GITHUB_SHA" | grep -vE "$ignored" | grep -qE "$pattern"; then
             echo "build=true" >> "$GITHUB_OUTPUT"
           else
             echo "build=false" >> "$GITHUB_OUTPUT"
