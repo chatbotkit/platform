@@ -5,6 +5,19 @@ here. The release version is defined in the workspace root `package.json`.
 
 ## [Unreleased]
 
+## [0.5.2] - 2026-09-22
+
+### Added
+
+- The `gpt-6-sol` and `gpt-6-luna` language models (OpenAI), joining
+  `gpt-6-astra` in the GPT-6 family. Sol is featured and aimed at coding and
+  agentic work; Luna is the low-cost option for high-volume tasks. All three
+  share a 1,050,000 token context window.
+- The `claude-5.5-opus` language model (Anthropic), served through Vercel AI
+  Gateway (`VERCEL_MODELS_API_KEY`) as `anthropic/claude-opus-5.5`. It takes
+  over from `claude-5-opus` as the featured Opus model; `claude-5-opus` stays
+  available.
+
 ## [0.5.1] - 2026-09-21
 
 ### Added

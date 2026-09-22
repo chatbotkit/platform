@@ -418,6 +418,90 @@ export const openaiLanguageModels: Record<
         addedDate: '2026-09-04',
       },
 
+      'gpt-6-sol': {
+        description: `GPT-6 Sol is the GPT-6 model built for complex coding and agentic workflows, pairing frontier-class reasoning with markedly lower cost than Astra.`,
+
+        provider: 'openai',
+
+        family: 'gpt-6',
+
+        features: ['chat', 'functions', 'image', 'reasoning', 'responses'],
+
+        region: 'us',
+        availableRegions: ['us', 'eu'],
+
+        featured: true,
+
+        maxTokens: 1_050_000,
+        maxInputTokens: 922_000,
+        maxOutputTokens: 128_000,
+
+        pricing: {
+          tokenRatio: 0.5556,
+          inputTokenRatio: 0.1429,
+          outputTokenRatio: 0.5556,
+          inputPrice: 2.0,
+          outputPrice: 10.0,
+        },
+
+        interactionMaxMessages: DEFAULT_INTERACTION_MAX_MESSAGES,
+
+        thresholdStrategy: 'truncate',
+
+        visible: true,
+        deprecated: false,
+
+        temperature: DEFAULT_TEMPERATURE,
+
+        frequencyPenalty: 0,
+        presencePenalty: 0,
+
+        tags: [],
+
+        addedDate: '2026-09-22',
+      },
+
+      'gpt-6-luna': {
+        description: `GPT-6 Luna is the most efficient GPT-6 model, designed for focused, high-volume tasks such as classification, extraction, ranking, and sub-agents.`,
+
+        provider: 'openai',
+
+        family: 'gpt-6',
+
+        features: ['chat', 'functions', 'image', 'reasoning', 'responses'],
+
+        region: 'us',
+        availableRegions: ['us', 'eu'],
+
+        maxTokens: 1_050_000,
+        maxInputTokens: 922_000,
+        maxOutputTokens: 128_000,
+
+        pricing: {
+          tokenRatio: 0.0278,
+          inputTokenRatio: 0.0071,
+          outputTokenRatio: 0.0278,
+          inputPrice: 0.1,
+          outputPrice: 0.5,
+        },
+
+        interactionMaxMessages: DEFAULT_INTERACTION_MAX_MESSAGES,
+
+        thresholdStrategy: 'truncate',
+
+        visible: true,
+        deprecated: false,
+
+        temperature: DEFAULT_TEMPERATURE,
+
+        frequencyPenalty: 0,
+        presencePenalty: 0,
+
+        tags: [],
+
+        addedDate: '2026-09-22',
+      },
+
       // GPT-5
       'gpt-5.6-sol': {
         description: `GPT-5.6 Sol is OpenAI's newest frontier model for the most complex professional work, leading the GPT-5.6 series with advanced reasoning and the strongest coding performance for high-stakes tasks.`,
@@ -3204,6 +3288,59 @@ export const vercelLanguageModels: Record<
 
       // anthropic
 
+      'claude-5.5-opus': {
+        description: `Claude Opus 5.5 is Anthropic's newest Opus model and a step-change improvement over Opus 5. It pushes further on agentic coding, long-running agentic tasks, knowledge work, communication, and vision, while completing the same work in fewer tokens and reporting its progress, findings, and next steps in clear language.`,
+
+        provider: 'vercel',
+
+        providerModel: 'anthropic/claude-opus-5.5',
+
+        providerOptions: {
+          gateway: {
+            only: ['bedrock', 'vertex'],
+          },
+        },
+
+        family: 'opus',
+
+        features: ['chat', 'functions', 'reasoning', 'image'],
+
+        region: 'us',
+        availableRegions: ['us'],
+
+        featured: true,
+
+        maxTokens: 1_000_000,
+        maxInputTokens: 1_000_000 - 128_000,
+        maxOutputTokens: 128_000,
+
+        pricing: {
+          tokenRatio: 1.1111,
+          inputTokenRatio: 0.2857,
+          outputTokenRatio: 1.1111,
+          inputPrice: 4.0,
+          outputPrice: 20.0,
+        },
+
+        interactionMaxMessages: DEFAULT_INTERACTION_MAX_MESSAGES,
+
+        thresholdStrategy: 'truncate',
+
+        visible: true,
+        deprecated: false,
+
+        requiresUserTurnAsLastMessage: true,
+
+        temperature: DEFAULT_TEMPERATURE,
+
+        frequencyPenalty: 0,
+        presencePenalty: 0,
+
+        tags: [],
+
+        addedDate: '2026-09-22',
+      },
+
       'claude-5.1-fable': {
         description: `Claude Fable 5.1 is Anthropic's most capable model, improving on Fable 5 across long-running agentic coding, knowledge work, and research. It follows instructions precisely over sessions that run unattended for hours and leads on demanding reasoning and long-horizon agentic work.`,
 
@@ -3258,7 +3395,7 @@ export const vercelLanguageModels: Record<
       },
 
       'claude-5-opus': {
-        description: `Claude Opus 5 is Anthropic's latest Opus model and a step-change improvement over Opus 4.8. It delivers major gains in agentic coding, professional knowledge work, and long-horizon reasoning, with stronger performance per token across effort levels.`,
+        description: `Claude Opus 5 is Anthropic's previous flagship Opus model and a step-change improvement over Opus 4.8. It delivers major gains in agentic coding, professional knowledge work, and long-horizon reasoning, with stronger performance per token across effort levels.`,
 
         provider: 'vercel',
 
@@ -3276,8 +3413,6 @@ export const vercelLanguageModels: Record<
 
         region: 'us',
         availableRegions: ['us'],
-
-        featured: true,
 
         maxTokens: 1_000_000,
         maxInputTokens: 1_000_000 - 128_000,
